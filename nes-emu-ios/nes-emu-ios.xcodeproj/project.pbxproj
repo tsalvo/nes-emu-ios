@@ -1,0 +1,421 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		991B28C12489F66300A6A6DD /* Cartridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C02489F66300A6A6DD /* Cartridge.swift */; };
+		991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C3248A22BA00A6A6DD /* CPU.swift */; };
+		991B28C6248B24CB00A6A6DD /* Memory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C5248B24CB00A6A6DD /* Memory.swift */; };
+		991B28C8248B43A700A6A6DD /* APU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C7248B43A700A6A6DD /* APU.swift */; };
+		991B28CA248B43B500A6A6DD /* PPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C9248B43B500A6A6DD /* PPU.swift */; };
+		991B28CC248B470C00A6A6DD /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28CB248B470C00A6A6DD /* Console.swift */; };
+		991B28CE248B746A00A6A6DD /* Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28CD248B746A00A6A6DD /* Controller.swift */; };
+		99488F40248985F100942A1E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F3F248985F100942A1E /* AppDelegate.swift */; };
+		99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F41248985F100942A1E /* DocumentBrowserViewController.swift */; };
+		99488F44248985F100942A1E /* NesRomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F43248985F100942A1E /* NesRomView.swift */; };
+		99488F46248985F100942A1E /* NesRomDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F45248985F100942A1E /* NesRomDocument.swift */; };
+		99488F49248985F100942A1E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99488F47248985F100942A1E /* Main.storyboard */; };
+		99488F4B248985F300942A1E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 99488F4A248985F300942A1E /* Assets.xcassets */; };
+		99488F4E248985F300942A1E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99488F4C248985F300942A1E /* LaunchScreen.storyboard */; };
+		99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */; };
+		99FB2208248DCAE000D557A4 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2207248DCAE000D557A4 /* Palette.swift */; };
+		99FB220A248DCC7A00D557A4 /* Mapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* Mapper.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		991B28C02489F66300A6A6DD /* Cartridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cartridge.swift; sourceTree = "<group>"; };
+		991B28C3248A22BA00A6A6DD /* CPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPU.swift; sourceTree = "<group>"; };
+		991B28C5248B24CB00A6A6DD /* Memory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memory.swift; sourceTree = "<group>"; };
+		991B28C7248B43A700A6A6DD /* APU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APU.swift; sourceTree = "<group>"; };
+		991B28C9248B43B500A6A6DD /* PPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPU.swift; sourceTree = "<group>"; };
+		991B28CB248B470C00A6A6DD /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
+		991B28CD248B746A00A6A6DD /* Controller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controller.swift; sourceTree = "<group>"; };
+		99488F3C248985F100942A1E /* nes-emu-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "nes-emu-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		99488F3F248985F100942A1E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		99488F41248985F100942A1E /* DocumentBrowserViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentBrowserViewController.swift; sourceTree = "<group>"; };
+		99488F43248985F100942A1E /* NesRomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomView.swift; sourceTree = "<group>"; };
+		99488F45248985F100942A1E /* NesRomDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomDocument.swift; sourceTree = "<group>"; };
+		99488F48248985F100942A1E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		99488F4A248985F300942A1E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		99488F4D248985F300942A1E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		99488F4F248985F300942A1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UInt8+ByteUtils.swift"; sourceTree = "<group>"; };
+		99FB2206248D810F00D557A4 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		99FB2207248DCAE000D557A4 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
+		99FB2209248DCC7A00D557A4 /* Mapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		99488F39248985F100942A1E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		991B28C2248A229500A6A6DD /* NES */ = {
+			isa = PBXGroup;
+			children = (
+				991B28CB248B470C00A6A6DD /* Console.swift */,
+				991B28C3248A22BA00A6A6DD /* CPU.swift */,
+				991B28C7248B43A700A6A6DD /* APU.swift */,
+				991B28C9248B43B500A6A6DD /* PPU.swift */,
+				991B28C5248B24CB00A6A6DD /* Memory.swift */,
+				991B28C02489F66300A6A6DD /* Cartridge.swift */,
+				991B28CD248B746A00A6A6DD /* Controller.swift */,
+				99FB2207248DCAE000D557A4 /* Palette.swift */,
+				99FB2209248DCC7A00D557A4 /* Mapper.swift */,
+			);
+			path = NES;
+			sourceTree = "<group>";
+		};
+		99488F33248985F100942A1E = {
+			isa = PBXGroup;
+			children = (
+				99488F3E248985F100942A1E /* nes-emu-ios */,
+				99488F3D248985F100942A1E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		99488F3D248985F100942A1E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				99488F3C248985F100942A1E /* nes-emu-ios.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		99488F3E248985F100942A1E /* nes-emu-ios */ = {
+			isa = PBXGroup;
+			children = (
+				99488F572489BF6F00942A1E /* Extensions */,
+				99488F562489AFC500942A1E /* Model */,
+				99488F552489AFBD00942A1E /* Views */,
+				99488F3F248985F100942A1E /* AppDelegate.swift */,
+				99488F41248985F100942A1E /* DocumentBrowserViewController.swift */,
+				99488F47248985F100942A1E /* Main.storyboard */,
+				99488F4A248985F300942A1E /* Assets.xcassets */,
+				99488F4C248985F300942A1E /* LaunchScreen.storyboard */,
+				99488F4F248985F300942A1E /* Info.plist */,
+				99FB2206248D810F00D557A4 /* README.md */,
+			);
+			path = "nes-emu-ios";
+			sourceTree = "<group>";
+		};
+		99488F552489AFBD00942A1E /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				99488F43248985F100942A1E /* NesRomView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		99488F562489AFC500942A1E /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				991B28C2248A229500A6A6DD /* NES */,
+				99488F45248985F100942A1E /* NesRomDocument.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		99488F572489BF6F00942A1E /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		99488F3B248985F100942A1E /* nes-emu-ios */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 99488F52248985F300942A1E /* Build configuration list for PBXNativeTarget "nes-emu-ios" */;
+			buildPhases = (
+				99488F38248985F100942A1E /* Sources */,
+				99488F39248985F100942A1E /* Frameworks */,
+				99488F3A248985F100942A1E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "nes-emu-ios";
+			productName = "nes-emu-ios";
+			productReference = 99488F3C248985F100942A1E /* nes-emu-ios.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		99488F34248985F100942A1E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1150;
+				LastUpgradeCheck = 1150;
+				ORGANIZATIONNAME = "Tom Salvo";
+				TargetAttributes = {
+					99488F3B248985F100942A1E = {
+						CreatedOnToolsVersion = 11.5;
+					};
+				};
+			};
+			buildConfigurationList = 99488F37248985F100942A1E /* Build configuration list for PBXProject "nes-emu-ios" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 99488F33248985F100942A1E;
+			productRefGroup = 99488F3D248985F100942A1E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				99488F3B248985F100942A1E /* nes-emu-ios */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		99488F3A248985F100942A1E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99488F4E248985F300942A1E /* LaunchScreen.storyboard in Resources */,
+				99488F4B248985F300942A1E /* Assets.xcassets in Resources */,
+				99488F49248985F100942A1E /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		99488F38248985F100942A1E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				991B28C6248B24CB00A6A6DD /* Memory.swift in Sources */,
+				991B28CA248B43B500A6A6DD /* PPU.swift in Sources */,
+				99FB220A248DCC7A00D557A4 /* Mapper.swift in Sources */,
+				99488F46248985F100942A1E /* NesRomDocument.swift in Sources */,
+				991B28CE248B746A00A6A6DD /* Controller.swift in Sources */,
+				991B28C12489F66300A6A6DD /* Cartridge.swift in Sources */,
+				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
+				99FB2208248DCAE000D557A4 /* Palette.swift in Sources */,
+				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
+				99488F44248985F100942A1E /* NesRomView.swift in Sources */,
+				99488F40248985F100942A1E /* AppDelegate.swift in Sources */,
+				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
+				991B28CC248B470C00A6A6DD /* Console.swift in Sources */,
+				99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		99488F47248985F100942A1E /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				99488F48248985F100942A1E /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		99488F4C248985F300942A1E /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				99488F4D248985F300942A1E /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		99488F50248985F300942A1E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		99488F51248985F300942A1E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		99488F53248985F300942A1E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 354MRHL389;
+				INFOPLIST_FILE = "nes-emu-ios/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomsalvo.nes-emu-ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		99488F54248985F300942A1E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 354MRHL389;
+				INFOPLIST_FILE = "nes-emu-ios/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomsalvo.nes-emu-ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		99488F37248985F100942A1E /* Build configuration list for PBXProject "nes-emu-ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				99488F50248985F300942A1E /* Debug */,
+				99488F51248985F300942A1E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		99488F52248985F300942A1E /* Build configuration list for PBXNativeTarget "nes-emu-ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				99488F53248985F300942A1E /* Debug */,
+				99488F54248985F300942A1E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 99488F34248985F100942A1E /* Project object */;
+}
