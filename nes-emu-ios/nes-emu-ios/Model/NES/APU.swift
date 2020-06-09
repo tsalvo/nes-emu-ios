@@ -12,4 +12,9 @@ import Foundation
 class APU
 {
     weak var console: ConsoleProtocol?
+    
+    func step()
+    {
+        
+    }
 }

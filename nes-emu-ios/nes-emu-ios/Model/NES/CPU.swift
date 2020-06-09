@@ -48,6 +48,8 @@ struct InstructionInfo
 /// NES Central processing unit
 class CPU: Memory
 {
+    static let frequency: Int = 1789773
+    
     weak var console: ConsoleProtocol?
     
     init(ppu aPPU: PPU, apu aAPU: APU)

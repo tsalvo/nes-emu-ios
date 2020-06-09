@@ -44,7 +44,6 @@
 		99488F4D248985F300942A1E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		99488F4F248985F300942A1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UInt8+ByteUtils.swift"; sourceTree = "<group>"; };
-		99FB2206248D810F00D557A4 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		99FB2207248DCAE000D557A4 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
 		99FB2209248DCC7A00D557A4 /* Mapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -104,7 +103,6 @@
 				99488F4A248985F300942A1E /* Assets.xcassets */,
 				99488F4C248985F300942A1E /* LaunchScreen.storyboard */,
 				99488F4F248985F300942A1E /* Info.plist */,
-				99FB2206248D810F00D557A4 /* README.md */,
 			);
 			path = "nes-emu-ios";
 			sourceTree = "<group>";
