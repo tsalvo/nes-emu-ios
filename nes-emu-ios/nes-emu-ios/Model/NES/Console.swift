@@ -15,7 +15,6 @@ protocol ConsoleProtocol: class
 
 class Console: ConsoleProtocol
 {
-    let mapper: MapperProtocol?
     let apu: APU
     let ppu: PPU
     let cpu: CPU
@@ -26,12 +25,11 @@ class Console: ConsoleProtocol
     {
         let apu = APU()
         let mapper = aCartridge.mapperIdentifier.mapper(forCartridge: aCartridge)
-        let ppu = PPU(cartridge: aCartridge, mapper: mapper)
+        let ppu = PPU(mapper: mapper, mirroringMode: aCartridge.mirroringMode)
         self.cpu = CPU(ppu: ppu, apu: apu, mapper: mapper)
         self.apu = apu
         self.ppu = ppu
         self.cartridge = aCartridge
-        self.mapper = mapper
         self.cpu.console = self
         self.apu.console = self
         self.ppu.console = self
@@ -51,7 +49,6 @@ class Console: ConsoleProtocol
         for _ in 0 ..< ppuCycles
         {
             self.ppu.step()
-            self.mapper?.step()
         }
         
         for _ in 0 ..< cpuCycles
@@ -79,6 +76,22 @@ class Console: ConsoleProtocol
         while cycles > 0
         {
             cycles -= self.step()
+        }
+    }
+    
+    func stepSeconds(seconds aSeconds: Float64, queue aQueue: DispatchQueue?, completionQueue aCompletionQueue: DispatchQueue?, completionHandler aCompletionHandler: (() -> Void)?)
+    {
+        (aQueue ?? DispatchQueue.main).async { [weak self] in
+            
+            var cycles = Int(Float64(CPU.frequency) * aSeconds)
+            while cycles > 0
+            {
+                cycles -= self?.step() ?? 0
+            }
+            
+            (aCompletionQueue ?? DispatchQueue.main).async {
+                aCompletionHandler?()
+            }
         }
     }
 }

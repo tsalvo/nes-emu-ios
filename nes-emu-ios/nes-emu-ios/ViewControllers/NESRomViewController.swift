@@ -17,6 +17,8 @@ class NESRomViewController: UIViewController
     var console: Console?
     var displayLink: CADisplayLink?
     
+    let consoleQueue: DispatchQueue = DispatchQueue(label: "consoleQueue", qos: .userInteractive)
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -32,7 +34,7 @@ class NESRomViewController: UIViewController
         super.viewWillAppear(animated)
         self.displayLink?.invalidate()
         self.displayLink = CADisplayLink(target: self, selector: #selector(updateFrame))
-        self.displayLink?.preferredFramesPerSecond = 3
+        self.displayLink?.preferredFramesPerSecond = 60
         self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.default)
     }
     
@@ -53,7 +55,9 @@ class NESRomViewController: UIViewController
     
     @objc private func updateFrame()
     {
-        self.console?.stepSeconds(seconds: 1.0 / 60.0)
-        self.screen.buffer = self.console?.ppu.frontBuffer ?? []
+        self.console?.stepSeconds(seconds: 1.0 / 60.0, queue: self.consoleQueue, completionQueue: DispatchQueue.main, completionHandler: { [weak self] in
+            //NSLog("frame update")
+            self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
+        })
     }
 }

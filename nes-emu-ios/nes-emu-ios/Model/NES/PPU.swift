@@ -28,8 +28,8 @@ enum MirroringMode
 /// NES Picture Processing Unit
 class PPU: Memory
 {
-    private weak var mapper: MapperProtocol?
-    private weak var cartridge: CartridgeProtocol?
+    private var mapper: MapperProtocol
+    private var mirroringMode: MirroringMode
     
     var cycle: Int = 340
     var scanline: Int = 240
@@ -141,10 +141,10 @@ class PPU: Memory
     
     weak var console: ConsoleProtocol?
     
-    init(cartridge aCartridge: CartridgeProtocol?, mapper aMapper: MapperProtocol?)
+    init(mapper aMapper: MapperProtocol, mirroringMode aMirroringMode: MirroringMode)
     {
         self.mapper = aMapper
-        self.cartridge = aCartridge
+        self.mirroringMode = aMirroringMode
     }
     
     func read(address aAddress: UInt16) -> UInt8
@@ -152,16 +152,9 @@ class PPU: Memory
         let address = aAddress % 0x4000
         switch address {
         case 0x0000 ..< 0x2000:
-            return self.mapper?.read(address: address) ?? 0
+            return self.mapper.read(address: address)
         case 0x2000 ..< 0x3F00:
-            if let safeMode = self.cartridge?.mirroringMode
-            {
-                return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: safeMode) % 2048)]
-            }
-            else
-            {
-                return 0
-            }
+            return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mirroringMode) % 2048)]
         case 0x3F00 ..< 0x4000:
             return self.readPalette(address: (address % 32))
         default:
@@ -174,12 +167,9 @@ class PPU: Memory
         let address = aAddress % 0x4000
         switch address {
         case 0x0000 ..< 0x2000:
-            self.mapper?.write(address: address, value: aValue)
+            self.mapper.write(address: address, value: aValue)
         case 0x2000 ..< 0x3F00:
-            if let safeMode = self.cartridge?.mirroringMode
-            {
-                self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: safeMode) % 2048)] = aValue
-            }
+            self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mirroringMode) % 2048)] = aValue
         case 0x3F00 ..< 0x4000:
             self.writePalette(address: (address % 32), value: aValue)
         default:
@@ -670,7 +660,7 @@ class PPU: Memory
         
         let c = Palette.colors[Int(self.readPalette(address: UInt16(color)) % 64)]
         self.frontBuffer[(256 * (239 - y)) + x] = c
-        //self.backBuffer[(256 * (239 - y)) + x] = c
+        //self.backBuffer[(256 * (239 - y)) + x] = c // OLD
     }
 
     func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
@@ -829,7 +819,6 @@ class PPU: Memory
         let renderingEnabled = self.flagShowBackground != 0 || self.flagShowSprites != 0
         let preLine = self.scanline == 261
         let visibleLine = self.scanline < 240
-        // postLine := self.ScanLine == 240
         let renderLine = preLine || visibleLine
         let preFetchCycle = self.cycle >= 321 && self.cycle <= 336
         let visibleCycle = self.cycle >= 1 && self.cycle <= 256
@@ -914,5 +903,7 @@ class PPU: Memory
             self.flagSpriteZeroHit = 0
             self.flagSpriteOverflow = 0
         }
+        
+        self.mapper.step()
     }
 }
