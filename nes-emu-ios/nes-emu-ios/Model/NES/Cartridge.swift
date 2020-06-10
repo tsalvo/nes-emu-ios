@@ -10,8 +10,9 @@ import Foundation
 
 protocol CartridgeProtocol: class
 {
-    var prgBlocks: [Data] { get }
-    var chrBlocks: [Data] { get }
+    var mirroringMode: MirroringMode { get }
+    var prgBlocks: [[UInt8]] { get }
+    var chrBlocks: [[UInt8]] { get set }
 }
 
 class Cartridge: CartridgeProtocol
@@ -73,7 +74,7 @@ class Cartridge: CartridgeProtocol
         let totalChrSize: Int = Int(numChrBlocks) * chrBlockSize
         let trainerOffset: Int = 16 // trainer (if present) comes after header
         let prgOffset: Int = trainerOffset + trainerSize // prg blocks come after trainer (if present)
-        let chrOffset: Int = prgOffset + totalChrSize // chr blocks come after prg blocks
+        let chrOffset: Int = prgOffset + totalPrgSize // chr blocks come after prg blocks
         
         let expectedFileSizeOfEntireRomInBytes: Int = headerSize + trainerSize + totalPrgSize + totalChrSize
         
@@ -90,18 +91,18 @@ class Cartridge: CartridgeProtocol
         
         self.trainerData = hasTrainer ? aData.subdata(in: trainerOffset ..< prgOffset) : Data()
         
-        var pBlocks: [Data] = []
+        var pBlocks: [[UInt8]] = []
         for i in 0 ..< Int(numPrgBlocks)
         {
             let offset: Int = prgOffset + (i * prgBlockSize)
-            pBlocks.append(aData.subdata(in: offset ..< offset + prgBlockSize))
+            pBlocks.append([UInt8](aData.subdata(in: offset ..< offset + prgBlockSize)))
         }
         
-        var cBlocks: [Data] = []
+        var cBlocks: [[UInt8]] = []
         for i in 0 ..< Int(numChrBlocks)
         {
             let offset: Int = chrOffset + (i * chrBlockSize)
-            cBlocks.append(aData.subdata(in: offset ..< offset + chrBlockSize))
+            cBlocks.append([UInt8](aData.subdata(in: offset ..< offset + chrBlockSize)))
         }
         
         self.prgBlocks = pBlocks
@@ -112,9 +113,9 @@ class Cartridge: CartridgeProtocol
     
     let data: Data
     let trainerData: Data
-    let prgBlocks: [Data]
-    let chrBlocks: [Data]
-    let mapperIdentifier: MapperIdentifier // TODO: change to MapperIdentifier enum
+    let prgBlocks: [[UInt8]]
+    var chrBlocks: [[UInt8]]
+    let mapperIdentifier: MapperIdentifier
     let mirroringMode: MirroringMode
     let hasTrainer: Bool
     let hasBattery: Bool

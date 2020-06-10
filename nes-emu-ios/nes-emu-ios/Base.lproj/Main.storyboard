@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13122.16" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
-    <device id="retina4_7" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina4_0" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13104.12"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -12,17 +10,84 @@
         <!--Document Browser View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="DocumentBrowserViewController" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="DocumentBrowserViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" xcode11CocoaTouchSystemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <viewLayoutGuide key="safeArea" id="0fo-ii-Aj5"/>
                     </view>
+                    <connections>
+                        <segue destination="tG2-AL-uMa" kind="presentation" identifier="playROM" modalTransitionStyle="crossDissolve" id="g7F-VY-cYx"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="26" y="654"/>
+            <point key="canvasLocation" x="22" y="375"/>
+        </scene>
+        <!--Rom View Controller-->
+        <scene sceneID="OLt-KN-1dR">
+            <objects>
+                <viewController modalPresentationStyle="fullScreen" id="tG2-AL-uMa" customClass="NESRomViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="iZl-zf-zL1">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="f8W-xa-Q3Q" customClass="NESScreenView" customModule="nes_emu_ios" customModuleProvider="target">
+                                <rect key="frame" x="32" y="76" width="256" height="240"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="240" id="Vdf-WH-tRe"/>
+                                    <constraint firstAttribute="width" constant="256" id="zKL-pK-9oP"/>
+                                </constraints>
+                            </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3Y6-wu-6I2">
+                                <rect key="frame" x="266" y="16" width="44" height="40"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="2FC-x1-K3H"/>
+                                    <constraint firstAttribute="width" constant="44" id="ksx-SJ-Qwu"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="19"/>
+                                <state key="normal" image="xmark" catalog="system">
+                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="24" scale="medium" weight="semibold"/>
+                                </state>
+                                <connections>
+                                    <action selector="dismiss:" destination="tG2-AL-uMa" eventType="touchUpInside" id="Xjj-dJ-CW1"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="secondarySystemBackgroundColor" red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" secondItem="3Y6-wu-6I2" secondAttribute="bottom" constant="20" id="KCS-lS-tjj"/>
+                            <constraint firstItem="f8W-xa-Q3Q" firstAttribute="centerX" secondItem="vZj-GA-yrE" secondAttribute="centerX" id="PSS-J2-1Co"/>
+                            <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" secondItem="vZj-GA-yrE" secondAttribute="top" constant="20" id="QQD-5q-ROr"/>
+                            <constraint firstItem="vZj-GA-yrE" firstAttribute="trailing" secondItem="3Y6-wu-6I2" secondAttribute="trailing" constant="10" id="ael-qU-N8g"/>
+                            <constraint firstItem="3Y6-wu-6I2" firstAttribute="top" secondItem="vZj-GA-yrE" secondAttribute="top" constant="16" id="u1G-22-vXa"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="vZj-GA-yrE"/>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="QQD-5q-ROr"/>
+                            </mask>
+                        </variation>
+                        <variation key="heightClass=compact-widthClass=compact">
+                            <mask key="constraints">
+                                <exclude reference="KCS-lS-tjj"/>
+                                <include reference="QQD-5q-ROr"/>
+                            </mask>
+                        </variation>
+                    </view>
+                    <connections>
+                        <outlet property="dismissButton" destination="3Y6-wu-6I2" id="Ky0-2D-9tK"/>
+                        <outlet property="screen" destination="f8W-xa-Q3Q" id="LeF-d8-C8t"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="g06-vX-JML" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1003" y="375"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="xmark" catalog="system" width="128" height="113"/>
+    </resources>
 </document>

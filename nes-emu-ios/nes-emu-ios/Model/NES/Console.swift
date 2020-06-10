@@ -25,13 +25,13 @@ class Console: ConsoleProtocol
     init(withCartridge aCartridge: Cartridge)
     {
         let apu = APU()
-        let ppu = PPU()
-        
-        self.cpu = CPU(ppu: ppu, apu: apu)
+        let mapper = aCartridge.mapperIdentifier.mapper(forCartridge: aCartridge)
+        let ppu = PPU(cartridge: aCartridge, mapper: mapper)
+        self.cpu = CPU(ppu: ppu, apu: apu, mapper: mapper)
         self.apu = apu
         self.ppu = ppu
         self.cartridge = aCartridge
-        self.mapper = aCartridge.mapperIdentifier.mapper(forCartridge: aCartridge)
+        self.mapper = mapper
         self.cpu.console = self
         self.apu.console = self
         self.ppu.console = self
@@ -40,6 +40,7 @@ class Console: ConsoleProtocol
     func reset()
     {
         self.cpu.reset()
+        self.ppu.reset()
     }
     
     func step() -> Int

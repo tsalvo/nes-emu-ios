@@ -19,5 +19,5 @@ struct Palette
             0xBCBE00, 0x88D800, 0x5CE430, 0x45E082, 0x48CDDE, 0x4F4F4F, 0x000000, 0x000000,
             0xFFFEFF, 0xC0DFFF, 0xD3D2FF, 0xE8C8FF, 0xFBC2FF, 0xFEC4EA, 0xFECCC5, 0xF7D8A5,
             0xE4E594, 0xCFEF96, 0xBDF4AB, 0xB3F3CC, 0xB5EBF2, 0xB8B8B8, 0x000000, 0x000000,
-        ]//.map({ UIColor.init(red: CGFloat(UInt8($0 >> 16)) / 255.0, green: CGFloat(UInt8($0 >> 8)) / 255.0, blue: CGFloat(UInt8($0)) / 255.0, alpha: 1.0) })
+        ]
 }

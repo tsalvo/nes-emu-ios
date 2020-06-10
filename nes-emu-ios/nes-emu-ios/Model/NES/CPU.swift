@@ -52,16 +52,19 @@ class CPU: Memory
     
     weak var console: ConsoleProtocol?
     
-    init(ppu aPPU: PPU, apu aAPU: APU)
+    init(ppu aPPU: PPU, apu aAPU: APU, mapper aMapper: MapperProtocol?)
     {
-        self.memory = CPUMemory(ppu: aPPU, apu: aAPU)
         self.apu = aAPU
         self.ppu = aPPU
+        self.mapper = aMapper
     }
     
-    private let memory: Memory
     private let apu: APU
     private let ppu: PPU
+    private let mapper: MapperProtocol?
+    
+    /// 2KB RAM
+    private var ram: [UInt8] = [UInt8].init(repeating: 0, count: 2048)
     
     /// all 6502 op codes, containing all combinations of instructions and their associated addressing mode(s).  some op codes point to "illegal" instructions (such as slo, kil, anc, rla, sre, alr, rra, arr, sax, xaa, ahx, tas, shy, shx, lax, las, dcp, axs, isc) which won't do anything
     private lazy var instructionTable: [InstructionInfo] = {
@@ -429,7 +432,7 @@ class CPU: Memory
     /// compare two values and set zero, negative, and carry flags accordingly
     func compare(valueA aValueA: UInt8, valueB aValueB: UInt8)
     {
-        self.setZN(value: aValueA - aValueB)
+        self.setZN(value: aValueA &- aValueB)
         self.c = aValueA >= aValueB ? true : false
     }
     
@@ -437,12 +440,59 @@ class CPU: Memory
     
     func read(address aAddress: UInt16) -> UInt8
     {
-        return self.memory.read(address: aAddress)
+        switch aAddress {
+        case 0x0000 ..< 0x2000:
+            return self.ram[Int(aAddress % 0x0800)]
+        case 0x2000 ..< 0x4000:
+            return self.ppu.readRegister(address: 0x2000 + (aAddress % 8))
+        case 0x4014:
+            return self.ppu.readRegister(address: aAddress)
+        case 0x4015:
+            return 0 //return self.apu.readRegister(address: aAddress)
+        case 0x4016:
+            return 0 //mem.console.Controller1.Read()
+        case 0x4017:
+            return 0 //mem.console.Controller2.Read()
+        case 0x4000 ..< 0x6000:
+            return 0
+            // TODO: I/O registers
+        case 0x6000 ... 0xFFFF:
+            return self.mapper?.read(address: aAddress) ?? 0
+        default:
+            return 0
+        }
     }
     
-    func write(address aAddress: UInt16, byte aByte: UInt8)
+    func write(address aAddress: UInt16, value aValue: UInt8)
     {
-        self.memory.write(address: aAddress, byte: aByte)
+        switch aAddress {
+        case 0x0000 ..< 0x2000:
+            self.ram[Int(aAddress % 0x0800)] = aValue
+        case 0x2000 ..< 0x4000:
+            self.ppu.writeRegister(address: 0x2000 + (aAddress % 8), value: aValue)
+        case 0x4000 ..< 0x4014:
+            //mem.console.APU.writeRegister(address, value)
+            break
+        case 0x4014:
+            self.ppu.writeRegister(address: aAddress, value: aValue)
+        case 0x4015:
+            //mem.console.APU.writeRegister(address, value)
+            break
+        case 0x4016:
+            //mem.console.Controller1.Write(value)
+            //mem.console.Controller2.Write(value)
+            break
+        case 0x4017:
+            //mem.console.APU.writeRegister(address, value)
+            break
+        case 0x4000 ..< 0x6000:
+            // TODO: I/O registers
+            break
+        case 0x6000 ... 0xFFFF:
+            self.mapper?.write(address: aAddress, value: aValue)
+        default:
+            break
+        }
     }
     
     /// checks whether two 16-bit addresses reside on different pages
@@ -455,7 +505,7 @@ class CPU: Memory
     func read16(address aAddress: UInt16) -> UInt16
     {
         let lo: UInt16 = UInt16(self.read(address: aAddress))
-        let hi: UInt16 = UInt16(self.read(address: aAddress + 1))
+        let hi: UInt16 = UInt16(self.read(address: aAddress &+ 1))
         return (hi << 8) | lo
     }
 
@@ -463,7 +513,7 @@ class CPU: Memory
     func read16bug(address aAddress: UInt16) -> UInt16
     {
         let a: UInt16 = aAddress
-        let b = (a & 0xFF00) | UInt16(UInt8(a) + 1)
+        let b = (a & 0xFF00) | UInt16(UInt8(a) &+ 1)
         let lo = self.read(address: a)
         let hi = self.read(address: b)
         return (UInt16(hi) << 8) | UInt16(lo)
@@ -474,14 +524,14 @@ class CPU: Memory
     /// pushes a byte onto the stack
     func push(value aValue: UInt8)
     {
-        self.write(address: 0x100 | UInt16(self.sp), byte: aValue)
-        self.sp -= 1
+        self.write(address: 0x100 | UInt16(self.sp), value: aValue)
+        self.sp &-= 1
     }
 
     /// pops a byte from the stack
     func pull() -> UInt8
     {
-        self.sp += 1
+        self.sp &+= 1
         return self.read(address: 0x100 | UInt16(self.sp))
     }
 
@@ -524,10 +574,10 @@ class CPU: Memory
     /// adds a cycle for taking a branch and adds another cycle if the branch jumps to a new page
     func addBranchCycles(stepInfo aStepInfo: StepInfo)
     {
-        self.cycles += 1
+        self.cycles &+= 1
         if self.pagesDiffer(address1: aStepInfo.pc, address2: aStepInfo.address)
         {
-            self.cycles += 1
+            self.cycles &+= 1
         }
     }
     
@@ -538,7 +588,7 @@ class CPU: Memory
         self.php(stepInfo: StepInfo(address: 0, pc: 0, mode: .implied))
         self.pc = self.read16(address: 0xFFFA)
         self.i = true
-        self.cycles += 7
+        self.cycles &+= 7
     }
 
     /// IRQ - IRQ Interrupt
@@ -548,7 +598,7 @@ class CPU: Memory
         self.php(stepInfo: StepInfo(address: 0, pc: 0, mode: .implied)) // placeholder StepInfo value (unused)
         self.pc = self.read16(address: 0xFFFE)
         self.i = true
-        self.cycles += 7
+        self.cycles &+= 7
     }
     
     /// executes a single CPU instruction
@@ -575,52 +625,51 @@ class CPU: Memory
         let opcode = self.read(address: self.pc)
         let instructioninfo: InstructionInfo = self.instructionTable[Int(opcode)]
         let mode: AddressingMode = instructioninfo.mode
-
         var address: UInt16
         var pageCrossed: Bool = false
         switch mode
         {
         case .absolute:
-            address = self.read16(address: self.pc + 1)
+            address = self.read16(address: self.pc &+ 1)
         case .absoluteXIndexed:
-            address = self.read16(address: self.pc + 1) + UInt16(self.x)
+            address = self.read16(address: self.pc &+ 1) &+ UInt16(self.x)
             pageCrossed = self.pagesDiffer(address1: address - UInt16(self.x), address2: address)
         case .absoluteYIndexed:
-            address = self.read16(address: self.pc + 1) + UInt16(self.y)
+            address = self.read16(address: self.pc &+ 1) &+ UInt16(self.y)
             pageCrossed = self.pagesDiffer(address1: address - UInt16(self.y), address2: address)
         case .accumulator:
             address = 0
         case .immediate:
-            address = self.pc + 1
+            address = self.pc &+ 1
         case .implied:
             address = 0
         case .xIndexedIndirect:
-            address = self.read16bug(address: UInt16(self.read(address: self.pc + 1) + self.x))
+            address = self.read16bug(address: UInt16(self.read(address: self.pc &+ 1) &+ self.x))
         case .indirect:
-            address = self.read16bug(address: self.read16(address: self.pc + 1))
+            address = self.read16bug(address: self.read16(address: self.pc &+ 1))
         case .indirectYIndexed:
-            address = self.read16bug(address: UInt16(self.read(address: self.pc + 1))) + UInt16(self.y)
-            pageCrossed = self.pagesDiffer(address1: address - UInt16(self.y), address2: address)
+            address = self.read16bug(address: UInt16(self.read(address: self.pc &+ 1))) &+ UInt16(self.y)
+            pageCrossed = self.pagesDiffer(address1: address &- UInt16(self.y), address2: address)
         case .relative:
-            let offset = UInt16(self.read(address: self.pc + 1))
+            let offset = UInt16(self.read(address: self.pc &+ 1))
             if offset < 0x80 {
-                address = self.pc + 2 + offset
+                address = self.pc &+ 2 &+ offset
             } else {
-                address = self.pc + 2 + offset - 0x100
+                address = self.pc &+ 2 &+ offset &- 0x100
             }
         case .zeropage:
-            address = UInt16(self.read(address: self.pc + 1))
+            address = UInt16(self.read(address: self.pc &+ 1))
         case .zeroPageXIndexed:
-            address = UInt16(self.read(address: self.pc + 1) + self.x) & 0xff
+            address = UInt16(self.read(address: self.pc &+ 1) &+ self.x) & 0xff
         case .zeroPageYIndexed:
-            address = UInt16(self.read(address: self.pc + 1) + self.y) & 0xff
+            address = UInt16(self.read(address: self.pc &+ 1) &+ self.y) & 0xff
         }
 
-        self.pc += UInt16(instructioninfo.bytes)
-        self.cycles += UInt64(instructioninfo.cycles)
+        self.pc &+= UInt16(instructioninfo.bytes)
+        self.cycles &+= UInt64(instructioninfo.cycles)
         if pageCrossed
         {
-            self.cycles += UInt64(instructioninfo.pageBoundaryCycles)
+            self.cycles &+= UInt64(instructioninfo.pageBoundaryCycles)
         }
         let info: StepInfo = StepInfo(address: address, pc: self.pc, mode: mode)
         instructioninfo.code(info)
@@ -636,7 +685,7 @@ class CPU: Memory
         let a: UInt8 = self.a
         let b: UInt8 = self.read(address: aStepInfo.address)
         let c: UInt8 = self.c ? 1 : 0
-        self.a = a + b + c
+        self.a = a &+ b &+ c
         self.setZN(value: self.a)
         if Int(a) + Int(b) + Int(c) > 0xFF
         {
@@ -678,7 +727,7 @@ class CPU: Memory
             var value = self.read(address: aStepInfo.address)
             self.c = ((value >> 7) & 1) == 1
             value <<= 1
-            self.write(address: aStepInfo.address, byte: value)
+            self.write(address: aStepInfo.address, value: value)
             self.setZN(value: value)
         }
     }
@@ -829,22 +878,22 @@ class CPU: Memory
     /// DEC - Decrement Memory
     func dec(stepInfo aStepInfo: StepInfo)
     {
-        let value = self.read(address: aStepInfo.address) - 1
-        self.write(address: aStepInfo.address, byte: value)
+        let value = self.read(address: aStepInfo.address) &- 1
+        self.write(address: aStepInfo.address, value: value)
         self.setZN(value: value)
     }
 
     /// DEX - Decrement X Register
     func dex(stepInfo aStepInfo: StepInfo)
     {
-        self.x -= 1
+        self.x &-= 1 // decrement and wrap if needed
         self.setZN(value: self.x)
     }
 
     /// DEY - Decrement Y Register
     func dey(stepInfo aStepInfo: StepInfo)
     {
-        self.y -= 1
+        self.y &-= 1 // decrement and wrap if needed
         self.setZN(value: self.y)
     }
 
@@ -858,22 +907,23 @@ class CPU: Memory
     /// INC - Increment Memory
     func inc(stepInfo aStepInfo: StepInfo)
     {
-        let value = self.read(address: aStepInfo.address) + 1
-        self.write(address: aStepInfo.address, byte: value)
+        let value: UInt8 = self.read(address: aStepInfo.address) &+ 1 // wrap if needed
+        self.write(address: aStepInfo.address, value: value)
         self.setZN(value: value)
     }
 
     /// INX - Increment X Register
     func inx(stepInfo aStepInfo: StepInfo)
     {
-        self.x += 1
+        self.x &+= 1 // increment and wrap if needed
         self.setZN(value: self.x)
     }
 
     /// INY - Increment Y Register
     func iny(stepInfo aStepInfo: StepInfo)
     {
-        self.y += 1
+        
+        self.y &+= 1 // increment and wrap if needed
         self.setZN(value: self.y)
     }
 
@@ -925,7 +975,7 @@ class CPU: Memory
             var value = self.read(address: aStepInfo.address)
             self.c = (value & 1) == 1
             value >>= 1
-            self.write(address: aStepInfo.address, byte: value)
+            self.write(address: aStepInfo.address, value: value)
             self.setZN(value: value)
         }
     }
@@ -984,7 +1034,7 @@ class CPU: Memory
             var value = self.read(address: aStepInfo.address)
             self.c = ((value >> 7) & 1) == 1
             value = (value << 1) | c
-            self.write(address: aStepInfo.address, byte: value)
+            self.write(address: aStepInfo.address, value: value)
             self.setZN(value: value)
         }
     }
@@ -1005,7 +1055,7 @@ class CPU: Memory
             var value = self.read(address: aStepInfo.address)
             self.c = (value & 1) == 1
             value = (value >> 1) | (c << 7)
-            self.write(address: aStepInfo.address, byte: value)
+            self.write(address: aStepInfo.address, value: value)
             self.setZN(value: value)
         }
     }
@@ -1020,7 +1070,7 @@ class CPU: Memory
     /// RTS - Return from Subroutine
     func rts(stepInfo aStepInfo: StepInfo)
     {
-        self.pc = self.pull16() + 1
+        self.pc = self.pull16() &+ 1
     }
 
     /// SBC - Subtract with Carry
@@ -1029,7 +1079,7 @@ class CPU: Memory
         let a: UInt8 = self.a
         let b: UInt8 = self.read(address: aStepInfo.address)
         let c: UInt8 = self.c ? 1 : 0
-        self.a = a - b - (1 - c)
+        self.a = a &- b &- (1 - c)
         self.setZN(value: self.a)
         if Int(a) - Int(b) - Int(1 - c) >= 0
         {
@@ -1071,19 +1121,19 @@ class CPU: Memory
     /// STA - Store Accumulator
     func sta(stepInfo aStepInfo: StepInfo)
     {
-        self.write(address: aStepInfo.address, byte: self.a)
+        self.write(address: aStepInfo.address, value: self.a)
     }
 
     /// STX - Store X Register
     func stx(stepInfo aStepInfo: StepInfo)
     {
-        self.write(address: aStepInfo.address, byte: self.x)
+        self.write(address: aStepInfo.address, value: self.x)
     }
 
     /// STY - Store Y Register
     func sty(stepInfo aStepInfo: StepInfo)
     {
-        self.write(address: aStepInfo.address, byte: self.y)
+        self.write(address: aStepInfo.address, value: self.y)
     }
 
     /// TAX - Transfer Accumulator to X

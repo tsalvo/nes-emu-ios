@@ -28,6 +28,9 @@ enum MirroringMode
 /// NES Picture Processing Unit
 class PPU: Memory
 {
+    private weak var mapper: MapperProtocol?
+    private weak var cartridge: CartridgeProtocol?
+    
     var cycle: Int = 340
     var scanline: Int = 240
     var frame: UInt64 = 0
@@ -130,24 +133,66 @@ class PPU: Memory
     var bufferedData: UInt8 = 0
     
     // MARK: Pixel Buffer
+    
     /// colors in RGBA format from Palette.colors
-    var frontBuffer: [[UInt32]] = [[UInt32]].init(repeating: [UInt32].init(repeating: 0x000000, count: 240), count: 256)
+    var frontBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 240 * 256)
     /// colors in RGBA format from Palette.colors
-    var backBuffer: [[UInt32]] = [[UInt32]].init(repeating: [UInt32].init(repeating: 0x000000, count: 240), count: 256)
+    var backBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 240 * 256)
     
     weak var console: ConsoleProtocol?
-    private let memory: Memory = PPUMemory()
     
-    
+    init(cartridge aCartridge: CartridgeProtocol?, mapper aMapper: MapperProtocol?)
+    {
+        self.mapper = aMapper
+        self.cartridge = aCartridge
+    }
     
     func read(address aAddress: UInt16) -> UInt8
     {
-        return self.memory.read(address: aAddress)
+        let address = aAddress % 0x4000
+        switch address {
+        case 0x0000 ..< 0x2000:
+            return self.mapper?.read(address: address) ?? 0
+        case 0x2000 ..< 0x3F00:
+            if let safeMode = self.cartridge?.mirroringMode
+            {
+                return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: safeMode) % 2048)]
+            }
+            else
+            {
+                return 0
+            }
+        case 0x3F00 ..< 0x4000:
+            return self.readPalette(address: (address % 32))
+        default:
+            return 0
+        }
     }
     
-    func write(address aAddress: UInt16, byte aByte: UInt8)
+    func write(address aAddress: UInt16, value aValue: UInt8)
     {
-        self.memory.write(address: aAddress, byte: aByte)
+        let address = aAddress % 0x4000
+        switch address {
+        case 0x0000 ..< 0x2000:
+            self.mapper?.write(address: address, value: aValue)
+        case 0x2000 ..< 0x3F00:
+            if let safeMode = self.cartridge?.mirroringMode
+            {
+                self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: safeMode) % 2048)] = aValue
+            }
+        case 0x3F00 ..< 0x4000:
+            self.writePalette(address: (address % 32), value: aValue)
+        default:
+            break
+        }
+    }
+    
+    private func adjustedPPUAddress(forOriginalAddress aOriginalAddress: UInt16, withMirroringMode aMirrorMode: MirroringMode) -> UInt16
+    {
+        let address: UInt16 = (aOriginalAddress - 0x2000) % 0x1000
+        let addrRange: UInt16 = address / 0x0400
+        let offset: UInt16 = address % 0x0400
+        return 0x2000 + aMirrorMode.nameTableOffsetSequence[Int(addrRange)] + offset
     }
     
     func reset()
@@ -272,7 +317,7 @@ class PPU: Memory
     func writeOAMData(value aValue: UInt8)
     {
         self.oamData[Int(self.oamAddress)] = aValue
-        self.oamAddress += 1
+        self.oamAddress &+= 1
     }
 
     // $2005: PPUSCROLL
@@ -337,11 +382,11 @@ class PPU: Memory
         // increment address
         if self.flagIncrement == 0
         {
-            self.v += 1
+            self.v &+= 1
         }
         else
         {
-            self.v += 32
+            self.v &+= 32
         }
         return value
     }
@@ -349,14 +394,14 @@ class PPU: Memory
     // $2007: PPUDATA (write)
     func writeData(value aValue: UInt8)
     {
-        self.write(address: self.v, byte: aValue)
+        self.write(address: self.v, value: aValue)
         if self.flagIncrement == 0
         {
-            self.v += 1
+            self.v &+= 1
         }
         else
         {
-            self.v += 32
+            self.v &+= 32
         }
     }
 
@@ -372,7 +417,7 @@ class PPU: Memory
         for _ in 0 ..< 256
         {
             self.oamData[Int(self.oamAddress)] = cpu.read(address: address)
-            self.oamAddress += 1
+            self.oamAddress &+= 1
             address += 1
         }
         cpu.stall += 513
@@ -394,9 +439,11 @@ class PPU: Memory
             self.v &= 0xFFE0
             // switch horizontal nametable
             self.v ^= 0x0400
-        } else {
+        }
+        else
+        {
             // increment coarse X
-            self.v += 1
+            self.v &+= 1
         }
     }
 
@@ -407,7 +454,7 @@ class PPU: Memory
         if self.v&0x7000 != 0x7000
         {
             // increment fine Y
-            self.v += 0x1000
+            self.v &+= 0x1000
         }
         else
         {
@@ -430,7 +477,7 @@ class PPU: Memory
             else
             {
                 // increment coarse Y
-                y += 1
+                y &+= 1
             }
             // put coarse Y back into v
             self.v = (self.v & 0xFC1F) | (y << 5)
@@ -465,9 +512,14 @@ class PPU: Memory
 
     func setVerticalBlank()
     {
-        let temp = self.frontBuffer
-        self.frontBuffer = self.backBuffer
-        self.backBuffer = temp
+        //self.frontBuffer = self.backBuffer
+        //self.backBuffer = [UInt32].init(repeating: 0, count: 240 * 256)
+        
+//        self.frontPaletteIndexBuffer = self.backPaletteIndexBuffer
+//        self.backPaletteIndexBuffer = [[Int]].init(repeating: [Int].init(repeating: 0, count: 240), count: 256)
+//        let temp = self.frontBuffer
+//        self.frontBuffer = self.backBuffer
+//        self.backBuffer = temp
         self.nmiOccurred = true
         self.nmiChange()
     }
@@ -538,7 +590,7 @@ class PPU: Memory
         {
             return 0
         }
-        let data = self.fetchTileData() >> ((7 - self.x) * 4)
+        let data = self.fetchTileData() >> ((7 &- self.x) &* 4)
         return UInt8(data & 0x0F)
     }
 
@@ -615,8 +667,10 @@ class PPU: Memory
                 color = background
             }
         }
+        
         let c = Palette.colors[Int(self.readPalette(address: UInt16(color)) % 64)]
-        self.backBuffer[x][y] = c
+        self.frontBuffer[(256 * (239 - y)) + x] = c
+        //self.backBuffer[(256 * (239 - y)) + x] = c
     }
 
     func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
@@ -628,7 +682,7 @@ class PPU: Memory
         
         if self.flagSpriteSize == 0
         {
-            if attributes&0x80 == 0x80
+            if attributes & 0x80 == 0x80
             {
                 row = 7 - row
             }
@@ -646,10 +700,10 @@ class PPU: Memory
             tile &= 0xFE
             if row > 7
             {
-                tile += 1
-                row -= 8
+                tile &+= 1
+                row &-= 8
             }
-            address = 0x1000*UInt16(table) + UInt16(tile)*16 + UInt16(row)
+            address = 0x1000 * UInt16(table) + UInt16(tile) * 16 + UInt16(row)
         }
         
         let a = (attributes & 3) << 2
