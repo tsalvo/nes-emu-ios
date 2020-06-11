@@ -144,7 +144,7 @@ class Mapper_NROM: MapperProtocol
             //index := int(address) - 0x6000
             //m.SRAM[index] = aValue
             break
-        case 0x8000 ..< 0xFFFF:
+        case 0x8000 ... 0xFFFF:
             self.prgBank1 = Int(aValue) % self.prgBanks
         default:
             os_log("unhandled Mapper_NROM write at address: 0x%04X", aAddress)

@@ -11,34 +11,35 @@ import CoreGraphics
 
 class NESScreenView: UIView
 {
-    var buffer: [UInt32] = [UInt32].init(repeating: 0, count: 240 * 256)
+    var img: CGImage?
+    
+    var buffer: [UInt32] = PPU.emptyBuffer
     {
         didSet
         {
-            self.setNeedsDisplay()
+            let bitmapCount: Int = self.buffer.count
+            let elmentLength: Int = 4
+            let render: CGColorRenderingIntent = CGColorRenderingIntent.defaultIntent
+            let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
+            let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue)
+            let providerRef: CGDataProvider? = CGDataProvider(data: NSData(bytes: &self.buffer, length: bitmapCount * elmentLength))
+            let cgimage: CGImage? = CGImage(width: 256, height: 240, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: 256 * elmentLength, space: rgbColorSpace, bitmapInfo: bitmapInfo, provider: providerRef!, decode: nil, shouldInterpolate: true, intent: render)
+            if cgimage != nil
+            {
+                self.img = cgimage
+                self.setNeedsDisplay()
+            }
         }
     }
     
-    // Only override draw() if you perform custom drawing.
-    // An empty implementation adversely affects performance during animation.
     override func draw(_ rect: CGRect)
     {
         super.draw(rect)
-        
-        guard let context = UIGraphicsGetCurrentContext()
-        else
-        {
-            return
-        }
 
-        self.buffer.withUnsafeMutableBytes { pointer in
-            let bitmapContext = CGContext(data: pointer.baseAddress, width: 256, height: 240, bitsPerComponent: 8, bytesPerRow: 256 * 4, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue).rawValue)
-            bitmapContext?.setAllowsAntialiasing(false)
-            bitmapContext?.setShouldAntialias(false)
-            guard let img = bitmapContext?.makeImage() else { return }
-            context.setAllowsAntialiasing(false)
-            context.setShouldAntialias(false)
-            context.draw(img, in: self.bounds)
+        guard let context = UIGraphicsGetCurrentContext(),
+            let img = self.img else { return
         }
+        
+        context.draw(img, in: self.bounds)
     }
 }

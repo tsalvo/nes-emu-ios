@@ -51,12 +51,16 @@ class CPU: Memory
     static let frequency: Int = 1789773
     
     weak var console: ConsoleProtocol?
+    weak var controller1: ControllerProtocol?
+    weak var controller2: ControllerProtocol?
     
-    init(ppu aPPU: PPU, apu aAPU: APU, mapper aMapper: MapperProtocol?)
+    init(ppu aPPU: PPU, apu aAPU: APU, mapper aMapper: MapperProtocol?, controller1 aController1: ControllerProtocol?, controller2 aController2: ControllerProtocol?)
     {
         self.apu = aAPU
         self.ppu = aPPU
         self.mapper = aMapper
+        self.controller1 = aController1
+        self.controller2 = aController2
     }
     
     private let apu: APU
@@ -450,9 +454,10 @@ class CPU: Memory
         case 0x4015:
             return 0 //return self.apu.readRegister(address: aAddress)
         case 0x4016:
-            return 0 //mem.console.Controller1.Read()
+            return self.controller1?.read() ?? 0
         case 0x4017:
-            return 0 //mem.console.Controller2.Read()
+            return 0
+            //return self.controller2?.read() ?? 0
         case 0x4000 ..< 0x6000:
             return 0
             // TODO: I/O registers
@@ -479,8 +484,8 @@ class CPU: Memory
             //mem.console.APU.writeRegister(address, value)
             break
         case 0x4016:
-            //mem.console.Controller1.Write(value)
-            //mem.console.Controller2.Write(value)
+            self.controller1?.write(value: aValue)
+            //self.controller2?.write(value: aValue)
             break
         case 0x4017:
             //mem.console.APU.writeRegister(address, value)

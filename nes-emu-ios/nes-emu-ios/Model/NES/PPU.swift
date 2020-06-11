@@ -134,10 +134,12 @@ class PPU: Memory
     
     // MARK: Pixel Buffer
     
+    static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 240 * 256)
+    
     /// colors in RGBA format from Palette.colors
-    var frontBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 240 * 256)
+    var frontBuffer: [UInt32] = PPU.emptyBuffer
     /// colors in RGBA format from Palette.colors
-    var backBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 240 * 256)
+    private var backBuffer: [UInt32] = PPU.emptyBuffer
     
     weak var console: ConsoleProtocol?
     
@@ -193,6 +195,8 @@ class PPU: Memory
         self.writeControl(value: 0)
         self.writeMask(value: 0)
         self.writeOAMAddress(value: 0)
+        self.backBuffer = PPU.emptyBuffer
+        self.frontBuffer = PPU.emptyBuffer
     }
     
     func readPalette(address aAddress: UInt16) -> UInt8
@@ -580,7 +584,7 @@ class PPU: Memory
         {
             return 0
         }
-        let data = self.fetchTileData() >> ((7 &- self.x) &* 4)
+        let data = self.fetchTileData() >> ((7 - self.x) * 4)
         return UInt8(data & 0x0F)
     }
 

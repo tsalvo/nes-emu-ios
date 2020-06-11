@@ -19,29 +19,64 @@ class Console: ConsoleProtocol
     let ppu: PPU
     let cpu: CPU
     let cartridge: Cartridge
-    let controllers: [Controller] = [Controller(index: 0), Controller(index: 1)]
+    let controllers: [Controller]
+    let queue: DispatchQueue
     
     init(withCartridge aCartridge: Cartridge)
     {
+        self.queue = DispatchQueue(label: "ConsoleQueue", qos: .userInteractive)
         let apu = APU()
+        let controllers: [Controller] = [Controller(), Controller()]
         let mapper = aCartridge.mapperIdentifier.mapper(forCartridge: aCartridge)
         let ppu = PPU(mapper: mapper, mirroringMode: aCartridge.mirroringMode)
-        self.cpu = CPU(ppu: ppu, apu: apu, mapper: mapper)
+        self.cpu = CPU(ppu: ppu, apu: apu, mapper: mapper, controller1: controllers[0], controller2: controllers[1])
         self.apu = apu
         self.ppu = ppu
         self.cartridge = aCartridge
+        self.controllers = controllers
         self.cpu.console = self
         self.apu.console = self
         self.ppu.console = self
     }
     
-    func reset()
+    func set(button aButton: ControllerButton, enabled aEnabled: Bool, forControllerAtIndex aIndex: Int)
     {
-        self.cpu.reset()
-        self.ppu.reset()
+        self.queue.async {
+            guard aIndex < self.controllers.count else { return }
+            self.controllers[aIndex].set(buttonAtIndex: aButton.rawValue, enabled: aEnabled)
+        }
     }
     
-    func step() -> Int
+    func reset(completionHandler aCompletionHandler: (() -> Void)?)
+    {
+        self.queue.async {
+            
+            self.cpu.reset()
+            self.ppu.reset()
+            
+            DispatchQueue.main.async {
+                aCompletionHandler?()
+            }
+        }
+    }
+    
+    func stepSeconds(seconds aSeconds: Float64, completionHandler aCompletionHandler: (() -> Void)?)
+    {
+        self.queue.async {
+            
+            var cycles = Int(Float64(CPU.frequency) * aSeconds)
+            while cycles > 0
+            {
+                cycles -= self.step()
+            }
+            
+            DispatchQueue.main.async {
+                aCompletionHandler?()
+            }
+        }
+    }
+    
+    private func step() -> Int
     {
         let cpuCycles = self.cpu.step()
         let ppuCycles = cpuCycles * 3
@@ -59,7 +94,7 @@ class Console: ConsoleProtocol
         return cpuCycles
     }
     
-    func stepFrame() -> Int
+    private func stepFrame() -> Int
     {
         var cpuCycles = 0
         let frame = self.ppu.frame
@@ -68,30 +103,5 @@ class Console: ConsoleProtocol
             cpuCycles += self.step()
         }
         return cpuCycles
-    }
-    
-    func stepSeconds(seconds aSeconds: Float64)
-    {
-        var cycles = Int(Float64(CPU.frequency) * aSeconds)
-        while cycles > 0
-        {
-            cycles -= self.step()
-        }
-    }
-    
-    func stepSeconds(seconds aSeconds: Float64, queue aQueue: DispatchQueue?, completionQueue aCompletionQueue: DispatchQueue?, completionHandler aCompletionHandler: (() -> Void)?)
-    {
-        (aQueue ?? DispatchQueue.main).async { [weak self] in
-            
-            var cycles = Int(Float64(CPU.frequency) * aSeconds)
-            while cycles > 0
-            {
-                cycles -= self?.step() ?? 0
-            }
-            
-            (aCompletionQueue ?? DispatchQueue.main).async {
-                aCompletionHandler?()
-            }
-        }
     }
 }

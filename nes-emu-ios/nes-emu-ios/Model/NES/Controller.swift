@@ -8,26 +8,67 @@
 
 import Foundation
 
-class Controller
+protocol ControllerProtocol: class
 {
-    init(index aIndex: UInt8)
+    func read() -> UInt8
+    func write(value aValue: UInt8)
+    func set(buttons aButtons: [Bool])
+    func set(buttonAtIndex aIndex: Int, enabled aEnabled: Bool)
+}
+
+enum ControllerButton: Int
+{
+    case buttonA = 0,
+    buttonB = 1,
+    buttonSelect = 2,
+    buttonStart = 3,
+    buttonUp = 4,
+    buttonDown = 5,
+    buttonLeft = 6,
+    buttonRight = 7
+}
+
+class Controller: ControllerProtocol
+{
+    var index: UInt8 = 0
+    var buttons: [Bool] = [Bool].init(repeating: false, count: 8)
+    var strobe: UInt8 = 0
+    
+    func read() -> UInt8
     {
-        self.index = aIndex
+        var value: UInt8 = 0
+        
+        if self.index < 8 && self.buttons[Int(self.index)]
+        {
+            value = 1
+        }
+        
+        self.index += 1
+        
+        if self.strobe & 1 == 1
+        {
+            self.index = 0
+        }
+        return value
     }
     
-    let index: UInt8
-    
-    var upPressed: Bool = false
-    var downPressed: Bool = false
-    var leftPressed: Bool = false
-    var rightPressed: Bool = false
-    var bPressed: Bool = false
-    var aPressed: Bool = false
-    var selectPressed: Bool = false
-    var startPressed: Bool = false
-    
-    var status: UInt8
+    func write(value aValue: UInt8)
     {
-        return UInt8.init(fromBigEndianBitArray: [aPressed, bPressed, selectPressed, startPressed, upPressed, downPressed, leftPressed, rightPressed])
+        self.strobe = aValue
+        if self.strobe & 1 == 1
+        {
+            self.index = 0
+        }
+    }
+    
+    func set(buttons aButtons: [Bool])
+    {
+        self.buttons = aButtons
+    }
+    
+    func set(buttonAtIndex aIndex: Int, enabled aEnabled: Bool)
+    {
+        guard aIndex < 8 else { return }
+        self.buttons[aIndex] = aEnabled
     }
 }

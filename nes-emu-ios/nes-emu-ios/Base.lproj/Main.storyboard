@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
-    <device id="retina4_0" orientation="portrait" appearance="light"/>
+    <device id="retina4_0" orientation="portrait" appearance="dark"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
@@ -18,7 +18,8 @@
                         <viewLayoutGuide key="safeArea" id="0fo-ii-Aj5"/>
                     </view>
                     <connections>
-                        <segue destination="tG2-AL-uMa" kind="presentation" identifier="playROM" modalTransitionStyle="crossDissolve" id="g7F-VY-cYx"/>
+                        <segue destination="tG2-AL-uMa" kind="presentation" identifier="playROMCrossDissolve" modalTransitionStyle="crossDissolve" id="g7F-VY-cYx"/>
+                        <segue destination="tG2-AL-uMa" kind="presentation" identifier="playROM" id="ogm-XU-Vzh"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -33,12 +34,23 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Oxr-v0-elG">
+                                <rect key="frame" x="16" y="21" width="28.5" height="30"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="23"/>
+                                <color key="tintColor" systemColor="labelColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <size key="titleShadowOffset" width="2" height="0.0"/>
+                                <state key="normal" image="power" catalog="system">
+                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="24" weight="semibold"/>
+                                </state>
+                                <connections>
+                                    <action selector="reset:" destination="tG2-AL-uMa" eventType="touchUpInside" id="Tty-yz-MKT"/>
+                                </connections>
+                            </button>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="f8W-xa-Q3Q" customClass="NESScreenView" customModule="nes_emu_ios" customModuleProvider="target">
-                                <rect key="frame" x="32" y="76" width="256" height="240"/>
+                                <rect key="frame" x="16" y="72" width="288" height="270"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="240" id="Vdf-WH-tRe"/>
-                                    <constraint firstAttribute="width" constant="256" id="zKL-pK-9oP"/>
+                                    <constraint firstAttribute="width" secondItem="f8W-xa-Q3Q" secondAttribute="height" multiplier="16:15" id="KLC-9d-tlh"/>
                                 </constraints>
                             </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3Y6-wu-6I2">
@@ -48,6 +60,7 @@
                                     <constraint firstAttribute="width" constant="44" id="ksx-SJ-Qwu"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="19"/>
+                                <color key="tintColor" systemColor="labelColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <state key="normal" image="xmark" catalog="system">
                                     <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="24" scale="medium" weight="semibold"/>
                                 </state>
@@ -55,14 +68,191 @@
                                     <action selector="dismiss:" destination="tG2-AL-uMa" eventType="touchUpInside" id="Xjj-dJ-CW1"/>
                                 </connections>
                             </button>
+                            <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="pP6-r1-1gz">
+                                <rect key="frame" x="12" y="432" width="120" height="120"/>
+                                <subviews>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="JqW-Op-bh5">
+                                        <rect key="frame" x="0.0" y="0.0" width="40" height="120"/>
+                                        <subviews>
+                                            <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ake-Wc-Eaj">
+                                                <rect key="frame" x="0.0" y="0.0" width="40" height="40"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            </view>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KF5-e2-XF4">
+                                                <rect key="frame" x="0.0" y="40" width="40" height="40"/>
+                                                <color key="tintColor" systemColor="systemGrayColor" red="0.5568627451" green="0.5568627451" blue="0.57647058819999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <state key="normal" image="arrow.left.square.fill" catalog="system">
+                                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="40" weight="semibold"/>
+                                                </state>
+                                                <connections>
+                                                    <action selector="leftButtonPressed:" destination="tG2-AL-uMa" eventType="touchDown" id="Rc4-if-BmN"/>
+                                                    <action selector="leftButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpInside" id="fgN-Ve-Tiw"/>
+                                                    <action selector="leftButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpOutside" id="uHC-jx-6Nd"/>
+                                                </connections>
+                                            </button>
+                                            <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="G32-Xf-BQQ">
+                                                <rect key="frame" x="0.0" y="80" width="40" height="40"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            </view>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="YuE-bb-DBt">
+                                        <rect key="frame" x="40" y="0.0" width="40" height="120"/>
+                                        <subviews>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qL6-1K-g4H">
+                                                <rect key="frame" x="0.0" y="0.0" width="40" height="40"/>
+                                                <color key="tintColor" systemColor="systemGrayColor" red="0.5568627451" green="0.5568627451" blue="0.57647058819999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <state key="normal" image="arrow.up.square.fill" catalog="system">
+                                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="40" weight="semibold"/>
+                                                </state>
+                                                <connections>
+                                                    <action selector="upButtonPressed:" destination="tG2-AL-uMa" eventType="touchDown" id="0bT-yF-coM"/>
+                                                    <action selector="upButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpOutside" id="Ajs-JB-Jmy"/>
+                                                    <action selector="upButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpInside" id="Pp8-2j-kP2"/>
+                                                </connections>
+                                            </button>
+                                            <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="r1Z-gx-pq7">
+                                                <rect key="frame" x="0.0" y="40" width="40" height="40"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            </view>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="syR-bg-qE6">
+                                                <rect key="frame" x="0.0" y="80" width="40" height="40"/>
+                                                <color key="tintColor" systemColor="systemGrayColor" red="0.5568627451" green="0.5568627451" blue="0.57647058819999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <state key="normal" image="arrow.down.square.fill" catalog="system">
+                                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="40" weight="semibold"/>
+                                                </state>
+                                                <connections>
+                                                    <action selector="downButtonPressed:" destination="tG2-AL-uMa" eventType="touchDown" id="2E1-gQ-wM8"/>
+                                                    <action selector="downButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpOutside" id="efW-uw-Jmk"/>
+                                                    <action selector="downButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpInside" id="gf4-hA-mVc"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="TRA-PX-x9F">
+                                        <rect key="frame" x="80" y="0.0" width="40" height="120"/>
+                                        <subviews>
+                                            <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="laZ-RV-ec2">
+                                                <rect key="frame" x="0.0" y="0.0" width="40" height="40"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            </view>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bqs-F1-1KH">
+                                                <rect key="frame" x="0.0" y="40" width="40" height="40"/>
+                                                <color key="tintColor" systemColor="systemGrayColor" red="0.5568627451" green="0.5568627451" blue="0.57647058819999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <state key="normal" image="arrow.right.square.fill" catalog="system">
+                                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="40" weight="semibold"/>
+                                                </state>
+                                                <connections>
+                                                    <action selector="rightButtonPressed:" destination="tG2-AL-uMa" eventType="touchDown" id="58U-fJ-Eso"/>
+                                                    <action selector="rightButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpInside" id="A8A-dW-OY5"/>
+                                                    <action selector="rightButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpOutside" id="vb0-cl-ZOQ"/>
+                                                </connections>
+                                            </button>
+                                            <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Zbd-oA-3Bl">
+                                                <rect key="frame" x="0.0" y="80" width="40" height="40"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            </view>
+                                        </subviews>
+                                    </stackView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="120" id="0hF-e5-y2c"/>
+                                    <constraint firstAttribute="height" constant="120" id="Yxk-6r-KOm"/>
+                                </constraints>
+                            </stackView>
+                            <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="oq8-Zg-vo9">
+                                <rect key="frame" x="208" y="442" width="100" height="100"/>
+                                <subviews>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="cRG-tO-gpk">
+                                        <rect key="frame" x="0.0" y="0.0" width="42" height="100"/>
+                                        <subviews>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uLW-yG-SzU">
+                                                <rect key="frame" x="0.0" y="0.0" width="42" height="28"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="28" id="0Pn-Bz-qMo"/>
+                                                </constraints>
+                                                <color key="tintColor" systemColor="systemGrayColor" red="0.5568627451" green="0.5568627451" blue="0.57647058819999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <state key="normal" image="capsule.fill" catalog="system">
+                                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="30"/>
+                                                </state>
+                                                <connections>
+                                                    <action selector="selectButtonPressed:" destination="tG2-AL-uMa" eventType="touchDown" id="i7J-YG-zz2"/>
+                                                    <action selector="selectButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpOutside" id="Tcx-MP-Tyy"/>
+                                                    <action selector="selectButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpInside" id="XOw-4m-zIa"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vHR-bo-nda">
+                                                <rect key="frame" x="0.0" y="48" width="42" height="52"/>
+                                                <color key="tintColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <state key="normal" image="b.circle.fill" catalog="system">
+                                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="40" weight="semibold"/>
+                                                </state>
+                                                <connections>
+                                                    <action selector="bButtonPressed:" destination="tG2-AL-uMa" eventType="touchDown" id="zHE-MA-Znn"/>
+                                                    <action selector="bButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpInside" id="3Ax-TA-GRi"/>
+                                                    <action selector="bButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpOutside" id="uBh-RT-kB0"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="Chc-jx-TzE">
+                                        <rect key="frame" x="58" y="0.0" width="42" height="100"/>
+                                        <subviews>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wui-H7-WCo">
+                                                <rect key="frame" x="0.0" y="0.0" width="42" height="28"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="28" id="mVO-to-xtU"/>
+                                                </constraints>
+                                                <color key="tintColor" systemColor="systemGrayColor" red="0.5568627451" green="0.5568627451" blue="0.57647058819999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <state key="normal" image="capsule.fill" catalog="system">
+                                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="30"/>
+                                                </state>
+                                                <connections>
+                                                    <action selector="startButtonPressed:" destination="tG2-AL-uMa" eventType="touchDown" id="uG8-Kt-Jcg"/>
+                                                    <action selector="startButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpOutside" id="1kb-gU-G5S"/>
+                                                    <action selector="startButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpInside" id="Ps5-ZN-Qpp"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JMZ-pn-wNh">
+                                                <rect key="frame" x="0.0" y="48" width="42" height="52"/>
+                                                <color key="tintColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <state key="normal" image="a.circle.fill" catalog="system">
+                                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="40" weight="semibold"/>
+                                                </state>
+                                                <connections>
+                                                    <action selector="aButtonPressed:" destination="tG2-AL-uMa" eventType="touchDown" id="Vw8-gC-Odl"/>
+                                                    <action selector="aButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpOutside" id="9yY-n8-CIP"/>
+                                                    <action selector="aButtonReleased:" destination="tG2-AL-uMa" eventType="touchUpInside" id="Hqz-Tp-C5Y"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                    </stackView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="bOz-7Z-mgO"/>
+                                    <constraint firstAttribute="height" constant="100" id="bYM-NA-Ixc"/>
+                                </constraints>
+                            </stackView>
                         </subviews>
                         <color key="backgroundColor" systemColor="secondarySystemBackgroundColor" red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" secondItem="3Y6-wu-6I2" secondAttribute="bottom" constant="20" id="KCS-lS-tjj"/>
+                            <constraint firstItem="f8W-xa-Q3Q" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="vZj-GA-yrE" secondAttribute="leading" constant="16" id="5a3-6j-fOo"/>
+                            <constraint firstItem="Oxr-v0-elG" firstAttribute="height" secondItem="3Y6-wu-6I2" secondAttribute="height" multiplier="0.75" id="8Hi-g4-LVj"/>
+                            <constraint firstItem="pP6-r1-1gz" firstAttribute="leading" secondItem="vZj-GA-yrE" secondAttribute="leading" constant="12" id="FCA-OU-TSh"/>
+                            <constraint firstItem="vZj-GA-yrE" firstAttribute="trailing" secondItem="oq8-Zg-vo9" secondAttribute="trailing" constant="12" id="Fja-ag-YmM"/>
+                            <constraint firstItem="vZj-GA-yrE" firstAttribute="bottom" secondItem="pP6-r1-1gz" secondAttribute="bottom" constant="16" id="HYh-Jk-3iC"/>
+                            <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" relation="greaterThanOrEqual" secondItem="3Y6-wu-6I2" secondAttribute="bottom" constant="16" id="KCS-lS-tjj"/>
+                            <constraint firstItem="oq8-Zg-vo9" firstAttribute="centerY" secondItem="pP6-r1-1gz" secondAttribute="centerY" id="Lbn-EC-BbB"/>
+                            <constraint firstItem="Oxr-v0-elG" firstAttribute="leading" secondItem="vZj-GA-yrE" secondAttribute="leading" constant="16" id="Lp5-X8-yow"/>
                             <constraint firstItem="f8W-xa-Q3Q" firstAttribute="centerX" secondItem="vZj-GA-yrE" secondAttribute="centerX" id="PSS-J2-1Co"/>
                             <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" secondItem="vZj-GA-yrE" secondAttribute="top" constant="20" id="QQD-5q-ROr"/>
+                            <constraint firstItem="3Y6-wu-6I2" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Oxr-v0-elG" secondAttribute="trailing" constant="16" id="Y8t-xo-hnR"/>
                             <constraint firstItem="vZj-GA-yrE" firstAttribute="trailing" secondItem="3Y6-wu-6I2" secondAttribute="trailing" constant="10" id="ael-qU-N8g"/>
+                            <constraint firstItem="f8W-xa-Q3Q" firstAttribute="leading" secondItem="vZj-GA-yrE" secondAttribute="leading" priority="750" constant="16" id="kut-Je-FOi"/>
+                            <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" secondItem="3Y6-wu-6I2" secondAttribute="bottom" priority="750" constant="16" id="rWu-lw-ugp"/>
                             <constraint firstItem="3Y6-wu-6I2" firstAttribute="top" secondItem="vZj-GA-yrE" secondAttribute="top" constant="16" id="u1G-22-vXa"/>
+                            <constraint firstItem="Oxr-v0-elG" firstAttribute="centerY" secondItem="3Y6-wu-6I2" secondAttribute="centerY" id="uiI-yp-XBZ"/>
+                            <constraint firstItem="vZj-GA-yrE" firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="f8W-xa-Q3Q" secondAttribute="bottom" constant="16" id="zq6-c6-Tbz"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="vZj-GA-yrE"/>
                         <variation key="default">
@@ -78,8 +268,17 @@
                         </variation>
                     </view>
                     <connections>
+                        <outlet property="aButton" destination="JMZ-pn-wNh" id="yYj-gX-rQb"/>
+                        <outlet property="bButton" destination="vHR-bo-nda" id="3zH-nZ-X47"/>
                         <outlet property="dismissButton" destination="3Y6-wu-6I2" id="Ky0-2D-9tK"/>
+                        <outlet property="downButton" destination="syR-bg-qE6" id="J8Y-g6-crS"/>
+                        <outlet property="leftButton" destination="KF5-e2-XF4" id="Kvh-Xa-Jn0"/>
+                        <outlet property="resetButton" destination="Oxr-v0-elG" id="2bm-gE-OCy"/>
+                        <outlet property="rightButton" destination="bqs-F1-1KH" id="XUm-ym-l7n"/>
                         <outlet property="screen" destination="f8W-xa-Q3Q" id="LeF-d8-C8t"/>
+                        <outlet property="selectButton" destination="uLW-yG-SzU" id="LfM-T3-PP9"/>
+                        <outlet property="startButton" destination="wui-H7-WCo" id="RrK-eh-ddm"/>
+                        <outlet property="upButton" destination="qL6-1K-g4H" id="Hhp-bY-9Jb"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="g06-vX-JML" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -87,7 +286,18 @@
             <point key="canvasLocation" x="1003" y="375"/>
         </scene>
     </scenes>
+    <inferredMetricsTieBreakers>
+        <segue reference="g7F-VY-cYx"/>
+    </inferredMetricsTieBreakers>
     <resources>
+        <image name="a.circle.fill" catalog="system" width="128" height="121"/>
+        <image name="arrow.down.square.fill" catalog="system" width="128" height="114"/>
+        <image name="arrow.left.square.fill" catalog="system" width="128" height="114"/>
+        <image name="arrow.right.square.fill" catalog="system" width="128" height="114"/>
+        <image name="arrow.up.square.fill" catalog="system" width="128" height="114"/>
+        <image name="b.circle.fill" catalog="system" width="128" height="121"/>
+        <image name="capsule.fill" catalog="system" width="128" height="94"/>
+        <image name="power" catalog="system" width="128" height="124"/>
         <image name="xmark" catalog="system" width="128" height="113"/>
     </resources>
 </document>

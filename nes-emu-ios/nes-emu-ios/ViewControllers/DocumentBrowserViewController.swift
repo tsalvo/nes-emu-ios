@@ -54,11 +54,16 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
 
         // Access the document
         document.open(completionHandler: { success in
-            if success {
-
+            if success
+            {
+#if targetEnvironment(macCatalyst)
+                self.performSegue(withIdentifier: "playROMCrossDissolve", sender: document)
+#else
                 self.performSegue(withIdentifier: "playROM", sender: document)
-
-            } else {
+#endif
+            }
+            else
+            {
                 // Make sure to handle the failed import appropriately, e.g., by presenting an error message to the user.
             }
         })
