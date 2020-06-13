@@ -25,6 +25,7 @@ class NESRomViewController: UIViewController
     var document: NesRomDocument?
     var console: Console?
     private var displayLink: CADisplayLink?
+    private var audioEngine: AudioEngine = AudioEngine()
     
     override func viewDidLoad()
     {
@@ -32,6 +33,7 @@ class NESRomViewController: UIViewController
         if let safeCartridge = self.document?.cartridge
         {
             self.console = Console(withCartridge: safeCartridge)
+            self.console?.set(audioEngineDelegate: self.audioEngine)
             self.console?.reset(completionHandler: { [weak self] in
                 self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
             })
@@ -149,7 +151,6 @@ class NESRomViewController: UIViewController
     @objc private func updateFrame()
     {
         self.console?.stepSeconds(seconds: 1.0 / 60.0, completionHandler: { [weak self] in
-            //NSLog("frame update")
             self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
         })
     }

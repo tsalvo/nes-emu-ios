@@ -23,6 +23,9 @@
 		99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */; };
 		999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999AA95B248F668000DA77AA /* NESRomViewController.swift */; };
 		99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A372BE248F8EC000089773 /* NESScreenView.swift */; };
+		99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A43E9724944CFD0009DB5B /* SampleRate.swift */; };
+		99C7F1732494096000E4C04D /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1722494096000E4C04D /* Filter.swift */; };
+		99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1742494221800E4C04D /* AudioEngine.swift */; };
 		99FB2208248DCAE000D557A4 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2207248DCAE000D557A4 /* Palette.swift */; };
 		99FB220A248DCC7A00D557A4 /* Mapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* Mapper.swift */; };
 /* End PBXBuildFile section */
@@ -47,6 +50,9 @@
 		999AA95B248F668000DA77AA /* NESRomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESRomViewController.swift; sourceTree = "<group>"; };
 		99A372BE248F8EC000089773 /* NESScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESScreenView.swift; sourceTree = "<group>"; };
 		99A372C0249028DC00089773 /* nes-emu-ios.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "nes-emu-ios.entitlements"; sourceTree = "<group>"; };
+		99A43E9724944CFD0009DB5B /* SampleRate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleRate.swift; sourceTree = "<group>"; };
+		99C7F1722494096000E4C04D /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
+		99C7F1742494221800E4C04D /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
 		99FB2207248DCAE000D557A4 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
 		99FB2209248DCC7A00D557A4 /* Mapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -74,6 +80,7 @@
 				991B28CD248B746A00A6A6DD /* Controller.swift */,
 				99FB2207248DCAE000D557A4 /* Palette.swift */,
 				99FB2209248DCC7A00D557A4 /* Mapper.swift */,
+				99C7F1722494096000E4C04D /* Filter.swift */,
 			);
 			path = NES;
 			sourceTree = "<group>";
@@ -122,8 +129,10 @@
 		99488F562489AFC500942A1E /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				991B28C2248A229500A6A6DD /* NES */,
 				99488F45248985F100942A1E /* NesRomDocument.swift */,
+				99C7F1742494221800E4C04D /* AudioEngine.swift */,
+				99A43E9724944CFD0009DB5B /* SampleRate.swift */,
+				991B28C2248A229500A6A6DD /* NES */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -221,7 +230,9 @@
 				99FB220A248DCC7A00D557A4 /* Mapper.swift in Sources */,
 				99488F46248985F100942A1E /* NesRomDocument.swift in Sources */,
 				991B28CE248B746A00A6A6DD /* Controller.swift in Sources */,
+				99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */,
 				991B28C12489F66300A6A6DD /* Cartridge.swift in Sources */,
+				99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */,
 				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
 				99FB2208248DCAE000D557A4 /* Palette.swift in Sources */,
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
@@ -229,6 +240,7 @@
 				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
 				999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */,
 				991B28CC248B470C00A6A6DD /* Console.swift in Sources */,
+				99C7F1732494096000E4C04D /* Filter.swift in Sources */,
 				99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */,
 				99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */,
 			);

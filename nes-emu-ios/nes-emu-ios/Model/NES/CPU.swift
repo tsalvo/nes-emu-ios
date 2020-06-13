@@ -45,8 +45,14 @@ struct InstructionInfo
     let code: (_ stepInfo: StepInfo) -> Void
 }
 
+protocol CPUProtocol: Memory
+{
+    func triggerIRQ()
+    var stall: Int { get set }
+}
+
 /// NES Central processing unit
-class CPU: Memory
+class CPU: CPUProtocol
 {
     static let frequency: Int = 1789773
     
@@ -452,7 +458,7 @@ class CPU: Memory
         case 0x4014:
             return self.ppu.readRegister(address: aAddress)
         case 0x4015:
-            return 0 //return self.apu.readRegister(address: aAddress)
+            return self.apu.readRegister(address: aAddress)
         case 0x4016:
             return self.controller1?.read() ?? 0
         case 0x4017:
@@ -476,20 +482,17 @@ class CPU: Memory
         case 0x2000 ..< 0x4000:
             self.ppu.writeRegister(address: 0x2000 + (aAddress % 8), value: aValue)
         case 0x4000 ..< 0x4014:
-            //mem.console.APU.writeRegister(address, value)
-            break
+            self.apu.writeRegister(address: aAddress, value: aValue)
         case 0x4014:
             self.ppu.writeRegister(address: aAddress, value: aValue)
         case 0x4015:
-            //mem.console.APU.writeRegister(address, value)
-            break
+            self.apu.writeRegister(address: aAddress, value: aValue)
         case 0x4016:
             self.controller1?.write(value: aValue)
             //self.controller2?.write(value: aValue)
             break
         case 0x4017:
-            //mem.console.APU.writeRegister(address, value)
-            break
+            self.apu.writeRegister(address: aAddress, value: aValue)
         case 0x4000 ..< 0x6000:
             // TODO: I/O registers
             break

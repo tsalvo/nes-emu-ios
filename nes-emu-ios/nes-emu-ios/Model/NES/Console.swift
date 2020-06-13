@@ -29,7 +29,8 @@ class Console: ConsoleProtocol
         let controllers: [Controller] = [Controller(), Controller()]
         let mapper = aCartridge.mapperIdentifier.mapper(forCartridge: aCartridge)
         let ppu = PPU(mapper: mapper, mirroringMode: aCartridge.mirroringMode)
-        self.cpu = CPU(ppu: ppu, apu: apu, mapper: mapper, controller1: controllers[0], controller2: controllers[1])
+        let cpu = CPU(ppu: ppu, apu: apu, mapper: mapper, controller1: controllers[0], controller2: controllers[1])
+        self.cpu = cpu
         self.apu = apu
         self.ppu = ppu
         self.cartridge = aCartridge
@@ -37,6 +38,15 @@ class Console: ConsoleProtocol
         self.cpu.console = self
         self.apu.console = self
         self.ppu.console = self
+        self.apu.cpu = cpu
+        self.apu.console = self
+    }
+    
+    func set(audioEngineDelegate aAudioEngineDelegate: AudioEngineProtocol?)
+    {
+        self.queue.async {
+            self.apu.audioEngineDelegate = aAudioEngineDelegate
+        }
     }
     
     func set(button aButton: ControllerButton, enabled aEnabled: Bool, forControllerAtIndex aIndex: Int)

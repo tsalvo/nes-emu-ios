@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol Memory
+protocol Memory: class
 {
     func read(address aAddress: UInt16) -> UInt8
     func write(address aAddress: UInt16, value aValue: UInt8)
