@@ -1,8 +1,8 @@
 #  nes-emu-ios
 
-An NES emulator written in Swift for iOS, ported from fogelman's NES emulator in Go: https://github.com/fogleman/nes
+An NES emulator written in Swift for iOS, ported from fogleman's NES emulator in Go: https://github.com/fogleman/nes
 
-This emulator loads up the UIDocumentBrowserViewController for easy NES ROM (.nes) file browsing, and renders each PPU output frame to a UIView as a CGImage.  AVAudioEngine is used for sound, with buffers scheduled periodically from the APU output.  Everything is done using native iOS frameworks, with no third-party libraries.
+This app uses the UIDocumentBrowserViewController for easy NES ROM (.nes) file browsing using he native Files app interface.  During emulation, each PPU output frame is rendered to a UIView as a CGImage.  The app uses AVAudioEngine for sound, with buffers scheduled periodically from the APU output.  Everything is done using native iOS frameworks, with no third-party libraries.
 
 ## Current Features
 - 6502 CPU emulation
