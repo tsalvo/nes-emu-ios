@@ -8,132 +8,120 @@
 
 import Foundation
 
-enum MirroringMode: UInt8
-{
-    case horizontal = 0,
-    vertical = 1,
-    single0 = 2,
-    single1 = 3,
-    fourScreen = 4
-    
-    var nameTableOffsetSequence: [UInt16]
-    {
-        switch self
-        {
-        case .horizontal: return [0, 0, 1024, 1024]
-        case .vertical: return [0, 1024, 0, 1024]
-        case .single0: return [0, 0, 0, 0]
-        case .single1: return [1024, 1024, 1024, 1024]
-        case .fourScreen: return [0, 1024, 2048, 3072]
-        }
-    }
-}
-
 /// NES Picture Processing Unit
 class PPU: Memory
 {
-    private let mapper: MapperProtocol
-    
     var cycle: Int = 340
-    var scanline: Int = 240
     var frame: UInt64 = 0
-    var paletteData: [UInt8] = [UInt8].init(repeating: 0, count: 32)
-    var nameTableData: [UInt8] = [UInt8].init(repeating: 0, count: 2048)
-    var oamData: [UInt8] = [UInt8].init(repeating: 0, count: 256)
+    weak var console: ConsoleProtocol?
+    
+    private let mapper: MapperProtocol
+    private var paletteData: [UInt8] = [UInt8].init(repeating: 0, count: 32)
+    private var nameTableData: [UInt8] = [UInt8].init(repeating: 0, count: 2048)
+    private var oamData: [UInt8] = [UInt8].init(repeating: 0, count: 256)
+    
+    /// for each mirroring mode, 
+    private static let nameTableOffsetSequence: [[UInt16]] = [
+        [0, 0, 1024, 1024],
+        [0, 1024, 0, 1024],
+        [0, 0, 0, 0],
+        [1024, 1024, 1024, 1024],
+        [0, 1024, 2048, 3072]
+    ]
     
     // MARK: PPU Registers
     
     /// current vram address (15 bit)
-    var v: UInt16 = 0
+    private var v: UInt16 = 0
     
     /// temporary vram address (15 bit)
-    var t: UInt16 = 0
+    private var t: UInt16 = 0
     
     /// fine x scroll (3 bit)
-    var x: UInt8 = 0
+    private var x: UInt8 = 0
     
     /// write toggle bit
-    var w: Bool = false
+    private var w: Bool = false
     
     /// even / odd frame flag bit
-    var f: Bool = false
+    private var f: Bool = false
     
-    var register: UInt8 = 0
+    private var register: UInt8 = 0
     
     // MARK: NMI flags
-    var nmiOccurred: Bool = false
-    var nmiOutput: Bool = false
-    var nmiPrevious: Bool = false
-    var nmiDelay: UInt8 = 0
+    private var nmiOccurred: Bool = false
+    private var nmiOutput: Bool = false
+    private var nmiPrevious: Bool = false
+    private var nmiDelay: UInt8 = 0
     
     // MARK: Background temporary variables
-    var nameTableByte: UInt8 = 0
-    var attributeTableByte: UInt8 = 0
-    var lowTileByte: UInt8 = 0
-    var highTileByte: UInt8 = 0
-    var tileData: UInt64 = 0
+    private var nameTableByte: UInt8 = 0
+    private var attributeTableByte: UInt8 = 0
+    private var lowTileByte: UInt8 = 0
+    private var highTileByte: UInt8 = 0
+    private var tileData: UInt64 = 0
     
     // MARK: Sprite temporary variables
-    var spriteCount: Int = 0
-    var spritePatterns: [UInt32] = [UInt32].init(repeating: 0, count: 8)
-    var spritePositions: [UInt8] = [UInt8].init(repeating: 0, count: 8)
-    var spritePriorities: [UInt8] = [UInt8].init(repeating: 0, count: 8)
-    var spriteIndexes: [UInt8] = [UInt8].init(repeating: 0, count: 8)
+    private var spriteCount: Int = 0
+    private var spritePatterns: [UInt32] = [UInt32].init(repeating: 0, count: 8)
+    private var spritePositions: [UInt8] = [UInt8].init(repeating: 0, count: 8)
+    private var spritePriorities: [UInt8] = [UInt8].init(repeating: 0, count: 8)
+    private var spriteIndexes: [UInt8] = [UInt8].init(repeating: 0, count: 8)
     
     // MARK: $2000 PPUCTRL
     /// 0: $2000; 1: $2400; 2: $2800; 3: $2C00
-    var flagNameTable: UInt8 = 0
+    private var flagNameTable: UInt8 = 0
     
     /// 0: add 1; 1: add 32
-    var flagIncrement: UInt8 = 0            // TODO: should this be a Bool?
+    private var flagIncrement: UInt8 = 0            // TODO: should this be a Bool?
     
     /// 0: $0000; 1: $1000; ignored in 8x16 mode
-    var flagSpriteTable: UInt8 = 0          // TODO: should this be a Bool?
+    private var flagSpriteTable: UInt8 = 0          // TODO: should this be a Bool?
     
     /// 0: $0000; 1: $1000
-    var flagBackgroundTable: UInt8 = 0      // TODO: should this be a Bool?
+    private var flagBackgroundTable: UInt8 = 0      // TODO: should this be a Bool?
     
     /// 0: 8x8; 1: 8x16
-    var flagSpriteSize: UInt8 = 0           // TODO: should this be a Bool?
+    private var flagSpriteSize: UInt8 = 0           // TODO: should this be a Bool?
     
     /// 0: read EXT; 1: write EXT
-    var flagMasterSlave: UInt8 = 0          // TODO: should this be a Bool?
+    private var flagMasterSlave: UInt8 = 0          // TODO: should this be a Bool?
     
     // MARK: $2001 PPUMASK
     /// 0: color; 1: grayscale
-    var flagGrayscale: UInt8 = 0            // TODO: should this be a Bool?
+    private var flagGrayscale: UInt8 = 0            // TODO: should this be a Bool?
     
     /// 0: hide; 1: show
-    var flagShowLeftBackground: UInt8 = 0   // TODO: should this be a Bool?
+    private var flagShowLeftBackground: UInt8 = 0   // TODO: should this be a Bool?
     
     /// 0: hide; 1: show
-    var flagShowLeftSprites: UInt8 = 0      // TODO: should this be a Bool?
+    private var flagShowLeftSprites: UInt8 = 0      // TODO: should this be a Bool?
     
     /// 0: hide; 1: show
-    var flagShowBackground: UInt8 = 0       // TODO: should this be a Bool?
+    private var flagShowBackground: UInt8 = 0       // TODO: should this be a Bool?
     
     /// 0: hide; 1: show
-    var flagShowSprites: UInt8 = 0          // TODO: should this be a Bool?
+    private var flagShowSprites: UInt8 = 0          // TODO: should this be a Bool?
     
     /// 0: normal; 1: emphasized
-    var flagRedTint: UInt8 = 0              // TODO: should this be a Bool?
+    private var flagRedTint: UInt8 = 0              // TODO: should this be a Bool?
     
     /// 0: normal; 1: emphasized
-    var flagGreenTint: UInt8 = 0            // TODO: should this be a Bool?
+    private var flagGreenTint: UInt8 = 0            // TODO: should this be a Bool?
     
     /// 0: normal; 1: emphasized
-    var flagBlueTint: UInt8 = 0            // TODO: should this be a Bool?
+    private var flagBlueTint: UInt8 = 0            // TODO: should this be a Bool?
     
     // MARK: $2002 PPUSTATUS
-    var flagSpriteZeroHit: UInt8 = 0
-    var flagSpriteOverflow: UInt8 = 0
+    private var flagSpriteZeroHit: UInt8 = 0
+    private var flagSpriteOverflow: UInt8 = 0
     
     // $2003 OAMADDR
-    var oamAddress: UInt8 = 0
+    private var oamAddress: UInt8 = 0
     
     // $2007 PPUDATA
     /// for buffered reads
-    var bufferedData: UInt8 = 0
+    private var bufferedData: UInt8 = 0
     
     // MARK: Pixel Buffer
     
@@ -143,10 +131,9 @@ class PPU: Memory
     var frontBuffer: [UInt32] = PPU.emptyBuffer
     /// colors in RGBA format from Palette.colors
     private var backBuffer: [UInt32] = PPU.emptyBuffer
+    private var scanline: Int = 240
     
-    weak var console: ConsoleProtocol?
-    
-    init(mapper aMapper: MapperProtocol, mirroringMode aMirroringMode: MirroringMode)
+    init(mapper aMapper: MapperProtocol)
     {
         self.mapper = aMapper
     }
@@ -186,7 +173,7 @@ class PPU: Memory
         let address: UInt16 = (aOriginalAddress - 0x2000) % 0x1000
         let addrRange: UInt16 = address / 0x0400
         let offset: UInt16 = address % 0x0400
-        return 0x2000 + aMirrorMode.nameTableOffsetSequence[Int(addrRange)] + offset
+        return 0x2000 + PPU.nameTableOffsetSequence[Int(aMirrorMode.rawValue)][Int(addrRange)] + offset
     }
     
     func reset()

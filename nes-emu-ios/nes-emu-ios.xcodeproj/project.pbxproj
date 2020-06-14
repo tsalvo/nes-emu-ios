@@ -24,12 +24,18 @@
 		999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999AA95B248F668000DA77AA /* NESRomViewController.swift */; };
 		99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A372BE248F8EC000089773 /* NESScreenView.swift */; };
 		99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A43E9724944CFD0009DB5B /* SampleRate.swift */; };
+		99B0355E2496763000D2723F /* RomHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B0355D2496763000D2723F /* RomHeader.swift */; };
+		99B0355F2496763000D2723F /* RomHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B0355D2496763000D2723F /* RomHeader.swift */; };
 		99C7F1732494096000E4C04D /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1722494096000E4C04D /* Filter.swift */; };
 		99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1742494221800E4C04D /* AudioEngine.swift */; };
 		99E2E2052495D8C1008AFCDB /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */; };
 		99E2E2082495D8C1008AFCDB /* ThumbnailProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E2072495D8C1008AFCDB /* ThumbnailProvider.swift */; };
 		99E2E20C2495D8C1008AFCDB /* nes-thumbnail-provider.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		99E2E21124960A07008AFCDB /* UInt8+ByteUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */; };
+		99E2E21324966A32008AFCDB /* MirroringMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21224966A32008AFCDB /* MirroringMode.swift */; };
+		99E2E21424966A32008AFCDB /* MirroringMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21224966A32008AFCDB /* MirroringMode.swift */; };
+		99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
+		99E2E21724966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
 		99FB2208248DCAE000D557A4 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2207248DCAE000D557A4 /* Palette.swift */; };
 		99FB220A248DCC7A00D557A4 /* Mapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* Mapper.swift */; };
 /* End PBXBuildFile section */
@@ -79,12 +85,15 @@
 		99A372BE248F8EC000089773 /* NESScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESScreenView.swift; sourceTree = "<group>"; };
 		99A372C0249028DC00089773 /* nes-emu-ios.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "nes-emu-ios.entitlements"; sourceTree = "<group>"; };
 		99A43E9724944CFD0009DB5B /* SampleRate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleRate.swift; sourceTree = "<group>"; };
+		99B0355D2496763000D2723F /* RomHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomHeader.swift; sourceTree = "<group>"; };
 		99C7F1722494096000E4C04D /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		99C7F1742494221800E4C04D /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
 		99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "nes-thumbnail-provider.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLookThumbnailing.framework; path = System/Library/Frameworks/QuickLookThumbnailing.framework; sourceTree = SDKROOT; };
 		99E2E2072495D8C1008AFCDB /* ThumbnailProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailProvider.swift; sourceTree = "<group>"; };
 		99E2E2092495D8C1008AFCDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		99E2E21224966A32008AFCDB /* MirroringMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirroringMode.swift; sourceTree = "<group>"; };
+		99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperIdentifier.swift; sourceTree = "<group>"; };
 		99FB2207248DCAE000D557A4 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
 		99FB2209248DCC7A00D557A4 /* Mapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -111,6 +120,7 @@
 		991B28C2248A229500A6A6DD /* NES */ = {
 			isa = PBXGroup;
 			children = (
+				99E2E21824966AB8008AFCDB /* Shared */,
 				991B28CB248B470C00A6A6DD /* Console.swift */,
 				991B28C3248A22BA00A6A6DD /* CPU.swift */,
 				991B28C7248B43A700A6A6DD /* APU.swift */,
@@ -212,6 +222,16 @@
 				99E2E2092495D8C1008AFCDB /* Info.plist */,
 			);
 			path = "nes-thumbnail-provider";
+			sourceTree = "<group>";
+		};
+		99E2E21824966AB8008AFCDB /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */,
+				99E2E21224966A32008AFCDB /* MirroringMode.swift */,
+				99B0355D2496763000D2723F /* RomHeader.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -328,11 +348,14 @@
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
 				99488F40248985F100942A1E /* AppDelegate.swift in Sources */,
 				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
+				99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */,
 				999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */,
 				991B28CC248B470C00A6A6DD /* Console.swift in Sources */,
 				99C7F1732494096000E4C04D /* Filter.swift in Sources */,
 				99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */,
+				99B0355E2496763000D2723F /* RomHeader.swift in Sources */,
 				99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */,
+				99E2E21324966A32008AFCDB /* MirroringMode.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -340,6 +363,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99E2E21424966A32008AFCDB /* MirroringMode.swift in Sources */,
+				99B0355F2496763000D2723F /* RomHeader.swift in Sources */,
+				99E2E21724966AB0008AFCDB /* MapperIdentifier.swift in Sources */,
 				99E2E21124960A07008AFCDB /* UInt8+ByteUtils.swift in Sources */,
 				99E2E2082495D8C1008AFCDB /* ThumbnailProvider.swift in Sources */,
 			);

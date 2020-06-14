@@ -27,8 +27,8 @@ class Console: ConsoleProtocol
         self.queue = DispatchQueue(label: "ConsoleQueue", qos: .userInteractive)
         let apu = APU(withSampleRate: aSampleRate)
         let controllers: [Controller] = [Controller(), Controller()]
-        let mapper = aCartridge.mapperIdentifier.mapper(forCartridge: aCartridge)
-        let ppu = PPU(mapper: mapper, mirroringMode: aCartridge.mirroringMode)
+        let mapper = aCartridge.mapper
+        let ppu = PPU(mapper: mapper)
         let cpu = CPU(ppu: ppu, apu: apu, mapper: mapper, controller1: controllers[0], controller2: controllers[1])
         self.cpu = cpu
         self.apu = apu

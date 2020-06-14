@@ -9,103 +9,7 @@
 import Foundation
 import os
 
-enum MapperIdentifier: UInt8
-{
-    // see https://wiki.nesdev.com/w/index.php/List_of_mappers
-    case NROM = 0,
-    MMC1 = 1,
-    UxROM = 2,
-    CNROM = 3,
-    MMC3 = 4,
-    MMC5 = 5,
-    FFE_F4XXX = 6,
-    AxROM = 7,
-    INES_008 = 8,
-    MMC2 = 9,
-    MMC4 = 10,
-    ColorDreams = 11,
-    INES_012 = 12,
-    CPROM = 13,
-    INES_014 = 14,
-    Multi100In1ContraFunction16 = 15,
-    BandaiEPROM = 16,
-    INES_017 = 17,
-    JalecoSS8806 = 18,
-    Namco163 = 19,
-    INES_020 = 20,
-    VRC4a_VRC4c = 21,
-    VRC2a = 22,
-    VRC2b_VRC4e = 23,
-    VRC6a = 24,
-    VRC4b_VRC4d = 25,
-    VRC6b = 26,
-    INES_027 = 27,
-    Action_53 = 28,
-    INES_029 = 29,
-    UNROM_512 = 30,
-    INES_031 = 31,
-    INES_032 = 32,
-    TC0190_TC0350 = 33,
-    BNROM_NINA001 = 34,
-    INES_035 = 35,
-    INES_036 = 36,
-    INES_037 = 37,
-    INES_038 = 38,
-    INES_039 = 39,
-    INES_040 = 40,
-    INES_041 = 41,
-    INES_042 = 42,
-    INES_043 = 43,
-    INES_044 = 44,
-    INES_045 = 45,
-    INES_046 = 46,
-    INES_047 = 47,
-    INES_048 = 48,
-    INES_049 = 49,
-    INES_050 = 50,
-    INES_051 = 51,
-    INES_052 = 52,
-    INES_053 = 53,
-    INES_054 = 54,
-    INES_055 = 55,
-    INES_056 = 56,
-    INES_057 = 57,
-    INES_058 = 58,
-    INES_059 = 59,
-    INES_060 = 60,
-    INES_061 = 61,
-    INES_062 = 62,
-    INES_063 = 63,
-    RAMBO1 = 64,
-    INES_065 = 65,
-    _74161_32 = 66,
-    INES_067 = 67,
-    INES_068 = 68,
-    Sunsoft_5 = 69,
-    INES_070 = 70,
-    Camerica = 71
-    
-    func mapper(forCartridge aCartridge: CartridgeProtocol) -> MapperProtocol
-    {
-        switch self
-        {
-        case .NROM:
-            return Mapper_NROM(withCartridge: aCartridge)
-        case .MMC1:
-            return Mapper_MMC1(withCartridge: aCartridge)
-        default: return Mapper_UnsupportedPlaceholder(withCartridge: aCartridge)
-        }
-    }
-    
-    var hasExpansionAudio: Bool
-    {
-        switch self
-        {
-        case .Namco163, .VRC6a, .VRC6b, .MMC5: return true
-        default: return false
-        }
-    }
-}
+
 
 protocol MapperProtocol: class
 {
@@ -119,7 +23,7 @@ class Mapper_UnsupportedPlaceholder: MapperProtocol
 {
     init(withCartridge aCartridge: CartridgeProtocol)
     {
-        self.mirroringMode = aCartridge.mirroringMode
+        self.mirroringMode = aCartridge.header.mirroringMode
     }
     
     let mirroringMode: MirroringMode
@@ -138,7 +42,7 @@ class Mapper_NROM: MapperProtocol
 {
     init(withCartridge aCartridge: CartridgeProtocol)
     {
-        self.mirroringMode = aCartridge.mirroringMode
+        self.mirroringMode = aCartridge.header.mirroringMode
         switch aCartridge.prgBlocks.count
         {
         case 0:
@@ -238,7 +142,7 @@ class Mapper_MMC1: MapperProtocol
     
     init(withCartridge aCartridge: CartridgeProtocol)
     {
-        self.mirroringMode = aCartridge.mirroringMode
+        self.mirroringMode = aCartridge.header.mirroringMode
         
         for p in aCartridge.prgBlocks
         {

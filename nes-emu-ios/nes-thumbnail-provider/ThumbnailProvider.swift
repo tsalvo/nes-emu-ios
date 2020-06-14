@@ -10,85 +10,24 @@ import UIKit
 import QuickLookThumbnailing
 import os
 
-enum MirroringMode: UInt8
-{
-    case horizontal = 0,
-    vertical = 1,
-    single0 = 2,
-    single1 = 3,
-    fourScreen = 4
-}
-
-struct RomHeader
-{
-    init(fromData aData: Data)
-    {
-        let bytes: [UInt8] = [UInt8](aData)
-        
-        // check for header length and N,E,S,0x1a start of file
-        guard bytes.count >= 16,
-            bytes[0] == 0x4E, // N
-            bytes[1] == 0x45, // E
-            bytes[2] == 0x53, // S
-            bytes[3] == 0x1A
-        else
-        {
-            self.mapperIdentifier = 0 // MapperIdentifier.NROM
-            self.mirroringMode = .horizontal
-            self.hasTrainer = false
-            self.hasBattery = false
-            self.numChrBlocks = 0
-            self.numPrgBlocks = 0
-            return
-        }
-        
-        var mapper: UInt8 = 0
-        
-        let byte6LittleEndianBits: [Bool] = bytes[6].littleEndianBitArray
-        let byte7LittleEndianBits: [Bool] = bytes[7].littleEndianBitArray
-        
-        let numPrgBlocks: UInt8 = bytes[4]
-        let numChrBlocks: UInt8 = bytes[5]
-        let mirroringMode: MirroringMode = byte6LittleEndianBits[3] ? .fourScreen : (byte6LittleEndianBits[0] ? .vertical : .horizontal)
-        let hasBattery: Bool = byte6LittleEndianBits[1]
-        let hasTrainer: Bool = byte6LittleEndianBits[2]
-        
-        mapper += byte6LittleEndianBits[4] ? 1 : 0
-        mapper += byte6LittleEndianBits[5] ? 2 : 0
-        mapper += byte6LittleEndianBits[6] ? 4 : 0
-        mapper += byte6LittleEndianBits[7] ? 8 : 0
-        mapper += byte7LittleEndianBits[4] ? 16 : 0
-        mapper += byte7LittleEndianBits[5] ? 32 : 0
-        mapper += byte7LittleEndianBits[6] ? 64 : 0
-        mapper += byte7LittleEndianBits[7] ? 128 : 0
-        
-        self.numChrBlocks = numChrBlocks
-        self.numPrgBlocks = numPrgBlocks
-        self.mapperIdentifier = mapper // MapperIdentifier.init(rawValue: mapper) ?? MapperIdentifier.NROM
-        self.mirroringMode = mirroringMode
-        self.hasTrainer = hasTrainer
-        self.hasBattery = hasBattery
-    }
-    
-    let numPrgBlocks: UInt8
-    let numChrBlocks: UInt8
-    let mapperIdentifier: UInt8
-    let mirroringMode: MirroringMode
-    let hasTrainer: Bool
-    let hasBattery: Bool
-}
-
 class ThumbnailProvider: QLThumbnailProvider
 {
     private class ThumbnailView: UIView
     {
+        static private let bgColorCG: CGColor = UIColor.init(white: 0.7, alpha: 1.0).cgColor
+        static private let cartridgeColorCG: CGColor = UIColor.init(white: 0.3, alpha: 1.0).cgColor
+        static private let cartridgeGripColorCG: CGColor = UIColor.init(white: 0.23, alpha: 1.0).cgColor
+        static private let cartridgeLabelColorCG: CGColor = UIColor.init(white: 0.8, alpha: 1.0).cgColor
+        static private let supportedLabelColorCG: CGColor = UIColor.init(red: 0.15, green: 0.5, blue: 0.15, alpha: 1.0).cgColor
+        static private let unsupportedLabelColorCG: CGColor = UIColor.init(red: 0.5, green: 0.15, blue: 0.15, alpha: 1.0).cgColor
+        
         let romHeader: RomHeader
         
         init(frame aFrame: CGRect, romHeader aRomheader: RomHeader)
         {
             self.romHeader = aRomheader
             super.init(frame: aFrame)
-            self.backgroundColor = UIColor.systemBackground
+            self.backgroundColor = UIColor.white
         }
         
         required init?(coder aDecoder: NSCoder) {
@@ -99,34 +38,54 @@ class ThumbnailProvider: QLThumbnailProvider
         override func draw(_ rect: CGRect)
         {
             super.draw(rect)
-
-            let topMargin: CGFloat = 6.0
-            let textHeight: CGFloat = 13.0
-            let lineVerticalSpacing: CGFloat = 2.0
-            let lineHeight: CGFloat = textHeight + lineVerticalSpacing
-            let leadingMargin: CGFloat = 6.0
             
-            let titleFont: UIFont = UIFont.systemFont(ofSize: 12.0, weight: .semibold)
-            let bodyFont: UIFont = UIFont.systemFont(ofSize: 11.0, weight: .regular)
-            let titleAttrs: [NSAttributedString.Key : Any] = [.font: titleFont, .foregroundColor: UIColor.label]
-            let bodyAttrs: [NSAttributedString.Key : Any] = [.font: bodyFont, .foregroundColor: UIColor.secondaryLabel]
+            guard let context = UIGraphicsGetCurrentContext() else { return }
             
-            let nesRomStr: String = "NES ROM"
-            let mapperStr: String = "Mapper \(self.romHeader.mapperIdentifier)"
-            let prgStr: String = "PRG \(self.romHeader.numPrgBlocks)x16KB"
-            let chrStr: String = "CHR \(self.romHeader.numChrBlocks)x8KB"
-            let batteryStr: String = "Battery"
+            context.setFillColor(UIColor.init(white: 0.7, alpha: 1.0).cgColor)
+            context.fill(rect)
             
-            nesRomStr.draw(with: CGRect(origin: CGPoint(x: leadingMargin, y: topMargin) , size: nesRomStr.boundingRect(with: CGSize(width: rect.width - (leadingMargin * 2.0), height: textHeight), options: [.usesLineFragmentOrigin], attributes: titleAttrs, context: nil).size), options: [.usesLineFragmentOrigin], attributes: titleAttrs, context: nil)
-            mapperStr.draw(with: CGRect(origin: CGPoint(x: leadingMargin, y: topMargin + (lineHeight * 1.0)) , size: mapperStr.boundingRect(with: CGSize(width: rect.width - (leadingMargin * 2.0), height: textHeight), options: [.usesLineFragmentOrigin], attributes: bodyAttrs, context: nil).size), options: [.usesLineFragmentOrigin], attributes: bodyAttrs, context: nil)
-            prgStr.draw(with: CGRect(origin: CGPoint(x: leadingMargin, y: topMargin + (lineHeight * 2.0)) , size: prgStr.boundingRect(with: CGSize(width: rect.width - (leadingMargin * 2.0), height: textHeight), options: [.usesLineFragmentOrigin], attributes: bodyAttrs, context: nil).size), options: [.usesLineFragmentOrigin], attributes: bodyAttrs, context: nil)
-            chrStr.draw(with: CGRect(origin: CGPoint(x: leadingMargin, y: topMargin + (lineHeight * 3.0)) , size: chrStr.boundingRect(with: CGSize(width: rect.width - (leadingMargin * 2.0), height: textHeight), options: [.usesLineFragmentOrigin], attributes: bodyAttrs, context: nil).size), options: [.usesLineFragmentOrigin], attributes: bodyAttrs, context: nil)
-            if (self.romHeader.hasBattery)
+            let ridges: Int = 9
+            let cartridgeLabelInnerColor: CGColor = self.romHeader.mapperIdentifier.isSupported ? ThumbnailView.supportedLabelColorCG : ThumbnailView.unsupportedLabelColorCG
+            
+            let cartridgeTop: CGFloat = rect.height * 0.05
+            let cartridgeLeading: CGFloat = rect.width * 0.05
+            let cartridgeLeadingInner: CGFloat = rect.width * 0.1
+            let cartridgeWidth: CGFloat = rect.width - (2.0 * cartridgeLeading)
+            let cartridgeWidthInner: CGFloat = rect.width - (2.0 * cartridgeLeadingInner)
+            let cartridgeHeightOuter: CGFloat = (rect.height - (2.0 * cartridgeTop)) * 0.85
+            let cartridgeHeightInner: CGFloat = (rect.height - (2.0 * cartridgeTop)) * 0.15
+            let cartridgeTopInner: CGFloat = cartridgeTop + cartridgeHeightOuter
+            let cartridgeGripLeading: CGFloat = cartridgeLeading + (cartridgeWidth * 0.115)
+            let cartridgeGripWidth: CGFloat = cartridgeWidth * 0.2
+            let cartridgeGripHeight: CGFloat = (cartridgeHeightOuter + cartridgeHeightInner) * 0.95
+            let cartridgeLabelLeading: CGFloat = cartridgeLeading + (cartridgeWidth * 0.4)
+            let cartridgeLabelWidth: CGFloat = cartridgeWidth * 0.48
+            let cartridgeLabelHeight: CGFloat = cartridgeHeightOuter * 0.8
+            let cartridgeLabelInnerTop: CGFloat = cartridgeTop + cartridgeLabelHeight * 0.1
+            let cartridgeLabelInnerLeading: CGFloat = cartridgeLabelLeading + cartridgeLabelWidth * 0.1
+            let cartridgeLabelInnerWidth: CGFloat = cartridgeLabelWidth * 0.8
+            let cartridgeLabelInnerHeight: CGFloat = cartridgeLabelHeight * 0.8
+            
+            let cartridgeRect1: CGRect = CGRect(x: cartridgeLeading, y: cartridgeTop, width: cartridgeWidth, height: cartridgeHeightOuter)
+            let cartridgeRect2: CGRect = CGRect(x: cartridgeLeadingInner, y: cartridgeTopInner, width: cartridgeWidthInner, height: cartridgeHeightInner)
+            let cartridgeLabelRect: CGRect = CGRect(x: cartridgeLabelLeading, y: cartridgeTop, width: cartridgeLabelWidth, height: cartridgeLabelHeight)
+            let cartridgeLabelInnerRect: CGRect = CGRect(x: cartridgeLabelInnerLeading, y: cartridgeLabelInnerTop, width: cartridgeLabelInnerWidth, height: cartridgeLabelInnerHeight)
+            
+            context.setFillColor(ThumbnailView.cartridgeColorCG)
+            context.fill(cartridgeRect1)
+            context.fill(cartridgeRect2)
+            context.setFillColor(ThumbnailView.cartridgeGripColorCG)
+            for i in 0 ..< ridges
             {
-                batteryStr.draw(with: CGRect(origin: CGPoint(x: leadingMargin, y: topMargin + (lineHeight * 4.0)) , size: batteryStr.boundingRect(with: CGSize(width: rect.width - (leadingMargin * 2.0), height: textHeight), options: [.usesLineFragmentOrigin], attributes: bodyAttrs, context: nil).size), options: [.usesLineFragmentOrigin], attributes: bodyAttrs, context: nil)
+                let y = cartridgeTop + (CGFloat(i) * cartridgeGripHeight / CGFloat(ridges))
+                let height = (cartridgeGripHeight / CGFloat(ridges)) * 0.6
+                context.fill(CGRect(x: cartridgeGripLeading, y: y, width: cartridgeGripWidth, height: height))
             }
             
-            
+            context.setFillColor(ThumbnailView.cartridgeLabelColorCG)
+            context.fill(cartridgeLabelRect)
+            context.setFillColor(cartridgeLabelInnerColor)
+            context.fill(cartridgeLabelInnerRect)
         }
     }
     
