@@ -45,7 +45,7 @@ class ThumbnailProvider: QLThumbnailProvider
             context.fill(rect)
             
             let ridges: Int = 9
-            let cartridgeLabelInnerColor: CGColor = self.romHeader.mapperIdentifier.isSupported ? ThumbnailView.supportedLabelColorCG : ThumbnailView.unsupportedLabelColorCG
+            let cartridgeLabelInnerColor: CGColor = (self.romHeader.mapperIdentifier?.isSupported ?? false) ? ThumbnailView.supportedLabelColorCG : ThumbnailView.unsupportedLabelColorCG
             
             let cartridgeTop: CGFloat = rect.height * 0.05
             let cartridgeLeading: CGFloat = rect.width * 0.05

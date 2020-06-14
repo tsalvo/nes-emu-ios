@@ -40,24 +40,35 @@ class NESRomViewController: UIViewController
         }
     }
     
-    override func viewWillAppear(_ animated: Bool)
+    override func viewDidAppear(_ animated: Bool)
     {
-        super.viewWillAppear(animated)
+        super.viewDidAppear(animated)
         self.createDisplayLink()
     }
     
-    override func viewWillDisappear(_ animated: Bool)
+    override func viewDidDisappear(_ animated: Bool)
     {
-        super.viewWillDisappear(animated)
+        super.viewDidDisappear(animated)
+        self.displayLink?.isPaused = true
         self.displayLink?.invalidate()
+        self.displayLink = nil
+    }
+    
+    deinit
+    {
+        print("DEINIT: \(self)")
     }
     
     @IBAction private func dismiss(_ sender: AnyObject?)
     {
         if !self.isBeingDismissed
         {
+            self.displayLink?.isPaused = true
             self.displayLink?.invalidate()
-            self.dismiss(animated: true, completion: nil)
+            self.displayLink = nil
+            self.dismiss(animated: true, completion: { [weak self] in
+                self?.document?.close(completionHandler: nil)
+            })
         }
     }
     

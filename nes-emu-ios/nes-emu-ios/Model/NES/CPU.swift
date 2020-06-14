@@ -69,9 +69,9 @@ class CPU: CPUProtocol
         self.controller2 = aController2
     }
     
-    private let apu: APU
-    private let ppu: PPU
-    private let mapper: MapperProtocol?
+    private weak var apu: APU?
+    private weak var ppu: PPU?
+    private weak var mapper: MapperProtocol?
     
     /// 2KB RAM
     private var ram: [UInt8] = [UInt8].init(repeating: 0, count: 2048)
@@ -343,46 +343,46 @@ class CPU: CPUProtocol
     var cycles: UInt64 = 0
     
     /// program counter
-    var pc: UInt16 = 0
+    private var pc: UInt16 = 0
     
     /// stack pointer
-    var sp: UInt8 = 0
+    private var sp: UInt8 = 0
     
     /// a register
-    var a: UInt8 = 0
+    private var a: UInt8 = 0
     
     /// x register
-    var x: UInt8 = 0
+    private var x: UInt8 = 0
     
     /// y register
-    var y: UInt8 = 0
+    private var y: UInt8 = 0
     
     /// carry flag
-    var c: Bool = false
+    private var c: Bool = false
     
     /// zero flag
-    var z: Bool = false
+    private var z: Bool = false
     
     /// interrupt disable flag
-    var i: Bool = false
+    private var i: Bool = false
     
     /// decimal mode flag
-    var d: Bool = false
+    private var d: Bool = false
     
     /// break command flag
-    var b: Bool = false
+    private var b: Bool = false
     
     /// unused flag
-    var u: Bool = false
+    private var u: Bool = false
     
     /// overflow flag
-    var v: Bool = false
+    private var v: Bool = false
     
     /// negative flag
-    var n: Bool = false
+    private var n: Bool = false
     
     /// interrupt type to perform
-    var interrupt: Interrupt = .none
+    private var interrupt: Interrupt = .none
     
     /// number of cycles to stall
     var stall: Int = 0
@@ -454,11 +454,11 @@ class CPU: CPUProtocol
         case 0x0000 ..< 0x2000:
             return self.ram[Int(aAddress % 0x0800)]
         case 0x2000 ..< 0x4000:
-            return self.ppu.readRegister(address: 0x2000 + (aAddress % 8))
+            return self.ppu?.readRegister(address: 0x2000 + (aAddress % 8)) ?? 0
         case 0x4014:
-            return self.ppu.readRegister(address: aAddress)
+            return self.ppu?.readRegister(address: aAddress) ?? 0
         case 0x4015:
-            return self.apu.readRegister(address: aAddress)
+            return self.apu?.readRegister(address: aAddress) ?? 0
         case 0x4016:
             return self.controller1?.read() ?? 0
         case 0x4017:
@@ -480,19 +480,19 @@ class CPU: CPUProtocol
         case 0x0000 ..< 0x2000:
             self.ram[Int(aAddress % 0x0800)] = aValue
         case 0x2000 ..< 0x4000:
-            self.ppu.writeRegister(address: 0x2000 + (aAddress % 8), value: aValue)
+            self.ppu?.writeRegister(address: 0x2000 + (aAddress % 8), value: aValue)
         case 0x4000 ..< 0x4014:
-            self.apu.writeRegister(address: aAddress, value: aValue)
+            self.apu?.writeRegister(address: aAddress, value: aValue)
         case 0x4014:
-            self.ppu.writeRegister(address: aAddress, value: aValue)
+            self.ppu?.writeRegister(address: aAddress, value: aValue)
         case 0x4015:
-            self.apu.writeRegister(address: aAddress, value: aValue)
+            self.apu?.writeRegister(address: aAddress, value: aValue)
         case 0x4016:
             self.controller1?.write(value: aValue)
             //self.controller2?.write(value: aValue)
             break
         case 0x4017:
-            self.apu.writeRegister(address: aAddress, value: aValue)
+            self.apu?.writeRegister(address: aAddress, value: aValue)
         case 0x4000 ..< 0x6000:
             // TODO: I/O registers
             break

@@ -27,20 +27,20 @@ class AudioEngine: AudioEngineProtocol
     
     func schedule(buffer aBuffer: [Float32], withSampleRate aSampleRate: SampleRate)
     {
-        self.queue.async {
+        self.queue.async { [weak self] in
             
-            if let safeLastSampleRate = self.lastSampleRate,
+            if let safeLastSampleRate = self?.lastSampleRate,
                 safeLastSampleRate != aSampleRate
             {
-                self.engine.stop()
+                self?.engine.stop()
             }
             
-            switch self.engineState
+            switch self?.engineState ?? .stopped
             {
             case .stopped, .paused:
                 do
                 {
-                    try self.startEngine(withSampleRate: aSampleRate)
+                    try self?.startEngine(withSampleRate: aSampleRate)
                 }
                 catch
                 {
@@ -59,8 +59,8 @@ class AudioEngine: AudioEngineProtocol
                 let channels = UnsafeBufferPointer(start: buffer.floatChannelData, count: Int(buffer.format.channelCount))
                 let _ = aBuffer.withUnsafeBytes { ptr in
                     memcpy(UnsafeMutableRawPointer(channels[0]), ptr.baseAddress, MemoryLayout<Float32>.size * aBuffer.count)
-                    self.playerNode.scheduleBuffer(buffer, completionHandler: nil)
-                    self.play()
+                    self?.playerNode.scheduleBuffer(buffer, completionHandler: nil)
+                    self?.play()
                 }
             }
         }

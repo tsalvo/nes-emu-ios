@@ -496,7 +496,7 @@ class APU
             }
             else
             {
-                self.timerPeriod += delta
+                self.timerPeriod &+= delta
             }
         }
 

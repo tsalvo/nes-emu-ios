@@ -9,8 +9,6 @@
 import Foundation
 import os
 
-
-
 protocol MapperProtocol: class
 {
     var mirroringMode: MirroringMode { get }
@@ -62,6 +60,11 @@ class Mapper_NROM: MapperProtocol
         self.prgBanks = aCartridge.prgBlocks.count
         self.prgBank1 = 0
         self.prgBank2 = self.prgBanks - 1
+    }
+    
+    deinit
+    {
+        print("DEINIT: \(self)")
     }
 
     let mirroringMode: MirroringMode
@@ -161,6 +164,11 @@ class Mapper_MMC1: MapperProtocol
         }
         
         self.prgOffsets[1] = self.prgBankOffset(index: -1)
+    }
+    
+    deinit
+    {
+        print("DEINIT: \(self)")
     }
     
     func step()

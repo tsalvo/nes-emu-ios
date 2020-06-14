@@ -13,7 +13,7 @@ struct RomHeader
     static let sizeInBytes: Int = 16
     let numPrgBlocks: UInt8
     let numChrBlocks: UInt8
-    let mapperIdentifier: MapperIdentifier
+    let mapperIdentifier: MapperIdentifier?
     let mirroringMode: MirroringMode
     let hasTrainer: Bool
     let hasBattery: Bool
@@ -31,7 +31,7 @@ struct RomHeader
             bytes[3] == 0x1A
         else
         {
-            self.mapperIdentifier = MapperIdentifier.NROM
+            self.mapperIdentifier = nil
             self.mirroringMode = .horizontal
             self.hasTrainer = false
             self.hasBattery = false
@@ -63,7 +63,7 @@ struct RomHeader
         
         self.numChrBlocks = numChrBlocks
         self.numPrgBlocks = numPrgBlocks
-        self.mapperIdentifier = MapperIdentifier.init(rawValue: mapper) ?? MapperIdentifier.NROM
+        self.mapperIdentifier = MapperIdentifier.init(rawValue: mapper)
         self.mirroringMode = mirroringMode
         self.hasTrainer = hasTrainer
         self.hasBattery = hasBattery

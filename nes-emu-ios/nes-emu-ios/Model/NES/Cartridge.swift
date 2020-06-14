@@ -81,7 +81,12 @@ class Cartridge: CartridgeProtocol
     
     var mapper: MapperProtocol
     {
-        guard self.header.mapperIdentifier.isSupported else { return Mapper_UnsupportedPlaceholder(withCartridge: self) }
+        guard let safeMapperIdentifier: MapperIdentifier = self.header.mapperIdentifier,
+            safeMapperIdentifier.isSupported
+        else
+        {
+            return Mapper_UnsupportedPlaceholder(withCartridge: self)
+        }
         
         switch self.header.mapperIdentifier
         {

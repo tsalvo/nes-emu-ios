@@ -39,30 +39,29 @@ class Console: ConsoleProtocol
         self.apu.console = self
         self.ppu.console = self
         self.apu.cpu = cpu
-        self.apu.console = self
     }
     
     func set(audioEngineDelegate aAudioEngineDelegate: AudioEngineProtocol?)
     {
-        self.queue.async {
-            self.apu.audioEngineDelegate = aAudioEngineDelegate
+        self.queue.async { [weak self] in
+            self?.apu.audioEngineDelegate = aAudioEngineDelegate
         }
     }
     
     func set(button aButton: ControllerButton, enabled aEnabled: Bool, forControllerAtIndex aIndex: Int)
     {
-        self.queue.async {
-            guard aIndex < self.controllers.count else { return }
-            self.controllers[aIndex].set(buttonAtIndex: aButton.rawValue, enabled: aEnabled)
+        self.queue.async { [weak self] in
+            guard aIndex < self?.controllers.count ?? Int.max else { return }
+            self?.controllers[aIndex].set(buttonAtIndex: aButton.rawValue, enabled: aEnabled)
         }
     }
     
     func reset(completionHandler aCompletionHandler: (() -> Void)?)
     {
-        self.queue.async {
+        self.queue.async { [weak self] in
             
-            self.cpu.reset()
-            self.ppu.reset()
+            self?.cpu.reset()
+            self?.ppu.reset()
             
             DispatchQueue.main.async {
                 aCompletionHandler?()
@@ -72,12 +71,12 @@ class Console: ConsoleProtocol
     
     func stepSeconds(seconds aSeconds: Float64, completionHandler aCompletionHandler: (() -> Void)?)
     {
-        self.queue.async {
+        self.queue.async { [weak self] in
             
             var cycles = Int(Float64(CPU.frequency) * aSeconds)
             while cycles > 0
             {
-                cycles -= self.step()
+                cycles -= self?.step() ?? cycles
             }
             
             DispatchQueue.main.async {
