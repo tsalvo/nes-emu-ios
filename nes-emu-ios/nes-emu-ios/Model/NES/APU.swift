@@ -11,22 +11,23 @@ import Foundation
 /// NES Audio Processing Unit
 class APU
 {
-    var audioEngineDelegate: AudioEngineProtocol?
-    var audioBufferIndex: Int = 0
-    var audioBuffer: [Float32] = [Float32].init(repeating: 0.0, count: 735)
     weak var console: ConsoleProtocol?
     weak var cpu: CPUProtocol?
-    var sampleRate: Float64 = Float64(CPU.frequency) / 44100
-    var pulse1: Pulse = Pulse(channel: 1)
-    var pulse2: Pulse = Pulse(channel: 2)
-    var triangle: Triangle = Triangle()
-    var noise: Noise = Noise()
-    var dmc: DMC = DMC()
-    var cycle: UInt64 = 0
-    var framePeriod: UInt8 = 0
-    var frameValue: UInt8 = 0
-    var frameIRQ: Bool = false
-    var filterChain: FilterChain
+    weak var audioEngineDelegate: AudioEngineProtocol?
+    private var audioBufferIndex: Int = 0
+    private var audioBuffer: [Float32]
+    private var sampleRate: SampleRate
+    private var cycleSampleRate: Double
+    private var pulse1: Pulse = Pulse(channel: 1)
+    private var pulse2: Pulse = Pulse(channel: 2)
+    private var triangle: Triangle = Triangle()
+    private var noise: Noise = Noise()
+    private var dmc: DMC = DMC()
+    private var cycle: UInt64 = 0
+    private var framePeriod: UInt8 = 0
+    private var frameValue: UInt8 = 0
+    private var frameIRQ: Bool = false
+    private var filterChain: FilterChain
     
     static let frameCounterRate: Double = Double(CPU.frequency) / 240.0
 
@@ -35,7 +36,7 @@ class APU
     var pulseTable: [Float32] = [Float32].init(repeating: 0, count: 31)
     var tndTable: [Float32] = [Float32].init(repeating: 0, count: 203)
     
-    init()
+    init(withSampleRate aSampleRate: SampleRate)
     {
         var pT: [Float32] = [Float32].init(repeating: 0, count: 31)
         var tT: [Float32] = [Float32].init(repeating: 0, count: 203)
@@ -49,6 +50,9 @@ class APU
             tT[i] = 163.67 / ((24329.0 / Float32(i)) + 100)
         }
         
+        self.sampleRate = aSampleRate
+        self.cycleSampleRate = Double(CPU.frequency) / aSampleRate.doubleValue
+        self.audioBuffer = [Float32].init(repeating: 0.0, count: Int(aSampleRate.bufferCapacity))
         self.pulseTable = pT
         self.tndTable = tT
         self.pulse1 = Pulse(channel: 1)
@@ -62,14 +66,14 @@ class APU
         self.cycle += 1
         let cycle2 = self.cycle
         self.stepTimer()
-        let f1 = Int(Float64(cycle1) / APU.frameCounterRate)
-        let f2 = Int(Float64(cycle2) / APU.frameCounterRate)
+        let f1 = Int(Double(cycle1) / APU.frameCounterRate)
+        let f2 = Int(Double(cycle2) / APU.frameCounterRate)
         if f1 != f2
         {
             self.stepFrameCounter()
         }
-        let s1 = Int(Float64(cycle1) / self.sampleRate)
-        let s2 = Int(Float64(cycle2) / self.sampleRate)
+        let s1 = Int(Double(cycle1) / self.cycleSampleRate)
+        let s2 = Int(Double(cycle2) / self.cycleSampleRate)
         if s1 != s2
         {
             self.sendSample()
@@ -84,7 +88,7 @@ class APU
         if self.audioBufferIndex >= self.audioBuffer.count
         {
             self.audioBufferIndex = 0
-            self.audioEngineDelegate?.schedule(buffer: self.audioBuffer, withSampleRate: SampleRate._44100Hz)
+            self.audioEngineDelegate?.schedule(buffer: self.audioBuffer, withSampleRate: self.sampleRate)
         }
     }
 

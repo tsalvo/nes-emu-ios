@@ -23,16 +23,24 @@ class AudioEngine: AudioEngineProtocol
     private let playerNode: AVAudioPlayerNode = AVAudioPlayerNode.init()
     private var engineState: AudioEngineState = .stopped
     private var currentAudioFormat: AVAudioFormat?
+    private var lastSampleRate: SampleRate?
     
     func schedule(buffer aBuffer: [Float32], withSampleRate aSampleRate: SampleRate)
     {
         self.queue.async {
+            
+            if let safeLastSampleRate = self.lastSampleRate,
+                safeLastSampleRate != aSampleRate
+            {
+                self.engine.stop()
+            }
+            
             switch self.engineState
             {
             case .stopped, .paused:
                 do
                 {
-                    try self.startEngine(withSampleRate: SampleRate._44100Hz)
+                    try self.startEngine(withSampleRate: aSampleRate)
                 }
                 catch
                 {
@@ -40,8 +48,8 @@ class AudioEngine: AudioEngineProtocol
                 }
                 fallthrough
             case .playing, .started:
-                guard let format: AVAudioFormat = AVAudioFormat.init(standardFormatWithSampleRate: 44100, channels: 1),
-                    let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 735)
+                guard let format: AVAudioFormat = AVAudioFormat.init(standardFormatWithSampleRate: aSampleRate.doubleValue, channels: 1),
+                    let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: aSampleRate.bufferCapacity)
                     else
                 {
                     return
@@ -60,7 +68,8 @@ class AudioEngine: AudioEngineProtocol
     
     private func play()
     {
-        switch self.engineState {
+        switch self.engineState
+        {
         case .started:
             
             self.playerNode.play(at: nil)
@@ -69,7 +78,23 @@ class AudioEngine: AudioEngineProtocol
         default:
             break
         }
-        
+    }
+    
+    private func stop()
+    {
+        switch self.engineState
+        {
+        case .started, .playing, .paused:
+            
+            self.playerNode.stop()
+            self.engine.stop()
+            self.engine.reset()
+            for p in self.engine.attachedNodes.compactMap({ $0 as? AVAudioPlayerNode }) { self.engine.detach(p) }
+            self.engineState = .stopped
+            
+        default:
+            break
+        }
     }
         
     private func audioFormat(forSampleRate aSampleRate: SampleRate) throws -> AVAudioFormat

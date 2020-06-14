@@ -22,10 +22,10 @@ class Console: ConsoleProtocol
     let controllers: [Controller]
     let queue: DispatchQueue
     
-    init(withCartridge aCartridge: Cartridge)
+    init(withCartridge aCartridge: Cartridge, sampleRate aSampleRate: SampleRate)
     {
         self.queue = DispatchQueue(label: "ConsoleQueue", qos: .userInteractive)
-        let apu = APU()
+        let apu = APU(withSampleRate: aSampleRate)
         let controllers: [Controller] = [Controller(), Controller()]
         let mapper = aCartridge.mapperIdentifier.mapper(forCartridge: aCartridge)
         let ppu = PPU(mapper: mapper, mirroringMode: aCartridge.mirroringMode)

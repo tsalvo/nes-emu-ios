@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -26,9 +26,37 @@
 		99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A43E9724944CFD0009DB5B /* SampleRate.swift */; };
 		99C7F1732494096000E4C04D /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1722494096000E4C04D /* Filter.swift */; };
 		99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1742494221800E4C04D /* AudioEngine.swift */; };
+		99E2E2052495D8C1008AFCDB /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */; };
+		99E2E2082495D8C1008AFCDB /* ThumbnailProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E2072495D8C1008AFCDB /* ThumbnailProvider.swift */; };
+		99E2E20C2495D8C1008AFCDB /* nes-thumbnail-provider.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		99E2E21124960A07008AFCDB /* UInt8+ByteUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */; };
 		99FB2208248DCAE000D557A4 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2207248DCAE000D557A4 /* Palette.swift */; };
 		99FB220A248DCC7A00D557A4 /* Mapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* Mapper.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		99E2E20A2495D8C1008AFCDB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 99488F34248985F100942A1E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 99E2E2012495D8C1008AFCDB;
+			remoteInfo = "nes-thumbnail-provider";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		99E2E20D2495D8C1008AFCDB /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				99E2E20C2495D8C1008AFCDB /* nes-thumbnail-provider.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		991B28C02489F66300A6A6DD /* Cartridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cartridge.swift; sourceTree = "<group>"; };
@@ -53,6 +81,10 @@
 		99A43E9724944CFD0009DB5B /* SampleRate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleRate.swift; sourceTree = "<group>"; };
 		99C7F1722494096000E4C04D /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		99C7F1742494221800E4C04D /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
+		99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "nes-thumbnail-provider.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLookThumbnailing.framework; path = System/Library/Frameworks/QuickLookThumbnailing.framework; sourceTree = SDKROOT; };
+		99E2E2072495D8C1008AFCDB /* ThumbnailProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailProvider.swift; sourceTree = "<group>"; };
+		99E2E2092495D8C1008AFCDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99FB2207248DCAE000D557A4 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
 		99FB2209248DCC7A00D557A4 /* Mapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -62,6 +94,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		99E2E1FF2495D8C1008AFCDB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99E2E2052495D8C1008AFCDB /* QuickLookThumbnailing.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,6 +129,8 @@
 			isa = PBXGroup;
 			children = (
 				99488F3E248985F100942A1E /* nes-emu-ios */,
+				99E2E2062495D8C1008AFCDB /* nes-thumbnail-provider */,
+				99E2E2032495D8C1008AFCDB /* Frameworks */,
 				99488F3D248985F100942A1E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -97,6 +139,7 @@
 			isa = PBXGroup;
 			children = (
 				99488F3C248985F100942A1E /* nes-emu-ios.app */,
+				99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -154,6 +197,23 @@
 			path = ViewControllers;
 			sourceTree = "<group>";
 		};
+		99E2E2032495D8C1008AFCDB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		99E2E2062495D8C1008AFCDB /* nes-thumbnail-provider */ = {
+			isa = PBXGroup;
+			children = (
+				99E2E2072495D8C1008AFCDB /* ThumbnailProvider.swift */,
+				99E2E2092495D8C1008AFCDB /* Info.plist */,
+			);
+			path = "nes-thumbnail-provider";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -164,15 +224,34 @@
 				99488F38248985F100942A1E /* Sources */,
 				99488F39248985F100942A1E /* Frameworks */,
 				99488F3A248985F100942A1E /* Resources */,
+				99E2E20D2495D8C1008AFCDB /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				99E2E20B2495D8C1008AFCDB /* PBXTargetDependency */,
 			);
 			name = "nes-emu-ios";
 			productName = "nes-emu-ios";
 			productReference = 99488F3C248985F100942A1E /* nes-emu-ios.app */;
 			productType = "com.apple.product-type.application";
+		};
+		99E2E2012495D8C1008AFCDB /* nes-thumbnail-provider */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 99E2E2102495D8C1008AFCDB /* Build configuration list for PBXNativeTarget "nes-thumbnail-provider" */;
+			buildPhases = (
+				99E2E1FE2495D8C1008AFCDB /* Sources */,
+				99E2E1FF2495D8C1008AFCDB /* Frameworks */,
+				99E2E2002495D8C1008AFCDB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "nes-thumbnail-provider";
+			productName = "nes-thumbnail-provider";
+			productReference = 99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -185,6 +264,9 @@
 				ORGANIZATIONNAME = "Tom Salvo";
 				TargetAttributes = {
 					99488F3B248985F100942A1E = {
+						CreatedOnToolsVersion = 11.5;
+					};
+					99E2E2012495D8C1008AFCDB = {
 						CreatedOnToolsVersion = 11.5;
 					};
 				};
@@ -203,6 +285,7 @@
 			projectRoot = "";
 			targets = (
 				99488F3B248985F100942A1E /* nes-emu-ios */,
+				99E2E2012495D8C1008AFCDB /* nes-thumbnail-provider */,
 			);
 		};
 /* End PBXProject section */
@@ -215,6 +298,13 @@
 				99488F4E248985F300942A1E /* LaunchScreen.storyboard in Resources */,
 				99488F4B248985F300942A1E /* Assets.xcassets in Resources */,
 				99488F49248985F100942A1E /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		99E2E2002495D8C1008AFCDB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,7 +336,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		99E2E1FE2495D8C1008AFCDB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99E2E21124960A07008AFCDB /* UInt8+ByteUtils.swift in Sources */,
+				99E2E2082495D8C1008AFCDB /* ThumbnailProvider.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		99E2E20B2495D8C1008AFCDB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 99E2E2012495D8C1008AFCDB /* nes-thumbnail-provider */;
+			targetProxy = 99E2E20A2495D8C1008AFCDB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		99488F47248985F100942A1E /* Main.storyboard */ = {
@@ -385,6 +492,7 @@
 		99488F53248985F300942A1E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "nes-emu-ios/nes-emu-ios.entitlements";
 				CODE_SIGN_STYLE = Automatic;
@@ -406,6 +514,7 @@
 		99488F54248985F300942A1E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "nes-emu-ios/nes-emu-ios.entitlements";
 				CODE_SIGN_STYLE = Automatic;
@@ -421,6 +530,44 @@
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_DISABLE_SAFETY_CHECKS = YES;
 				SWIFT_ENFORCE_EXCLUSIVE_ACCESS = off;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		99E2E20E2495D8C1008AFCDB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 354MRHL389;
+				INFOPLIST_FILE = "nes-thumbnail-provider/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomsalvo.nes-emu-ios.nes-thumbnail-provider";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		99E2E20F2495D8C1008AFCDB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 354MRHL389;
+				INFOPLIST_FILE = "nes-thumbnail-provider/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomsalvo.nes-emu-ios.nes-thumbnail-provider";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -443,6 +590,15 @@
 			buildConfigurations = (
 				99488F53248985F300942A1E /* Debug */,
 				99488F54248985F300942A1E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		99E2E2102495D8C1008AFCDB /* Build configuration list for PBXNativeTarget "nes-thumbnail-provider" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				99E2E20E2495D8C1008AFCDB /* Debug */,
+				99E2E20F2495D8C1008AFCDB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -32,7 +32,7 @@ class NESRomViewController: UIViewController
         super.viewDidLoad()
         if let safeCartridge = self.document?.cartridge
         {
-            self.console = Console(withCartridge: safeCartridge)
+            self.console = Console(withCartridge: safeCartridge, sampleRate: SampleRate._22050Hz)
             self.console?.set(audioEngineDelegate: self.audioEngine)
             self.console?.reset(completionHandler: { [weak self] in
                 self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
