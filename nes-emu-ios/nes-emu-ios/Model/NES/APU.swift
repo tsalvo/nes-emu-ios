@@ -8,8 +8,6 @@
 
 import Foundation
 
-
-
 /// NES Audio Processing Unit
 class APU
 {
@@ -86,7 +84,7 @@ class APU
         if self.audioBufferIndex >= self.audioBuffer.count
         {
             self.audioBufferIndex = 0
-            self.audioEngineDelegate?.schedule(buffer: self.audioBuffer)
+            self.audioEngineDelegate?.schedule(buffer: self.audioBuffer, withSampleRate: SampleRate._44100Hz)
         }
     }
 

@@ -12,7 +12,12 @@ This app uses the UIDocumentBrowserViewController for easy NES ROM (.nes) file b
 - Builds successfully for iOS 13+, iPadOS 13+, or Mac Catalyst (macOS 10.15 Catalina), but the Catalyst build still needs some Mac-specific tweaks
 
 ## Compatibility 
-At this time, only NROM games are supported, meaning mostly black box games from the early NES library, but more mappers will be added soon.
+The following mappers have been implemented, with more coming soon:
+
+-  NROM (0)
+-  MMC1 (1)
+
+[NES Mapper List](http://tuxnes.sourceforge.net/nesmapper.txt)
 
 ## Performance
 For best performance, build the app for **release** mode instead of debug.  Or, if you want better performance for debug builds, change these debug build settings under Swift Compiler - Code Generation:

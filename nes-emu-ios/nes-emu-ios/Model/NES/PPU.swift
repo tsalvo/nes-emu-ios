@@ -8,9 +8,13 @@
 
 import Foundation
 
-enum MirroringMode
+enum MirroringMode: UInt8
 {
-    case horizontal, vertical, single0, single1, fourScreen
+    case horizontal = 0,
+    vertical = 1,
+    single0 = 2,
+    single1 = 3,
+    fourScreen = 4
     
     var nameTableOffsetSequence: [UInt16]
     {
@@ -28,8 +32,7 @@ enum MirroringMode
 /// NES Picture Processing Unit
 class PPU: Memory
 {
-    private var mapper: MapperProtocol
-    private var mirroringMode: MirroringMode
+    private let mapper: MapperProtocol
     
     var cycle: Int = 340
     var scanline: Int = 240
@@ -146,7 +149,6 @@ class PPU: Memory
     init(mapper aMapper: MapperProtocol, mirroringMode aMirroringMode: MirroringMode)
     {
         self.mapper = aMapper
-        self.mirroringMode = aMirroringMode
     }
     
     func read(address aAddress: UInt16) -> UInt8
@@ -156,7 +158,7 @@ class PPU: Memory
         case 0x0000 ..< 0x2000:
             return self.mapper.read(address: address)
         case 0x2000 ..< 0x3F00:
-            return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mirroringMode) % 2048)]
+            return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)]
         case 0x3F00 ..< 0x4000:
             return self.readPalette(address: (address % 32))
         default:
@@ -171,7 +173,7 @@ class PPU: Memory
         case 0x0000 ..< 0x2000:
             self.mapper.write(address: address, value: aValue)
         case 0x2000 ..< 0x3F00:
-            self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mirroringMode) % 2048)] = aValue
+            self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)] = aValue
         case 0x3F00 ..< 0x4000:
             self.writePalette(address: (address % 32), value: aValue)
         default:

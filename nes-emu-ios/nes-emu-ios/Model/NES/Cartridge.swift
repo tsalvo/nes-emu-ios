@@ -13,6 +13,7 @@ protocol CartridgeProtocol: class
     var mirroringMode: MirroringMode { get }
     var prgBlocks: [[UInt8]] { get }
     var chrBlocks: [[UInt8]] { get set }
+    var hasBattery: Bool { get }
 }
 
 class Cartridge: CartridgeProtocol
