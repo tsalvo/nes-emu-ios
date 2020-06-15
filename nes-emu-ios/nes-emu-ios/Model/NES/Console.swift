@@ -56,6 +56,15 @@ class Console: ConsoleProtocol
         }
     }
     
+    /// set all buttons at once for a given controller
+    func set(buttonUpPressed aButtonUpPressed: Bool, buttonDownPressed aButtonDownPressed: Bool, buttonLeftPressed aButtonLeftPressed: Bool, buttonRightPressed aButtonRightPressed: Bool, buttonSelectPressed aButtonSelectPressed: Bool, buttonStartPressed aButtonStartPressed: Bool, buttonBPressed aButtonBPressed: Bool, buttonAPressed aButtonAPressed: Bool, forControllerAtIndex aIndex: Int)
+    {
+        self.queue.async { [weak self] in
+            guard aIndex < self?.controllers.count ?? Int.max else { return }
+            self?.controllers[aIndex].set(buttons: [aButtonAPressed, aButtonBPressed, aButtonSelectPressed, aButtonStartPressed, aButtonUpPressed, aButtonDownPressed, aButtonLeftPressed, aButtonRightPressed])
+        }
+    }
+    
     func reset(completionHandler aCompletionHandler: (() -> Void)?)
     {
         self.queue.async { [weak self] in

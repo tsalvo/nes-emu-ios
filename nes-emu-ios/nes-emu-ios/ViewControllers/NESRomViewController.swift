@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import GameController
 
 protocol NesRomControllerDelegate: class
 {
@@ -29,6 +30,7 @@ class NESRomViewController: UIViewController
     @IBOutlet weak private var selectButton: UIButton!
     @IBOutlet weak private var startButton: UIButton!
     
+    var controller: GCController?
     var document: NesRomDocument?
     var console: Console?
     private var displayLink: CADisplayLink?
@@ -37,7 +39,7 @@ class NESRomViewController: UIViewController
     override func viewDidLoad()
     {
         super.viewDidLoad()
-
+        self.controller = GCController.controllers().first
         if let safeCartridge = self.document?.cartridge
         {
             self.console = Console(withCartridge: safeCartridge, sampleRate: SampleRate._22050Hz)
@@ -160,6 +162,11 @@ class NESRomViewController: UIViewController
     
     @objc private func updateFrame()
     {
+        if let extendedPad = self.controller?.extendedGamepad
+        {
+            self.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 0)
+        }
+        
         self.console?.stepSeconds(seconds: 1.0 / 60.0, completionHandler: { [weak self] in
             self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
         })
