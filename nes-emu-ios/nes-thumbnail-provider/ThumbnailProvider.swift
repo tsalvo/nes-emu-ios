@@ -58,13 +58,13 @@ class ThumbnailProvider: QLThumbnailProvider
             let cartridgeGripLeading: CGFloat = cartridgeLeading + (cartridgeWidth * 0.115)
             let cartridgeGripWidth: CGFloat = cartridgeWidth * 0.2
             let cartridgeGripHeight: CGFloat = (cartridgeHeightOuter + cartridgeHeightInner) * 0.95
-            let cartridgeLabelLeading: CGFloat = cartridgeLeading + (cartridgeWidth * 0.4)
-            let cartridgeLabelWidth: CGFloat = cartridgeWidth * 0.48
+            let cartridgeLabelLeading: CGFloat = cartridgeLeading + (cartridgeWidth * 0.39)
+            let cartridgeLabelWidth: CGFloat = cartridgeWidth * 0.49
             let cartridgeLabelHeight: CGFloat = cartridgeHeightOuter * 0.8
-            let cartridgeLabelInnerTop: CGFloat = cartridgeTop + cartridgeLabelHeight * 0.1
-            let cartridgeLabelInnerLeading: CGFloat = cartridgeLabelLeading + cartridgeLabelWidth * 0.1
-            let cartridgeLabelInnerWidth: CGFloat = cartridgeLabelWidth * 0.8
-            let cartridgeLabelInnerHeight: CGFloat = cartridgeLabelHeight * 0.8
+            let cartridgeLabelInnerTop: CGFloat = cartridgeTop + cartridgeLabelHeight * 0.04
+            let cartridgeLabelInnerLeading: CGFloat = cartridgeLabelLeading + cartridgeLabelWidth * 0.04
+            let cartridgeLabelInnerWidth: CGFloat = cartridgeLabelWidth * 0.92
+            let cartridgeLabelInnerHeight: CGFloat = cartridgeLabelHeight * 0.92
             
             let cartridgeRect1: CGRect = CGRect(x: cartridgeLeading, y: cartridgeTop, width: cartridgeWidth, height: cartridgeHeightOuter)
             let cartridgeRect2: CGRect = CGRect(x: cartridgeLeadingInner, y: cartridgeTopInner, width: cartridgeWidthInner, height: cartridgeHeightInner)
@@ -86,6 +86,22 @@ class ThumbnailProvider: QLThumbnailProvider
             context.fill(cartridgeLabelRect)
             context.setFillColor(cartridgeLabelInnerColor)
             context.fill(cartridgeLabelInnerRect)
+            
+            
+            let bodyFont: UIFont = UIFont.systemFont(ofSize: 8.0, weight: .heavy)
+            let bodyAttrs: [NSAttributedString.Key : Any] = [.font: bodyFont, .foregroundColor: UIColor.white]
+            
+            let mapperStr: String
+            if let safeMapperIdentifier: MapperIdentifier = self.romHeader.mapperIdentifier
+            {
+                mapperStr = "\(safeMapperIdentifier)"
+            }
+            else
+            {
+                mapperStr = "---"
+            }
+            
+            mapperStr.draw(with: CGRect(origin: CGPoint(x: cartridgeLabelInnerLeading, y: cartridgeLabelInnerTop) , size: mapperStr.boundingRect(with: CGSize(width: cartridgeLabelInnerWidth, height: 13.0), options: [.usesLineFragmentOrigin], attributes: bodyAttrs, context: nil).size), options: [.usesLineFragmentOrigin], attributes: bodyAttrs, context: nil)
         }
     }
     

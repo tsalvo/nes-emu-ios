@@ -91,10 +91,14 @@ class Cartridge: CartridgeProtocol
         switch self.header.mapperIdentifier
         {
         case .NROM, .UxROM:
-                return Mapper_NROM_UNROM(withCartridge: self)
-            case .MMC1:
-                return Mapper_MMC1(withCartridge: self)
-            default: return Mapper_UnsupportedPlaceholder(withCartridge: self)
+            return Mapper_NROM_UNROM(withCartridge: self)
+        case .MMC1:
+            return Mapper_MMC1(withCartridge: self)
+        case .CNROM:
+            return Mapper_CNROM(withCartridge: self)
+        case .MMC3:
+            return Mapper_MMC3(withCartridge: self)
+        default: return Mapper_UnsupportedPlaceholder(withCartridge: self)
         }
     }
     

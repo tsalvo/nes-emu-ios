@@ -98,10 +98,10 @@ class PPU: Memory
     private var flagShowLeftSprites: UInt8 = 0      // TODO: should this be a Bool?
     
     /// 0: hide; 1: show
-    private var flagShowBackground: UInt8 = 0       // TODO: should this be a Bool?
+    private(set) var flagShowBackground: UInt8 = 0       // TODO: should this be a Bool?
     
     /// 0: hide; 1: show
-    private var flagShowSprites: UInt8 = 0          // TODO: should this be a Bool?
+    private(set) var flagShowSprites: UInt8 = 0          // TODO: should this be a Bool?
     
     /// 0: normal; 1: emphasized
     private var flagRedTint: UInt8 = 0              // TODO: should this be a Bool?
@@ -131,7 +131,7 @@ class PPU: Memory
     var frontBuffer: [UInt32] = PPU.emptyBuffer
     /// colors in RGBA format from Palette.colors
     private var backBuffer: [UInt32] = PPU.emptyBuffer
-    private var scanline: Int = 240
+    private(set) var scanline: Int = 240
     
     init(mapper aMapper: MapperProtocol)
     {
@@ -805,7 +805,7 @@ class PPU: Memory
     }
 
     // Step executes a single PPU cycle
-    func step()
+    func step(cpu aCPU: CPU?)
     {
         self.tick()
 
@@ -897,6 +897,6 @@ class PPU: Memory
             self.flagSpriteOverflow = 0
         }
         
-        self.mapper.step()
+        self.mapper.step(ppu: self, cpu: aCPU)
     }
 }
