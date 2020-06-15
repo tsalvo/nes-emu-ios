@@ -19,6 +19,8 @@ The following mappers have been implemented, with more coming soon:
 -  NROM (0)
 -  MMC1 (1)
 -  UNROM (2)
+-  CNROM (3)
+-  MMC3 (4)
 
 
 ## Performance
