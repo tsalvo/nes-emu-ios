@@ -80,7 +80,7 @@ class Mapper_NROM: MapperProtocol
             return self.chrBlock[Int(aAddress)]
         case 0x8000 ..< 0xC000: // PRG Block 0
             return self.prgBlocks[0][Int(aAddress - 0x8000)]
-        case 0xC000 ..< 0xFFFF: // PRG Block 1 (or mirror of PRG block 0 if only one PRG exists)
+        case 0xC000 ... 0xFFFF: // PRG Block 1 (or mirror of PRG block 0 if only one PRG exists)
             let absoluteIndex = self.prgBank2 * 0x4000 + Int(aAddress - 0xC000)
             let prgBlockIndex = absoluteIndex / 0x4000
             let prgBankOffset = absoluteIndex % 0x4000
@@ -98,7 +98,6 @@ class Mapper_NROM: MapperProtocol
         switch aAddress {
         case 0x0000 ..< 0x2000: // CHR RAM?
             self.chrBlock[Int(aAddress)] = aValue
-        
         case 0x8000 ... 0xFFFF:
             self.prgBank1 = Int(aValue) % self.prgBanks
         case 0x6000 ..< 0x8000: // write to SRAM save
