@@ -10,30 +10,6 @@ import Foundation
 
 extension UInt8
 {
-    /// Returns an assembler-friendly representation of the hex value of this byte (e.g. 0 = $00, 255 = $FF)
-    var hexString: String
-    {
-        return String(format: "$%02X", self)
-    }
-    
-    /// Returns an array of 8 boolean values in big-endian order (more significant, or "higher", bits first)
-    var bigEndianBitArray: [Bool]
-    {
-        let bE = self.bigEndian
-        var retValue: [Bool] = [Bool].init(repeating: false, count: 8)
-        
-        retValue[0] = bE >> 7 & 1 == 1
-        retValue[1] = bE >> 6 & 1 == 1
-        retValue[2] = bE >> 5 & 1 == 1
-        retValue[3] = bE >> 4 & 1 == 1
-        retValue[4] = bE >> 3 & 1 == 1
-        retValue[5] = bE >> 2 & 1 == 1
-        retValue[6] = bE >> 1 & 1 == 1
-        retValue[7] = bE >> 0 & 1 == 1
-        
-        return retValue
-    }
-    
     /// Returns a UInt8 value from an array of 8 boolean values in big endian order (more significant, or "higher", bits first)
     init(fromBigEndianBitArray aBigEndianBitArray: [Bool])
     {

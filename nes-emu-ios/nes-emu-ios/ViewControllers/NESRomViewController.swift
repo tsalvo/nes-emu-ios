@@ -8,6 +8,13 @@
 
 import UIKit
 
+protocol NesRomControllerDelegate: class
+{
+    var document: NesRomDocument? { get }
+    func dismiss(_ sender: AnyObject?)
+    func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
+}
+
 class NESRomViewController: UIViewController
 {
     @IBOutlet weak private var screen: NESScreenView!
@@ -30,6 +37,7 @@ class NESRomViewController: UIViewController
     override func viewDidLoad()
     {
         super.viewDidLoad()
+
         if let safeCartridge = self.document?.cartridge
         {
             self.console = Console(withCartridge: safeCartridge, sampleRate: SampleRate._22050Hz)
@@ -49,23 +57,14 @@ class NESRomViewController: UIViewController
     override func viewDidDisappear(_ animated: Bool)
     {
         super.viewDidDisappear(animated)
-        self.displayLink?.isPaused = true
-        self.displayLink?.invalidate()
-        self.displayLink = nil
-    }
-    
-    deinit
-    {
-        print("DEINIT: \(self)")
+        self.destroyDisplayLink()
     }
     
     @IBAction private func dismiss(_ sender: AnyObject?)
     {
         if !self.isBeingDismissed
         {
-            self.displayLink?.isPaused = true
-            self.displayLink?.invalidate()
-            self.displayLink = nil
+            self.destroyDisplayLink()
             self.dismiss(animated: true, completion: { [weak self] in
                 self?.document?.close(completionHandler: nil)
             })
@@ -166,13 +165,45 @@ class NESRomViewController: UIViewController
         })
     }
     
+    func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
+    {
+        if !self.isBeingDismissed
+        {
+            self.destroyDisplayLink()
+            self.dismiss(animated: true, completion: { [weak self] in
+                if let safeDocument = self?.document
+                {
+                    safeDocument.close(completionHandler: { (success) in
+                        aCompletionHandler?(success)
+                    })
+                }
+                else
+                {
+                    aCompletionHandler?(true)
+                }
+            })
+        }
+        else
+        {
+            aCompletionHandler?(true)
+        }
+    }
+    
     private func createDisplayLink()
     {
-        self.displayLink?.invalidate()
-        self.displayLink = nil
+        self.destroyDisplayLink()
         self.displayLink = CADisplayLink(target: self, selector: #selector(updateFrame))
         self.displayLink?.preferredFramesPerSecond = 60
         self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.default)
         self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.tracking)
     }
+    
+    private func destroyDisplayLink()
+    {
+        self.displayLink?.isPaused = true
+        self.displayLink?.invalidate()
+        self.displayLink = nil
+    }
+    
+    
 }

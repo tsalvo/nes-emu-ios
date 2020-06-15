@@ -21,6 +21,7 @@
 		99488F4B248985F300942A1E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 99488F4A248985F300942A1E /* Assets.xcassets */; };
 		99488F4E248985F300942A1E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99488F4C248985F300942A1E /* LaunchScreen.storyboard */; };
 		99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */; };
+		994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994C12112496F10600DD2FE1 /* SceneDelegate.swift */; };
 		999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999AA95B248F668000DA77AA /* NESRomViewController.swift */; };
 		99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A372BE248F8EC000089773 /* NESScreenView.swift */; };
 		99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A43E9724944CFD0009DB5B /* SampleRate.swift */; };
@@ -81,6 +82,7 @@
 		99488F4D248985F300942A1E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		99488F4F248985F300942A1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UInt8+ByteUtils.swift"; sourceTree = "<group>"; };
+		994C12112496F10600DD2FE1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		999AA95B248F668000DA77AA /* NESRomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESRomViewController.swift; sourceTree = "<group>"; };
 		99A372BE248F8EC000089773 /* NESScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESScreenView.swift; sourceTree = "<group>"; };
 		99A372C0249028DC00089773 /* nes-emu-ios.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "nes-emu-ios.entitlements"; sourceTree = "<group>"; };
@@ -159,6 +161,7 @@
 			children = (
 				99A372C0249028DC00089773 /* nes-emu-ios.entitlements */,
 				99488F3F248985F100942A1E /* AppDelegate.swift */,
+				994C12112496F10600DD2FE1 /* SceneDelegate.swift */,
 				99488F572489BF6F00942A1E /* Extensions */,
 				99488F562489AFC500942A1E /* Model */,
 				99A372E62490D6FA00089773 /* ViewControllers */,
@@ -342,6 +345,7 @@
 				991B28CE248B746A00A6A6DD /* Controller.swift in Sources */,
 				99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */,
 				991B28C12489F66300A6A6DD /* Cartridge.swift in Sources */,
+				994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */,
 				99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */,
 				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
 				99FB2208248DCAE000D557A4 /* Palette.swift in Sources */,

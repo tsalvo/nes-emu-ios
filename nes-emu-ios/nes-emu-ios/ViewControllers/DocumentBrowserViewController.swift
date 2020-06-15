@@ -11,6 +11,13 @@ import UIKit
 
 class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocumentBrowserViewControllerDelegate
 {
+    
+#if targetEnvironment(macCatalyst)
+    static let segueForNesRom: String = "playROMCrossDissolve"
+#else
+    static let segueForNesRom: String = "playROM"
+#endif
+    
     // MARK: - Life Cycle
     
     override func viewDidLoad()
@@ -56,11 +63,7 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
         document.open(completionHandler: { success in
             if success
             {
-#if targetEnvironment(macCatalyst)
-                self.performSegue(withIdentifier: "playROMCrossDissolve", sender: document)
-#else
-                self.performSegue(withIdentifier: "playROM", sender: document)
-#endif
+                self.performSegue(withIdentifier: DocumentBrowserViewController.segueForNesRom, sender: document)
             }
             else
             {
