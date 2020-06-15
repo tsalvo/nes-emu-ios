@@ -36,35 +36,16 @@ class Mapper_UnsupportedPlaceholder: MapperProtocol
     func step() { }
 }
 
-class Mapper_NROM: MapperProtocol
+class Mapper_NROM_UNROM: MapperProtocol
 {
-    init(withCartridge aCartridge: CartridgeProtocol)
-    {
-        self.mirroringMode = aCartridge.header.mirroringMode
-        switch aCartridge.prgBlocks.count
-        {
-        case 0:
-            self.prgBlocks = [[UInt8]].init(repeating: [UInt8].init(repeating: 0, count: 16384), count: 2)
-        case 1:
-            self.prgBlocks = [aCartridge.prgBlocks[0], [UInt8].init(repeating: 0, count: 16384)]
-        default:
-            self.prgBlocks = [aCartridge.prgBlocks[0], aCartridge.prgBlocks[1]]
-        }
-        
-        switch aCartridge.chrBlocks.count
-        {
-        case 0: self.chrBlock = [UInt8].init(repeating: 0, count: 8192)
-        default: self.chrBlock = aCartridge.chrBlocks[0]
-        }
-        
-        self.prgBanks = aCartridge.prgBlocks.count
-        self.prgBank1 = 0
-        self.prgBank2 = self.prgBanks - 1
-    }
-
     let mirroringMode: MirroringMode
-    private var prgBlocks: [[UInt8]]
-    private var chrBlock: [UInt8]
+    
+    /// linear 1D array of all PRG blocks
+    private var prg: [UInt8] = []
+    
+    /// linear 1D array of all CHR blocks
+    private var chr: [UInt8] = []
+    
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
     
@@ -72,19 +53,47 @@ class Mapper_NROM: MapperProtocol
     private var prgBank1: Int
     private var prgBank2: Int
     
+    init(withCartridge aCartridge: CartridgeProtocol)
+    {
+        self.mirroringMode = aCartridge.header.mirroringMode
+        
+        for p in aCartridge.prgBlocks
+        {
+            self.prg.append(contentsOf: p)
+        }
+        
+        for c in aCartridge.chrBlocks
+        {
+            self.chr.append(contentsOf: c)
+        }
+        
+        if self.chr.count == 0
+        {
+            // use a block for CHR RAM if no block exists
+            self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
+        }
+        
+        if aCartridge.prgBlocks.count == 1
+        {
+            // mirror first PRG block if necessary
+            self.prg.append(contentsOf: aCartridge.prgBlocks[0])
+        }
+        
+        self.prgBanks = self.prg.count / 0x4000
+        self.prgBank1 = 0
+        self.prgBank2 = self.prgBanks - 1
+    }
+    
     func read(address aAddress: UInt16) -> UInt8
     {
         switch aAddress
         {
         case 0x0000 ..< 0x2000: // CHR Block
-            return self.chrBlock[Int(aAddress)]
+            return self.chr[Int(aAddress)]
         case 0x8000 ..< 0xC000: // PRG Block 0
-            return self.prgBlocks[0][Int(aAddress - 0x8000)]
+            return self.prg[self.prgBank1 * 0x4000 + Int(aAddress - 0x8000)]
         case 0xC000 ... 0xFFFF: // PRG Block 1 (or mirror of PRG block 0 if only one PRG exists)
-            let absoluteIndex = self.prgBank2 * 0x4000 + Int(aAddress - 0xC000)
-            let prgBlockIndex = absoluteIndex / 0x4000
-            let prgBankOffset = absoluteIndex % 0x4000
-            return self.prgBlocks[prgBlockIndex][prgBankOffset]
+            return self.prg[self.prgBank2 * 0x4000 + Int(aAddress - 0xC000)]
         case 0x6000 ..< 0x8000:
             return self.sram[Int(aAddress - 0x6000)]
         default:
@@ -97,7 +106,7 @@ class Mapper_NROM: MapperProtocol
     {
         switch aAddress {
         case 0x0000 ..< 0x2000: // CHR RAM?
-            self.chrBlock[Int(aAddress)] = aValue
+            self.chr[Int(aAddress)] = aValue
         case 0x8000 ... 0xFFFF:
             self.prgBank1 = Int(aValue) % self.prgBanks
         case 0x6000 ..< 0x8000: // write to SRAM save

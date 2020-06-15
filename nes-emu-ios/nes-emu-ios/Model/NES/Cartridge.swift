@@ -90,8 +90,8 @@ class Cartridge: CartridgeProtocol
         
         switch self.header.mapperIdentifier
         {
-            case .NROM:
-                return Mapper_NROM(withCartridge: self)
+        case .NROM, .UxROM:
+                return Mapper_NROM_UNROM(withCartridge: self)
             case .MMC1:
                 return Mapper_MMC1(withCartridge: self)
             default: return Mapper_UnsupportedPlaceholder(withCartridge: self)

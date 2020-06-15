@@ -97,7 +97,7 @@ enum MapperIdentifier: UInt8
     {
         switch self
         {
-        case .NROM, .MMC1: return true
+        case .NROM, .UxROM, .MMC1: return true
         default: return false
         }
     }
