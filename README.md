@@ -25,6 +25,7 @@ The following mappers have been implemented:
 -  UNROM (2)
 -  CNROM (3)
 -  MMC3 (4)
+-  AxROM (7)
 
 This accounts for a good portion of the NES library, but there are still some big gaps remaining for popular mapper support.
 
@@ -37,8 +38,8 @@ For best performance, build the app for **release** mode instead of debug.  Or, 
 
 
 ## Near Future Plans
-- Add support for more mappers, particularly remaining mappers already supported in fogleman's NES emulator.
-- Add setting to adjust audio sample rate, giving the user some control over CPU usage vs. sound quality.
+- Add support for more mappers.
+- Add setting to adjust audio sample rate, giving the user some control over the tradeoff between CPU usage and sound quality.
 - Performance improvements (look for low hanging fruit in areas of the app that are taking the longest).
 - On-screen control improvements (bigger tap areas, better layout, auto-hide when using bluetooth controller, etc).
 - Gamepad control improvements (button remap, player 2, reassign controllers, check for disconnects / reconnects etc.)
