@@ -50,26 +50,38 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
     
     func documentBrowser(_ controller: UIDocumentBrowserViewController, failedToImportDocumentAt documentURL: URL, error: Error?)
     {
-        // Make sure to handle the failed import appropriately, e.g., by presenting an error message to the user.
+        let alertVC = UIAlertController(title: NSLocalizedString("title-error", comment: "Error"), message: NSLocalizedString("error-failed-to-import-document", comment: "Failed to import document"), preferredStyle: .alert)
+        alertVC.addAction(UIAlertAction(title: NSLocalizedString("button-ok", comment: "OK"), style: .cancel, handler: nil))
+        self.present(alertVC, animated: true, completion: nil)
     }
     
     // MARK: - Document Presentation
     
     func presentDocument(at documentURL: URL)
     {
+        func present(document aDocument: UIDocument)
+        {
+            // Access the document
+            document.open(completionHandler: { success in
+                if success
+                {
+                    self.performSegue(withIdentifier: DocumentBrowserViewController.segueForNesRom, sender: document)
+                }
+            })
+        }
+        
         let document = NesRomDocument(fileURL: documentURL)
-
-        // Access the document
-        document.open(completionHandler: { success in
-            if success
-            {
-                self.performSegue(withIdentifier: DocumentBrowserViewController.segueForNesRom, sender: document)
-            }
-            else
-            {
-                // Make sure to handle the failed import appropriately, e.g., by presenting an error message to the user.
-            }
-        })
+        
+        if let safeRomController = self.presentedViewController as? NesRomControllerDelegate
+        {
+            safeRomController.closeDueToExternalChange(completionHandler: { (success) in
+                present(document: document)
+            })
+        }
+        else
+        {
+            present(document: document)
+        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)

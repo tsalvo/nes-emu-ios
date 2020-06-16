@@ -1,0 +1,11 @@
+/* 
+  Localizable.strings
+  nes-emu-ios
+
+  Created by Tom Salvo on 6/15/20.
+  Copyright © 2020 Tom Salvo. All rights reserved.
+*/
+
+"button-ok" = "OK";
+"title-error" = "Error";
+"error-failed-to-import-document" = "Failed to import document";

@@ -10,6 +10,7 @@ import UIKit
 
 class NesRomDocument: UIDocument
 {
+    static let fileExtension: String = "nes"
     var cartridge: Cartridge?
     
     override func contents(forType typeName: String) throws -> Any

@@ -15,8 +15,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate
 {
     var window: UIWindow?
     
-    weak var documentDelegate: NesRomControllerDelegate?
-    
     func stateRestorationActivity(for scene: UIScene) -> NSUserActivity?
     {
         return scene.userActivity
@@ -36,7 +34,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate
         // This occurs shortly after the scene enters the background, or when its session is discarded.
         // Release any resources associated with this scene that can be re-created the next time the scene connects.
         // The scene may re-connect later, as its session was not neccessarily discarded (see `application:didDiscardSceneSessions` instead).
-        self.documentDelegate?.dismiss(self)
     }
     
     func sceneDidEnterBackground(_ scene: UIScene)
@@ -45,8 +42,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate
         // Use this method to save data, release shared resources, and store enough scene-specific state information to restore the scene back to its current state.
         guard let ws = (scene as? UIWindowScene) else { return } // TODO: stop playback and save restoration state
         let _ = ws.windows.first?.rootViewController
-        
-        //scene.session.stateRestorationActivity = scene.userActivity
     }
     
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>)
@@ -56,46 +51,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate
         guard let inputURL = URLContexts.first?.url,
             inputURL.isFileURL,
             let documentBrowserViewController = self.window?.rootViewController as? DocumentBrowserViewController else { return }
-        
+
         documentBrowserViewController.revealDocument(at: inputURL, importIfNeeded: true) { (revealedDocumentURL, error) in
-            
+
             if let safeError = error
             {
                 // Handle the error appropriately
                 os_log(OSLogType.error, "Failed to reveal the document at URL: %@ with error: %@", inputURL.absoluteString, safeError.localizedDescription)
                 return
             }
-            
+
             guard let safeRevealedDocumentURL = revealedDocumentURL else
             {
                 return
             }
-            
+
             scene.title = safeRevealedDocumentURL.lastPathComponent
-            
-            switch safeRevealedDocumentURL.pathExtension.lowercased()
-            {
-            case "nes":
-                
-                let document = NesRomDocument.init(fileURL: safeRevealedDocumentURL)
-                document.open { (success) in
-                    guard success else { return }
-                    
-                    if let safeRomController = documentBrowserViewController.presentedViewController as? NesRomControllerDelegate
-                    {
-                        safeRomController.closeDueToExternalChange(completionHandler: { (success) in
-                            documentBrowserViewController.performSegue(withIdentifier: DocumentBrowserViewController.segueForNesRom, sender: safeRevealedDocumentURL)
-                        })
-                    }
-                    else
-                    {
-                        documentBrowserViewController.performSegue(withIdentifier: DocumentBrowserViewController.segueForNesRom, sender: safeRevealedDocumentURL)
-                    }
-                }
-                
-            default:
-                break
-            }
         }
     }
 }

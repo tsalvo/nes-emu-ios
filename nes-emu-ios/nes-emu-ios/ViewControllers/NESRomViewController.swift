@@ -12,11 +12,10 @@ import GameController
 protocol NesRomControllerDelegate: class
 {
     var document: NesRomDocument? { get }
-    func dismiss(_ sender: AnyObject?)
     func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
 }
 
-class NESRomViewController: UIViewController
+class NESRomViewController: UIViewController, NesRomControllerDelegate
 {
     @IBOutlet weak private var screen: NESScreenView!
     @IBOutlet weak private var dismissButton: UIButton!
