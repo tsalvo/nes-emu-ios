@@ -641,10 +641,10 @@ class CPU: CPUProtocol
             address = self.read16(address: self.pc &+ 1)
         case .absoluteXIndexed:
             address = self.read16(address: self.pc &+ 1) &+ UInt16(self.x)
-            pageCrossed = self.pagesDiffer(address1: address - UInt16(self.x), address2: address)
+            pageCrossed = self.pagesDiffer(address1: address &- UInt16(self.x), address2: address)
         case .absoluteYIndexed:
             address = self.read16(address: self.pc &+ 1) &+ UInt16(self.y)
-            pageCrossed = self.pagesDiffer(address1: address - UInt16(self.y), address2: address)
+            pageCrossed = self.pagesDiffer(address1: address &- UInt16(self.y), address2: address)
         case .accumulator:
             address = 0
         case .immediate:
