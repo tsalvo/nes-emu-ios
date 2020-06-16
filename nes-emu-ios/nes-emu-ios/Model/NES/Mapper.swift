@@ -475,18 +475,18 @@ class Mapper_MMC3: MapperProtocol
         {
             self.prg.append(contentsOf: p)
         }
-        
+
         for c in aCartridge.chrBlocks
         {
             self.chr.append(contentsOf: c)
         }
-        
+
         if self.chr.count == 0
         {
             // use a block for CHR RAM if no block exists
             self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
         }
-        
+
         self.prgOffsets[0] = self.prgBankOffset(index: 0)
         self.prgOffsets[1] = self.prgBankOffset(index: 1)
         self.prgOffsets[2] = self.prgBankOffset(index: -2)
@@ -653,34 +653,43 @@ class Mapper_MMC3: MapperProtocol
         
     }
     
-    func writeIRQLatch(value aValue: UInt8) {
+    func writeIRQLatch(value aValue: UInt8)
+    {
         self.reload = aValue
     }
 
-    func writeIRQReload(value aValue: UInt8) {
+    func writeIRQReload(value aValue: UInt8)
+    {
         self.counter = 0
     }
 
-    func writeIRQDisable(value aValue: UInt8) {
+    func writeIRQDisable(value aValue: UInt8)
+    {
         self.irqEnable = false
     }
 
-    func writeIRQEnable(value aValue: UInt8) {
+    func writeIRQEnable(value aValue: UInt8)
+    {
         self.irqEnable = true
     }
 
-    func prgBankOffset(index aIndex: Int) -> Int {
-        var index = aIndex
-        if index >= 0x80
+    func prgBankOffset(index aIndex: Int) -> Int
+    {
+        guard self.prg.count >= 0x2000 else { return 0 }
+        
+        var i = aIndex
+        if i >= 0x80
         {
-            index -= 0x100
+            i -= 0x100
         }
-        index %= self.prg.count / 0x2000
-        var offset = index * 0x2000
+        
+        i %= (self.prg.count / 0x2000)
+        var offset = i * 0x2000
         if offset < 0
         {
             offset += self.prg.count
         }
+        
         return offset
     }
 

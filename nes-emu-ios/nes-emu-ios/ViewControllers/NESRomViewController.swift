@@ -173,25 +173,31 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
     
     func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
     {
+        func closeIfNeeded(completionHandler aCompletionHandler: ((Bool) -> Void)?)
+        {
+            if let safeDocument = self.document
+            {
+                safeDocument.close(completionHandler: { (success) in
+                    aCompletionHandler?(success)
+                })
+            }
+            else
+            {
+                aCompletionHandler?(true)
+            }
+        }
+        
+        self.destroyDisplayLink()
+        
         if !self.isBeingDismissed
         {
-            self.destroyDisplayLink()
-            self.dismiss(animated: true, completion: { [weak self] in
-                if let safeDocument = self?.document
-                {
-                    safeDocument.close(completionHandler: { (success) in
-                        aCompletionHandler?(success)
-                    })
-                }
-                else
-                {
-                    aCompletionHandler?(true)
-                }
+            self.dismiss(animated: true, completion: {
+                closeIfNeeded(completionHandler: aCompletionHandler)
             })
         }
         else
         {
-            aCompletionHandler?(true)
+            closeIfNeeded(completionHandler: aCompletionHandler)
         }
     }
     

@@ -45,7 +45,7 @@ struct InstructionInfo
     let code: (_ stepInfo: StepInfo) -> Void
 }
 
-protocol CPUProtocol: Memory
+protocol CPUProtocol: MemoryProtocol
 {
     func triggerIRQ()
     var stall: Int { get set }
@@ -446,7 +446,7 @@ class CPU: CPUProtocol
         self.c = aValueA >= aValueB ? true : false
     }
     
-    // MARK: Memory
+    // MARK: MemoryProtocol
     
     func read(address aAddress: UInt16) -> UInt8
     {
@@ -521,7 +521,7 @@ class CPU: CPUProtocol
     func read16bug(address aAddress: UInt16) -> UInt16
     {
         let a: UInt16 = aAddress
-        let b = (a & 0xFF00) | UInt16(UInt8(a) &+ 1)
+        let b: UInt16 = (a & 0xFF00) | UInt16((a % 256) &+ 1)
         let lo = self.read(address: a)
         let hi = self.read(address: b)
         return (UInt16(hi) << 8) | UInt16(lo)

@@ -9,7 +9,7 @@
 import Foundation
 
 /// NES Picture Processing Unit
-class PPU: Memory
+class PPU: MemoryProtocol
 {
     var cycle: Int = 340
     var frame: UInt64 = 0
