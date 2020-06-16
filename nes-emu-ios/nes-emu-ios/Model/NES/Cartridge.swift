@@ -98,7 +98,10 @@ class Cartridge: CartridgeProtocol
             return Mapper_CNROM(withCartridge: self)
         case .MMC3:
             return Mapper_MMC3(withCartridge: self)
-        default: return Mapper_UnsupportedPlaceholder(withCartridge: self)
+        case .AxROM:
+            return Mapper_AxROM(withCartridge: self)
+        default:
+            return Mapper_UnsupportedPlaceholder(withCartridge: self)
         }
     }
     
