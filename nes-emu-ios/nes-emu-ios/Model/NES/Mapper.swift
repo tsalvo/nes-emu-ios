@@ -903,24 +903,14 @@ class Mapper_MMC2: MapperProtocol
         {
         case 0xA000 ..< 0xB000: // select 8KB PRG Bank 0-15 xxxxPPPP for CPU 0x8000-0x9FFF
             self.prgBank1 = Int(aValue % 0x0F)
-            print("MMC2: select PRG Bank from byte \(aValue % 0x0F)")
-            break
         case 0xB000 ..< 0xC000: // Select 4 KB CHR ROM bank 1 0-31 xxxCCCCC for PPU $0000-$0FFF
-            print("MMC2: select CHR Bank \(aValue % 0x20)")
             self.chrBanks1[0] = Int(aValue % 0x20)
-            break
         case 0xC000 ..< 0xD000: // Select 4 KB CHR ROM bank 1 0-31 xxxCCCCC for PPU $0000-$0FFF
-            print("MMC2: select CHR Bank \(aValue % 0x20)")
             self.chrBanks1[1] = Int(aValue % 0x20)
-            break
         case 0xD000 ..< 0xE000: // Select 4 KB CHR ROM bank 2 0-31 xxxCCCCC for PPU $1000-$1FFF when latch2 == 1
-            print("MMC2: select CHR Bank \(aValue % 0x20)")
             self.chrBanks2[0] = Int(aValue % 0x20)
-            break
         case 0xE000 ..< 0xF000: // Select 4 KB CHR ROM bank 2 0-31 xxxCCCCC for PPU $1000-$1FFF
-            print("MMC2: select CHR Bank from byte \(aValue) -> ")
             self.chrBanks2[1] = Int(aValue % 0x20)
-            break
         case 0xF000 ... 0xFFFF:
             self.mirroringMode = (aValue % 0x02) == 0 ? .vertical : .horizontal
         default:

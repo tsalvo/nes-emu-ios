@@ -26,6 +26,7 @@ The following mappers have been implemented:
 -  CNROM (3)
 -  MMC3 (4)
 -  AxROM (7)
+-  MMC2 (9)
 
 This accounts for a good portion of the NES library, but there are still some big gaps remaining for popular mapper support.
 
