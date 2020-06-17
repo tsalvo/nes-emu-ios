@@ -13,7 +13,7 @@ This app uses the UIDocumentBrowserViewController for easy NES ROM (.nes) file b
 - APU emulation (audio processing unit)
 - Mapper emulation for several common mappers
 - Touchscreen controls
-- Gamepad controls for Player 1 (using built-in GameController framework and extendedGamepad profile).  If a controller is already paired before playing a game, it will be available for Player 1.
+- Gamepad controls using built-in GameController framework and extendedGamepad profile.  MFi controllers, or DualShock 4, or Xbox One controllers should all work.   Touchsreen controls auto-hide when a controller is paired for player 1, and a second controlls is mapped to player 2.
 - Builds successfully for iOS 13+, iPadOS 13+, or Mac Catalyst (macOS 10.15 Catalina), but the Catalyst build still needs some Mac-specific tweaks.
 
 
@@ -42,6 +42,5 @@ For best performance, build the app for **release** mode instead of debug.  Or, 
 - Add support for more mappers.
 - Add setting to adjust audio sample rate, giving the user some control over the tradeoff between CPU usage and sound quality.
 - Performance improvements (look for low hanging fruit in areas of the app that are taking the longest).
-- On-screen control improvements (bigger tap areas, better layout, auto-hide when using bluetooth controller, etc).
-- Gamepad control improvements (button remap, player 2, reassign controllers, check for disconnects / reconnects etc.)
+- On-screen control improvements (bigger tap areas, better layout).
 - Save states
