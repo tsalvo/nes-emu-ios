@@ -24,11 +24,8 @@ class NESScreenView: UIView
             let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue)
             let providerRef: CGDataProvider? = CGDataProvider(data: NSData(bytes: &self.buffer, length: bitmapCount * elmentLength))
             let cgimage: CGImage? = CGImage(width: 256, height: 240, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: 256 * elmentLength, space: rgbColorSpace, bitmapInfo: bitmapInfo, provider: providerRef!, decode: nil, shouldInterpolate: true, intent: render)
-            if cgimage != nil
-            {
-                self.img = cgimage
-                self.setNeedsDisplay()
-            }
+            self.img = cgimage
+            self.setNeedsDisplay()
         }
     }
     
@@ -37,9 +34,14 @@ class NESScreenView: UIView
         super.draw(rect)
 
         guard let context = UIGraphicsGetCurrentContext(),
-            let img = self.img else { return
+            let img = self.img
+        else
+        {
+            return
         }
         
+        context.setAllowsAntialiasing(false)
+        context.setShouldAntialias(false)
         context.draw(img, in: self.bounds)
     }
 }

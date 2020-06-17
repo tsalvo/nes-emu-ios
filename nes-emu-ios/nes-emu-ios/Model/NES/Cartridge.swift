@@ -100,6 +100,8 @@ class Cartridge: CartridgeProtocol
             return Mapper_MMC3(withCartridge: self)
         case .AxROM:
             return Mapper_AxROM(withCartridge: self)
+        case .MMC2:
+            return Mapper_MMC2(withCartridge: self)
         default:
             return Mapper_UnsupportedPlaceholder(withCartridge: self)
         }
