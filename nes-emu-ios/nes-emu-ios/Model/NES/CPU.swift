@@ -462,8 +462,7 @@ class CPU: CPUProtocol
         case 0x4016:
             return self.controller1?.read() ?? 0
         case 0x4017:
-            return 0
-            //return self.controller2?.read() ?? 0
+            return self.controller2?.read() ?? 0
         case 0x4000 ..< 0x6000:
             return 0
             // TODO: I/O registers
@@ -489,8 +488,7 @@ class CPU: CPUProtocol
             self.apu?.writeRegister(address: aAddress, value: aValue)
         case 0x4016:
             self.controller1?.write(value: aValue)
-            //self.controller2?.write(value: aValue)
-            break
+            self.controller2?.write(value: aValue)
         case 0x4017:
             self.apu?.writeRegister(address: aAddress, value: aValue)
         case 0x4000 ..< 0x6000:

@@ -17,6 +17,7 @@ protocol NesRomControllerDelegate: class
 
 class NESRomViewController: UIViewController, NesRomControllerDelegate
 {
+    // MARk: - UI Outlets
     @IBOutlet weak private var screen: NESScreenView!
     @IBOutlet weak private var dismissButton: UIButton!
     @IBOutlet weak private var resetButton: UIButton!
@@ -29,16 +30,41 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
     @IBOutlet weak private var selectButton: UIButton!
     @IBOutlet weak private var startButton: UIButton!
     
-    var controller: GCController?
+    // MARK: - Public Variables
     var document: NesRomDocument?
-    var console: Console?
+    
+    // MARK: - Private Variables
+    private var controller1: GCController?
+    {
+        didSet
+        {
+            self.setOnScreenControlsHidden(self.controller1?.extendedGamepad != nil)
+            if self.controller1 == nil
+            {
+                self.console?.set(buttonUpPressed: false, buttonDownPressed: false, buttonLeftPressed: false, buttonRightPressed: false, buttonSelectPressed: false, buttonStartPressed: false, buttonBPressed: false, buttonAPressed: false, forControllerAtIndex: 0)
+            }
+        }
+    }
+    
+    private var controller2: GCController?
+    {
+        didSet
+        {
+            if self.controller2 == nil
+            {
+                self.console?.set(buttonUpPressed: false, buttonDownPressed: false, buttonLeftPressed: false, buttonRightPressed: false, buttonSelectPressed: false, buttonStartPressed: false, buttonBPressed: false, buttonAPressed: false, forControllerAtIndex: 1)
+            }
+        }
+    }
+    
+    private var console: Console?
     private var displayLink: CADisplayLink?
     private var audioEngine: AudioEngine = AudioEngine()
     
+    // MARK: - UIViewController Life Cycle
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        self.controller = GCController.controllers().first
         if let safeCartridge = self.document?.cartridge
         {
             self.console = Console(withCartridge: safeCartridge, sampleRate: SampleRate._22050Hz)
@@ -49,20 +75,26 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
         }
     }
     
-    override func viewDidAppear(_ animated: Bool)
+    override func viewWillAppear(_ animated: Bool)
     {
-        super.viewDidAppear(animated)
+        super.viewWillAppear(animated)
+        self.checkForControllers()
+        NotificationCenter.default.addObserver(self, selector: #selector(handleControllerConnect(_:)), name: NSNotification.Name.GCControllerDidConnect, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleControllerDisconnect(_:)), name: NSNotification.Name.GCControllerDidDisconnect, object: nil)
         UIApplication.shared.isIdleTimerDisabled = true
         self.createDisplayLink()
     }
     
-    override func viewDidDisappear(_ animated: Bool)
+    override func viewWillDisappear(_ animated: Bool)
     {
-        super.viewDidDisappear(animated)
+        super.viewWillDisappear(animated)
+        NotificationCenter.default.removeObserver(self)
         UIApplication.shared.isIdleTimerDisabled = false
         self.destroyDisplayLink()
     }
     
+    
+    // MARK: - Button Actions
     @IBAction private func dismiss(_ sender: AnyObject?)
     {
         if !self.isBeingDismissed
@@ -161,11 +193,17 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
         self.console?.set(button: .buttonRight, enabled: false, forControllerAtIndex: 0)
     }
     
+    // MARK - Display Link Frame Update
     @objc private func updateFrame()
     {
-        if let extendedPad = self.controller?.extendedGamepad
+        if let extendedPad = self.controller1?.extendedGamepad
         {
             self.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 0)
+        }
+        
+        if let extendedPad = self.controller2?.extendedGamepad
+        {
+            self.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 1)
         }
         
         self.console?.stepSeconds(seconds: 1.0 / 60.0, completionHandler: { [weak self] in
@@ -173,6 +211,7 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
         })
     }
     
+    // MARK: - NesRomControllerDelegate
     func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
     {
         func closeIfNeeded(completionHandler aCompletionHandler: ((Bool) -> Void)?)
@@ -203,6 +242,45 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
         }
     }
     
+    // MARK: - Notifications
+    @objc private func handleControllerConnect(_ notification: Notification)
+    {
+        guard let safeController = notification.object as? GCController
+        else
+        {
+            return
+        }
+        
+        if self.controller1 == nil
+        {
+            self.controller1 = safeController
+        }
+        else if self.controller2 == nil
+        {
+            self.controller2 = safeController
+        }
+    }
+    
+    @objc private func handleControllerDisconnect(_ notification: Notification)
+    {
+        guard let safeController = notification.object as? GCController
+        else
+        {
+            return
+        }
+        
+        if self.controller1 === safeController
+        {
+            self.controller1 = nil
+        }
+        else if self.controller2 === safeController
+        {
+            self.controller2 = nil
+        }
+    }
+    
+    // MARK: - Private Functions
+    
     private func createDisplayLink()
     {
         self.destroyDisplayLink()
@@ -219,5 +297,78 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
         self.displayLink = nil
     }
     
+    private func checkForControllers()
+    {
+        let currentControllers: [GCController] = GCController.controllers()
+        
+        if let safeController1 = self.controller1
+        {
+            if !currentControllers.contains(safeController1)
+            {
+                // reassign controller 1 if available
+                self.controller1 = nil
+                for c in currentControllers
+                {
+                    if c !== self.controller2
+                    {
+                        self.controller1 = c
+                        break
+                    }
+                }
+            }
+        }
+        else
+        {
+            // reassign controller 1 if available
+            for c in currentControllers
+            {
+                if c !== self.controller2
+                {
+                    self.controller1 = c
+                    break
+                }
+            }
+        }
+        
+        if let safeController2 = self.controller2
+        {
+            if !currentControllers.contains(safeController2)
+            {
+                // reassign controller 2 if available
+                self.controller2 = nil
+                for c in currentControllers
+                {
+                    if c !== self.controller1
+                    {
+                        self.controller2 = c
+                        break
+                    }
+                }
+            }
+        }
+        else
+        {
+            // reassign controller 2 if available
+            for c in currentControllers
+            {
+                if c !== self.controller1
+                {
+                    self.controller2 = c
+                    break
+                }
+            }
+        }
+    }
     
+    private func setOnScreenControlsHidden(_ hidden: Bool)
+    {
+        self.aButton.isHidden = hidden
+        self.bButton.isHidden = hidden
+        self.startButton.isHidden = hidden
+        self.selectButton.isHidden = hidden
+        self.upButton.isHidden = hidden
+        self.downButton.isHidden = hidden
+        self.leftButton.isHidden = hidden
+        self.rightButton.isHidden = hidden
+    }
 }
