@@ -52,12 +52,14 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
+        UIApplication.shared.isIdleTimerDisabled = true
         self.createDisplayLink()
     }
     
     override func viewDidDisappear(_ animated: Bool)
     {
         super.viewDidDisappear(animated)
+        UIApplication.shared.isIdleTimerDisabled = false
         self.destroyDisplayLink()
     }
     
