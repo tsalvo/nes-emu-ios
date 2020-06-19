@@ -35,9 +35,7 @@ class Console: ConsoleProtocol
         self.ppu = ppu
         self.cartridge = aCartridge
         self.controllers = controllers
-        self.cpu.console = self
-        self.apu.console = self
-        self.ppu.console = self
+        self.ppu.cpu = cpu
         self.apu.cpu = cpu
     }
     

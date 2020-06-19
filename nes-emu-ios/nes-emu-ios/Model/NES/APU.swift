@@ -8,10 +8,16 @@
 
 import Foundation
 
-/// NES Audio Processing Unit
-class APU
+protocol APUProtocol: class
 {
-    weak var console: ConsoleProtocol?
+    func readRegister(address aAddress: UInt16) -> UInt8
+    func writeRegister(address aAddress: UInt16, value aValue: UInt8)
+    func step()
+}
+
+/// NES Audio Processing Unit
+class APU: APUProtocol
+{
     weak var cpu: CPUProtocol?
     weak var audioEngineDelegate: AudioEngineProtocol?
     private var audioBufferIndex: Int = 0
@@ -82,7 +88,7 @@ class APU
 
     func sendSample()
     {
-        let output = self.output() //self.filterChain.step(x: self.output())
+        let output = self.output() // TODO: adopt filterchain instead of sending raw samples e.g. self.filterChain.step(x: self.output())
         self.audioBuffer[self.audioBufferIndex] = output
         self.audioBufferIndex += 1
         if self.audioBufferIndex >= self.audioBuffer.count

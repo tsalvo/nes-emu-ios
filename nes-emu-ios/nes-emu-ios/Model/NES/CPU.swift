@@ -48,7 +48,9 @@ struct InstructionInfo
 protocol CPUProtocol: MemoryProtocol
 {
     func triggerIRQ()
+    func triggerNMI()
     var stall: Int { get set }
+    var cycles: UInt64 { get }
 }
 
 /// NES Central processing unit
@@ -56,9 +58,8 @@ class CPU: CPUProtocol
 {
     static let frequency: Int = 1789773
     
-    weak var console: ConsoleProtocol?
-    weak var controller1: ControllerProtocol?
-    weak var controller2: ControllerProtocol?
+    private weak var controller1: ControllerProtocol?
+    private weak var controller2: ControllerProtocol?
     
     init(ppu aPPU: PPU, apu aAPU: APU, mapper aMapper: MapperProtocol?, controller1 aController1: ControllerProtocol?, controller2 aController2: ControllerProtocol?)
     {
@@ -69,8 +70,8 @@ class CPU: CPUProtocol
         self.controller2 = aController2
     }
     
-    private weak var apu: APU?
-    private weak var ppu: PPU?
+    private weak var apu: APUProtocol?
+    private weak var ppu: PPUProtocol?
     private weak var mapper: MapperProtocol?
     
     /// 2KB RAM
@@ -340,7 +341,7 @@ class CPU: CPUProtocol
 
     
     /// number of cycles
-    var cycles: UInt64 = 0
+    private(set) var cycles: UInt64 = 0
     
     /// program counter
     private var pc: UInt16 = 0
@@ -400,14 +401,14 @@ class CPU: CPUProtocol
     // MARK: Flag Operations
     
     /// returns a UInt8 with flag bits arranged as c,z,i,d,b,u,v,n
-    func flags() -> UInt8
+    private func flags() -> UInt8
     {
         let flagByte: UInt8 = UInt8.init(fromLittleEndianBitArray: [self.c, self.z, self.i, self.d, self.b, self.u, self.v, self.n])
         return flagByte
     }
     
     /// sets cpu flags from a UInt8 with bits arranged as c,z,i,d,b,u,v,n
-    func set(flags aFlags: UInt8)
+    private func set(flags aFlags: UInt8)
     {
         let flagBits = aFlags.littleEndianBitArray
         self.c = flagBits[0]
@@ -421,26 +422,26 @@ class CPU: CPUProtocol
     }
     
     /// sets the zero flag if the argument is zero
-    func setZ(value aValue: UInt8)
+    private func setZ(value aValue: UInt8)
     {
         self.z = (aValue == 0) ? true : false
     }
     
     /// sets the negative flag if the argument is negative (high bit is set)
-    func setN(value aValue: UInt8)
+    private func setN(value aValue: UInt8)
     {
         self.n = (aValue & 0x80 != 0) ? true : false
     }
 
     ///  sets the zero flag and the negative flag
-    func setZN(value aValue: UInt8)
+    private func setZN(value aValue: UInt8)
     {
         self.setZ(value: aValue)
         self.setN(value: aValue)
     }
     
     /// compare two values and set zero, negative, and carry flags accordingly
-    func compare(valueA aValueA: UInt8, valueB aValueB: UInt8)
+    private func compare(valueA aValueA: UInt8, valueB aValueB: UInt8)
     {
         self.setZN(value: aValueA &- aValueB)
         self.c = aValueA >= aValueB ? true : false
@@ -502,13 +503,13 @@ class CPU: CPUProtocol
     }
     
     /// checks whether two 16-bit addresses reside on different pages
-    func pagesDiffer(address1 aAddress1: UInt16, address2 aAddress2: UInt16) -> Bool
+    private func pagesDiffer(address1 aAddress1: UInt16, address2 aAddress2: UInt16) -> Bool
     {
         return aAddress1 & 0xFF00 != aAddress2 & 0xFF00
     }
     
     /// reads two bytes using Read to return a double-word value
-    func read16(address aAddress: UInt16) -> UInt16
+    private func read16(address aAddress: UInt16) -> UInt16
     {
         let lo: UInt16 = UInt16(self.read(address: aAddress))
         let hi: UInt16 = UInt16(self.read(address: aAddress &+ 1))
@@ -516,7 +517,7 @@ class CPU: CPUProtocol
     }
 
     /// emulates a 6502 bug that caused the low byte to wrap without incrementing the high byte
-    func read16bug(address aAddress: UInt16) -> UInt16
+    private func read16bug(address aAddress: UInt16) -> UInt16
     {
         let a: UInt16 = aAddress
         let b: UInt16 = (a & 0xFF00) | UInt16((a % 256) &+ 1)
@@ -528,21 +529,21 @@ class CPU: CPUProtocol
     // MARK: Stack
     
     /// pushes a byte onto the stack
-    func push(value aValue: UInt8)
+    private func push(value aValue: UInt8)
     {
         self.write(address: 0x100 | UInt16(self.sp), value: aValue)
         self.sp &-= 1
     }
 
     /// pops a byte from the stack
-    func pull() -> UInt8
+    private func pull() -> UInt8
     {
         self.sp &+= 1
         return self.read(address: 0x100 | UInt16(self.sp))
     }
 
     /// pushes two bytes onto the stack
-    func push16(value aValue: UInt16)
+    private func push16(value aValue: UInt16)
     {
         let hi: UInt8 = UInt8(aValue >> 8)
         let lo: UInt8 = UInt8(aValue & 0xFF)
@@ -551,7 +552,7 @@ class CPU: CPUProtocol
     }
 
     // pull16 pops two bytes from the stack
-    func pull16() -> UInt16
+    private func pull16() -> UInt16
     {
         let lo: UInt16 = UInt16(self.pull())
         let hi: UInt16 = UInt16(self.pull())
@@ -578,7 +579,7 @@ class CPU: CPUProtocol
     // MARK: Timing
     
     /// adds a cycle for taking a branch and adds another cycle if the branch jumps to a new page
-    func addBranchCycles(stepInfo aStepInfo: StepInfo)
+    private func addBranchCycles(stepInfo aStepInfo: StepInfo)
     {
         self.cycles &+= 1
         if self.pagesDiffer(address1: aStepInfo.pc, address2: aStepInfo.address)
@@ -588,7 +589,7 @@ class CPU: CPUProtocol
     }
     
     /// NMI - Non-Maskable Interrupt
-    func nmi()
+    private func nmi()
     {
         self.push16(value: self.pc)
         self.php(stepInfo: StepInfo(address: 0, pc: 0, mode: .implied))
@@ -598,7 +599,7 @@ class CPU: CPUProtocol
     }
 
     /// IRQ - IRQ Interrupt
-    func irq()
+    private func irq()
     {
         self.push16(value: self.pc)
         self.php(stepInfo: StepInfo(address: 0, pc: 0, mode: .implied)) // placeholder StepInfo value (unused)
@@ -686,7 +687,7 @@ class CPU: CPUProtocol
     // MARK: 6502 functions
     
     /// ADC - Add with Carry
-    func adc(stepInfo aStepInfo: StepInfo)
+    private func adc(stepInfo aStepInfo: StepInfo)
     {
         let a: UInt8 = self.a
         let b: UInt8 = self.read(address: aStepInfo.address)
@@ -713,14 +714,14 @@ class CPU: CPUProtocol
     }
 
     /// AND - Logical AND
-    func and(stepInfo aStepInfo: StepInfo)
+    private func and(stepInfo aStepInfo: StepInfo)
     {
         self.a = self.a & self.read(address: aStepInfo.address)
         self.setZN(value: self.a)
     }
 
     /// ASL - Arithmetic Shift Left
-    func asl(stepInfo aStepInfo: StepInfo)
+    private func asl(stepInfo aStepInfo: StepInfo)
     {
         if aStepInfo.mode == .accumulator
         {
@@ -739,7 +740,7 @@ class CPU: CPUProtocol
     }
 
     /// BCC - Branch if Carry Clear
-    func bcc(stepInfo aStepInfo: StepInfo)
+    private func bcc(stepInfo aStepInfo: StepInfo)
     {
         if self.c == false
         {
@@ -749,7 +750,7 @@ class CPU: CPUProtocol
     }
 
     /// BCS - Branch if Carry Set
-    func bcs(stepInfo aStepInfo: StepInfo)
+    private func bcs(stepInfo aStepInfo: StepInfo)
     {
         if self.c == true
         {
@@ -759,7 +760,7 @@ class CPU: CPUProtocol
     }
 
     /// BEQ - Branch if Equal
-    func beq(stepInfo aStepInfo: StepInfo)
+    private func beq(stepInfo aStepInfo: StepInfo)
     {
         if self.z == true
         {
@@ -769,7 +770,7 @@ class CPU: CPUProtocol
     }
 
     /// BIT - Bit Test
-    func bit(stepInfo aStepInfo: StepInfo)
+    private func bit(stepInfo aStepInfo: StepInfo)
     {
         let value = self.read(address: aStepInfo.address)
         self.v = ((value >> 6) & 1) == 1
@@ -778,7 +779,7 @@ class CPU: CPUProtocol
     }
 
     /// BMI - Branch if Minus
-    func bmi(stepInfo aStepInfo: StepInfo)
+    private func bmi(stepInfo aStepInfo: StepInfo)
     {
         if self.n == true
         {
@@ -788,7 +789,7 @@ class CPU: CPUProtocol
     }
 
     /// BNE - Branch if Not Equal
-    func bne(stepInfo aStepInfo: StepInfo)
+    private func bne(stepInfo aStepInfo: StepInfo)
     {
         if self.z == false
         {
@@ -798,7 +799,7 @@ class CPU: CPUProtocol
     }
 
     /// BPL - Branch if Positive
-    func bpl(stepInfo aStepInfo: StepInfo)
+    private func bpl(stepInfo aStepInfo: StepInfo)
     {
         if self.n == false
         {
@@ -808,7 +809,7 @@ class CPU: CPUProtocol
     }
     
     /// BRK - Force Interrupt
-    func brk(stepInfo aStepInfo: StepInfo)
+    private func brk(stepInfo aStepInfo: StepInfo)
     {
         self.push16(value: self.pc)
         self.php(stepInfo: aStepInfo)
@@ -817,7 +818,7 @@ class CPU: CPUProtocol
     }
     
     /// BVC - Branch if Overflow Clear
-    func bvc(stepInfo aStepInfo: StepInfo)
+    private func bvc(stepInfo aStepInfo: StepInfo)
     {
         if self.v == false
         {
@@ -827,7 +828,7 @@ class CPU: CPUProtocol
     }
 
     /// BVS - Branch if Overflow Set
-    func bvs(stepInfo aStepInfo: StepInfo)
+    private func bvs(stepInfo aStepInfo: StepInfo)
     {
         if self.v == true
         {
@@ -837,52 +838,52 @@ class CPU: CPUProtocol
     }
 
     /// CLC - Clear Carry Flag
-    func clc(stepInfo aStepInfo: StepInfo)
+    private func clc(stepInfo aStepInfo: StepInfo)
     {
         self.c = false
     }
 
     /// CLD - Clear Decimal Mode
-    func cld(stepInfo aStepInfo: StepInfo)
+    private func cld(stepInfo aStepInfo: StepInfo)
     {
         self.d = false
     }
 
     /// CLI - Clear Interrupt Disable
-    func cli(stepInfo aStepInfo: StepInfo)
+    private func cli(stepInfo aStepInfo: StepInfo)
     {
         self.i = false
     }
 
     /// CLV - Clear Overflow Flag
-    func clv(stepInfo aStepInfo: StepInfo)
+    private func clv(stepInfo aStepInfo: StepInfo)
     {
         self.v = false
     }
 
     /// CMP - Compare
-    func cmp(stepInfo aStepInfo: StepInfo)
+    private func cmp(stepInfo aStepInfo: StepInfo)
     {
         let value = self.read(address: aStepInfo.address)
         self.compare(valueA: self.a, valueB: value)
     }
 
     /// CPX - Compare X Register
-    func cpx(stepInfo aStepInfo: StepInfo)
+    private func cpx(stepInfo aStepInfo: StepInfo)
     {
         let value = self.read(address: aStepInfo.address)
         self.compare(valueA: self.x, valueB: value)
     }
 
     /// CPY - Compare Y Register
-    func cpy(stepInfo aStepInfo: StepInfo)
+    private func cpy(stepInfo aStepInfo: StepInfo)
     {
         let value = self.read(address: aStepInfo.address)
         self.compare(valueA: self.y, valueB: value)
     }
 
     /// DEC - Decrement Memory
-    func dec(stepInfo aStepInfo: StepInfo)
+    private func dec(stepInfo aStepInfo: StepInfo)
     {
         let value = self.read(address: aStepInfo.address) &- 1
         self.write(address: aStepInfo.address, value: value)
@@ -890,28 +891,28 @@ class CPU: CPUProtocol
     }
 
     /// DEX - Decrement X Register
-    func dex(stepInfo aStepInfo: StepInfo)
+    private func dex(stepInfo aStepInfo: StepInfo)
     {
         self.x &-= 1 // decrement and wrap if needed
         self.setZN(value: self.x)
     }
 
     /// DEY - Decrement Y Register
-    func dey(stepInfo aStepInfo: StepInfo)
+    private func dey(stepInfo aStepInfo: StepInfo)
     {
         self.y &-= 1 // decrement and wrap if needed
         self.setZN(value: self.y)
     }
 
     /// EOR - Exclusive OR
-    func eor(stepInfo aStepInfo: StepInfo)
+    private func eor(stepInfo aStepInfo: StepInfo)
     {
         self.a = self.a ^ self.read(address: aStepInfo.address)
         self.setZN(value: self.a)
     }
 
     /// INC - Increment Memory
-    func inc(stepInfo aStepInfo: StepInfo)
+    private func inc(stepInfo aStepInfo: StepInfo)
     {
         let value: UInt8 = self.read(address: aStepInfo.address) &+ 1 // wrap if needed
         self.write(address: aStepInfo.address, value: value)
@@ -919,14 +920,14 @@ class CPU: CPUProtocol
     }
 
     /// INX - Increment X Register
-    func inx(stepInfo aStepInfo: StepInfo)
+    private func inx(stepInfo aStepInfo: StepInfo)
     {
         self.x &+= 1 // increment and wrap if needed
         self.setZN(value: self.x)
     }
 
     /// INY - Increment Y Register
-    func iny(stepInfo aStepInfo: StepInfo)
+    private func iny(stepInfo aStepInfo: StepInfo)
     {
         
         self.y &+= 1 // increment and wrap if needed
@@ -934,41 +935,41 @@ class CPU: CPUProtocol
     }
 
     /// JMP - Jump
-    func jmp(stepInfo aStepInfo: StepInfo)
+    private func jmp(stepInfo aStepInfo: StepInfo)
     {
         self.pc = aStepInfo.address
     }
 
     /// JSR - Jump to Subroutine
-    func jsr(stepInfo aStepInfo: StepInfo)
+    private func jsr(stepInfo aStepInfo: StepInfo)
     {
         self.push16(value: self.pc - 1)
         self.pc = aStepInfo.address
     }
 
     /// LDA - Load Accumulator
-    func lda(stepInfo aStepInfo: StepInfo)
+    private func lda(stepInfo aStepInfo: StepInfo)
     {
         self.a = self.read(address: aStepInfo.address)
         self.setZN(value: self.a)
     }
 
     /// LDX - Load X Register
-    func ldx(stepInfo aStepInfo: StepInfo)
+    private func ldx(stepInfo aStepInfo: StepInfo)
     {
         self.x = self.read(address: aStepInfo.address)
         self.setZN(value: self.x)
     }
 
     /// LDY - Load Y Register
-    func ldy(stepInfo aStepInfo: StepInfo)
+    private func ldy(stepInfo aStepInfo: StepInfo)
     {
         self.y = self.read(address: aStepInfo.address)
         self.setZN(value: self.y)
     }
 
     /// LSR - Logical Shift Right
-    func lsr(stepInfo aStepInfo: StepInfo)
+    private func lsr(stepInfo aStepInfo: StepInfo)
     {
         if aStepInfo.mode == .accumulator
         {
@@ -987,45 +988,45 @@ class CPU: CPUProtocol
     }
 
     /// NOP - No Operation
-    func nop(stepInfo aStepInfo: StepInfo)
+    private func nop(stepInfo aStepInfo: StepInfo)
     {
         // do nothing
     }
 
     /// ORA - Logical Inclusive OR
-    func ora(stepInfo aStepInfo: StepInfo)
+    private func ora(stepInfo aStepInfo: StepInfo)
     {
         self.a = self.a | self.read(address: aStepInfo.address)
         self.setZN(value: self.a)
     }
 
     /// PHA - Push Accumulator
-    func pha(stepInfo aStepInfo: StepInfo)
+    private func pha(stepInfo aStepInfo: StepInfo)
     {
         self.push(value: self.a)
     }
 
     /// PHP - Push Processor Status
-    func php(stepInfo aStepInfo: StepInfo)
+    private func php(stepInfo aStepInfo: StepInfo)
     {
         self.push(value: self.flags() | 0x10)
     }
 
     /// PLA - Pull Accumulator
-    func pla(stepInfo aStepInfo: StepInfo)
+    private func pla(stepInfo aStepInfo: StepInfo)
     {
         self.a = self.pull()
         self.setZN(value: self.a)
     }
 
     /// PLP - Pull Processor Status
-    func plp(stepInfo aStepInfo: StepInfo)
+    private func plp(stepInfo aStepInfo: StepInfo)
     {
         self.set(flags: (self.pull() & 0xEF) | 0x20)
     }
 
     /// ROL - Rotate Left
-    func rol(stepInfo aStepInfo: StepInfo)
+    private func rol(stepInfo aStepInfo: StepInfo)
     {
         if aStepInfo.mode == .accumulator
         {
@@ -1046,7 +1047,7 @@ class CPU: CPUProtocol
     }
 
     /// ROR - Rotate Right
-    func ror(stepInfo aStepInfo: StepInfo)
+    private func ror(stepInfo aStepInfo: StepInfo)
     {
         if aStepInfo.mode == .accumulator
         {
@@ -1067,20 +1068,20 @@ class CPU: CPUProtocol
     }
 
     /// RTI - Return from Interrupt
-    func rti(stepInfo aStepInfo: StepInfo)
+    private func rti(stepInfo aStepInfo: StepInfo)
     {
         self.set(flags: (self.pull() & 0xEF) | 0x20)
         self.pc = self.pull16()
     }
 
     /// RTS - Return from Subroutine
-    func rts(stepInfo aStepInfo: StepInfo)
+    private func rts(stepInfo aStepInfo: StepInfo)
     {
         self.pc = self.pull16() &+ 1
     }
 
     /// SBC - Subtract with Carry
-    func sbc(stepInfo aStepInfo: StepInfo)
+    private func sbc(stepInfo aStepInfo: StepInfo)
     {
         let a: UInt8 = self.a
         let b: UInt8 = self.read(address: aStepInfo.address)
@@ -1107,77 +1108,77 @@ class CPU: CPUProtocol
     }
 
     /// SEC - Set Carry Flag
-    func sec(stepInfo aStepInfo: StepInfo)
+    private func sec(stepInfo aStepInfo: StepInfo)
     {
         self.c = true
     }
 
     /// SED - Set Decimal Flag
-    func sed(stepInfo aStepInfo: StepInfo)
+    private func sed(stepInfo aStepInfo: StepInfo)
     {
         self.d = true
     }
 
     /// SEI - Set Interrupt Disable
-    func sei(stepInfo aStepInfo: StepInfo)
+    private func sei(stepInfo aStepInfo: StepInfo)
     {
         self.i = true
     }
 
     /// STA - Store Accumulator
-    func sta(stepInfo aStepInfo: StepInfo)
+    private func sta(stepInfo aStepInfo: StepInfo)
     {
         self.write(address: aStepInfo.address, value: self.a)
     }
 
     /// STX - Store X Register
-    func stx(stepInfo aStepInfo: StepInfo)
+    private func stx(stepInfo aStepInfo: StepInfo)
     {
         self.write(address: aStepInfo.address, value: self.x)
     }
 
     /// STY - Store Y Register
-    func sty(stepInfo aStepInfo: StepInfo)
+    private func sty(stepInfo aStepInfo: StepInfo)
     {
         self.write(address: aStepInfo.address, value: self.y)
     }
 
     /// TAX - Transfer Accumulator to X
-    func tax(stepInfo aStepInfo: StepInfo)
+    private func tax(stepInfo aStepInfo: StepInfo)
     {
         self.x = self.a
         self.setZN(value: self.x)
     }
 
     /// TAY - Transfer Accumulator to Y
-    func tay(stepInfo aStepInfo: StepInfo)
+    private func tay(stepInfo aStepInfo: StepInfo)
     {
         self.y = self.a
         self.setZN(value: self.y)
     }
 
     /// TSX - Transfer Stack Pointer to X
-    func tsx(stepInfo aStepInfo: StepInfo)
+    private func tsx(stepInfo aStepInfo: StepInfo)
     {
         self.x = self.sp
         self.setZN(value: self.x)
     }
 
     /// TXA - Transfer X to Accumulator
-    func txa(stepInfo aStepInfo: StepInfo)
+    private func txa(stepInfo aStepInfo: StepInfo)
     {
         self.a = self.x
         self.setZN(value: self.a)
     }
 
     /// TXS - Transfer X to Stack Pointer
-    func txs(stepInfo aStepInfo: StepInfo)
+    private func txs(stepInfo aStepInfo: StepInfo)
     {
         self.sp = self.x
     }
 
     /// TYA - Transfer Y to Accumulator
-    func tya(stepInfo aStepInfo: StepInfo)
+    private func tya(stepInfo aStepInfo: StepInfo)
     {
         self.a = self.y
         self.setZN(value: self.a)
@@ -1185,25 +1186,25 @@ class CPU: CPUProtocol
     
     // MARK: Illegal Instructions
 
-    func ahx(stepInfo aStepInfo: StepInfo) {}
-    func alr(stepInfo aStepInfo: StepInfo) {}
-    func anc(stepInfo aStepInfo: StepInfo) {}
-    func arr(stepInfo aStepInfo: StepInfo) {}
-    func axs(stepInfo aStepInfo: StepInfo) {}
-    func dcp(stepInfo aStepInfo: StepInfo) {}
-    func isc(stepInfo aStepInfo: StepInfo) {}
-    func kil(stepInfo aStepInfo: StepInfo) {}
-    func las(stepInfo aStepInfo: StepInfo) {}
-    func lax(stepInfo aStepInfo: StepInfo) {}
-    func rla(stepInfo aStepInfo: StepInfo) {}
-    func rra(stepInfo aStepInfo: StepInfo) {}
-    func sax(stepInfo aStepInfo: StepInfo) {}
-    func shx(stepInfo aStepInfo: StepInfo) {}
-    func shy(stepInfo aStepInfo: StepInfo) {}
-    func slo(stepInfo aStepInfo: StepInfo) {}
-    func sre(stepInfo aStepInfo: StepInfo) {}
-    func tas(stepInfo aStepInfo: StepInfo) {}
-    func xaa(stepInfo aStepInfo: StepInfo) {}
+    private func ahx(stepInfo aStepInfo: StepInfo) {}
+    private func alr(stepInfo aStepInfo: StepInfo) {}
+    private func anc(stepInfo aStepInfo: StepInfo) {}
+    private func arr(stepInfo aStepInfo: StepInfo) {}
+    private func axs(stepInfo aStepInfo: StepInfo) {}
+    private func dcp(stepInfo aStepInfo: StepInfo) {}
+    private func isc(stepInfo aStepInfo: StepInfo) {}
+    private func kil(stepInfo aStepInfo: StepInfo) {}
+    private func las(stepInfo aStepInfo: StepInfo) {}
+    private func lax(stepInfo aStepInfo: StepInfo) {}
+    private func rla(stepInfo aStepInfo: StepInfo) {}
+    private func rra(stepInfo aStepInfo: StepInfo) {}
+    private func sax(stepInfo aStepInfo: StepInfo) {}
+    private func shx(stepInfo aStepInfo: StepInfo) {}
+    private func shy(stepInfo aStepInfo: StepInfo) {}
+    private func slo(stepInfo aStepInfo: StepInfo) {}
+    private func sre(stepInfo aStepInfo: StepInfo) {}
+    private func tas(stepInfo aStepInfo: StepInfo) {}
+    private func xaa(stepInfo aStepInfo: StepInfo) {}
 }
 
 enum Instruction

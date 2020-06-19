@@ -14,6 +14,7 @@
 		991B28CA248B43B500A6A6DD /* PPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C9248B43B500A6A6DD /* PPU.swift */; };
 		991B28CC248B470C00A6A6DD /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28CB248B470C00A6A6DD /* Console.swift */; };
 		991B28CE248B746A00A6A6DD /* Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28CD248B746A00A6A6DD /* Controller.swift */; };
+		992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 992164A2249D113D00EB4BAA /* Mapper_AxROM.swift */; };
 		99488F40248985F100942A1E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F3F248985F100942A1E /* AppDelegate.swift */; };
 		99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F41248985F100942A1E /* DocumentBrowserViewController.swift */; };
 		99488F46248985F100942A1E /* NesRomDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F45248985F100942A1E /* NesRomDocument.swift */; };
@@ -22,6 +23,12 @@
 		99488F4E248985F300942A1E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99488F4C248985F300942A1E /* LaunchScreen.storyboard */; };
 		99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */; };
 		994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994C12112496F10600DD2FE1 /* SceneDelegate.swift */; };
+		995C9ADB249BEC9A00429ECC /* Mapper_NROM_UNROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADA249BEC9A00429ECC /* Mapper_NROM_UNROM.swift */; };
+		995C9ADD249BECCA00429ECC /* Mapper_MMC1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */; };
+		995C9ADF249BECE000429ECC /* Mapper_CNROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADE249BECE000429ECC /* Mapper_CNROM.swift */; };
+		995C9AE3249BED0B00429ECC /* Mapper_MMC2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */; };
+		995C9AE5249BED4000429ECC /* Mapper_MMC3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */; };
+		995C9AEA249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */; };
 		999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999AA95B248F668000DA77AA /* NESRomViewController.swift */; };
 		999EF98724988D8B007149C9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 999EF98624988D8B007149C9 /* Localizable.strings */; };
 		99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A372BE248F8EC000089773 /* NESScreenView.swift */; };
@@ -39,7 +46,7 @@
 		99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
 		99E2E21724966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
 		99FB2208248DCAE000D557A4 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2207248DCAE000D557A4 /* Palette.swift */; };
-		99FB220A248DCC7A00D557A4 /* Mapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* Mapper.swift */; };
+		99FB220A248DCC7A00D557A4 /* MapperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +81,7 @@
 		991B28C9248B43B500A6A6DD /* PPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPU.swift; sourceTree = "<group>"; };
 		991B28CB248B470C00A6A6DD /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		991B28CD248B746A00A6A6DD /* Controller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controller.swift; sourceTree = "<group>"; };
+		992164A2249D113D00EB4BAA /* Mapper_AxROM.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mapper_AxROM.swift; sourceTree = "<group>"; };
 		99488F3C248985F100942A1E /* nes-emu-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "nes-emu-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		99488F3F248985F100942A1E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		99488F41248985F100942A1E /* DocumentBrowserViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentBrowserViewController.swift; sourceTree = "<group>"; };
@@ -84,6 +92,12 @@
 		99488F4F248985F300942A1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UInt8+ByteUtils.swift"; sourceTree = "<group>"; };
 		994C12112496F10600DD2FE1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		995C9ADA249BEC9A00429ECC /* Mapper_NROM_UNROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_NROM_UNROM.swift; sourceTree = "<group>"; };
+		995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC1.swift; sourceTree = "<group>"; };
+		995C9ADE249BECE000429ECC /* Mapper_CNROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_CNROM.swift; sourceTree = "<group>"; };
+		995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC2.swift; sourceTree = "<group>"; };
+		995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC3.swift; sourceTree = "<group>"; };
+		995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mapper_UnsupportedPlaceholder.swift; sourceTree = "<group>"; };
 		999AA95B248F668000DA77AA /* NESRomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESRomViewController.swift; sourceTree = "<group>"; };
 		999EF98624988D8B007149C9 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		99A372BE248F8EC000089773 /* NESScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESScreenView.swift; sourceTree = "<group>"; };
@@ -99,7 +113,7 @@
 		99E2E21224966A32008AFCDB /* MirroringMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirroringMode.swift; sourceTree = "<group>"; };
 		99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperIdentifier.swift; sourceTree = "<group>"; };
 		99FB2207248DCAE000D557A4 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
-		99FB2209248DCC7A00D557A4 /* Mapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper.swift; sourceTree = "<group>"; };
+		99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,16 +138,16 @@
 		991B28C2248A229500A6A6DD /* NES */ = {
 			isa = PBXGroup;
 			children = (
+				995C9AE8249C064300429ECC /* Protocols */,
+				995C9AD9249BEC8100429ECC /* Mappers */,
 				99E2E21824966AB8008AFCDB /* Shared */,
 				991B28CB248B470C00A6A6DD /* Console.swift */,
 				991B28C3248A22BA00A6A6DD /* CPU.swift */,
 				991B28C7248B43A700A6A6DD /* APU.swift */,
 				991B28C9248B43B500A6A6DD /* PPU.swift */,
-				991B28C5248B24CB00A6A6DD /* MemoryProtocol.swift */,
 				991B28C02489F66300A6A6DD /* Cartridge.swift */,
 				991B28CD248B746A00A6A6DD /* Controller.swift */,
 				99FB2207248DCAE000D557A4 /* Palette.swift */,
-				99FB2209248DCC7A00D557A4 /* Mapper.swift */,
 				99C7F1722494096000E4C04D /* Filter.swift */,
 			);
 			path = NES;
@@ -202,6 +216,29 @@
 				99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		995C9AD9249BEC8100429ECC /* Mappers */ = {
+			isa = PBXGroup;
+			children = (
+				992164A2249D113D00EB4BAA /* Mapper_AxROM.swift */,
+				995C9ADE249BECE000429ECC /* Mapper_CNROM.swift */,
+				995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */,
+				995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */,
+				995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */,
+				995C9ADA249BEC9A00429ECC /* Mapper_NROM_UNROM.swift */,
+				995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */,
+			);
+			path = Mappers;
+			sourceTree = "<group>";
+		};
+		995C9AE8249C064300429ECC /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				991B28C5248B24CB00A6A6DD /* MemoryProtocol.swift */,
+				99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */,
+			);
+			path = Protocols;
 			sourceTree = "<group>";
 		};
 		99A372E62490D6FA00089773 /* ViewControllers */ = {
@@ -344,24 +381,31 @@
 			files = (
 				991B28C6248B24CB00A6A6DD /* MemoryProtocol.swift in Sources */,
 				991B28CA248B43B500A6A6DD /* PPU.swift in Sources */,
-				99FB220A248DCC7A00D557A4 /* Mapper.swift in Sources */,
+				99FB220A248DCC7A00D557A4 /* MapperProtocol.swift in Sources */,
 				99488F46248985F100942A1E /* NesRomDocument.swift in Sources */,
 				991B28CE248B746A00A6A6DD /* Controller.swift in Sources */,
+				995C9AE3249BED0B00429ECC /* Mapper_MMC2.swift in Sources */,
+				995C9ADF249BECE000429ECC /* Mapper_CNROM.swift in Sources */,
 				99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */,
 				991B28C12489F66300A6A6DD /* Cartridge.swift in Sources */,
 				994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */,
 				99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */,
 				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
 				99FB2208248DCAE000D557A4 /* Palette.swift in Sources */,
+				992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */,
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
 				99488F40248985F100942A1E /* AppDelegate.swift in Sources */,
 				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
+				995C9ADD249BECCA00429ECC /* Mapper_MMC1.swift in Sources */,
 				99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */,
 				999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */,
+				995C9ADB249BEC9A00429ECC /* Mapper_NROM_UNROM.swift in Sources */,
+				995C9AEA249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift in Sources */,
 				991B28CC248B470C00A6A6DD /* Console.swift in Sources */,
 				99C7F1732494096000E4C04D /* Filter.swift in Sources */,
 				99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */,
 				99B0355E2496763000D2723F /* RomHeader.swift in Sources */,
+				995C9AE5249BED4000429ECC /* Mapper_MMC3.swift in Sources */,
 				99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */,
 				99E2E21324966A32008AFCDB /* MirroringMode.swift in Sources */,
 			);

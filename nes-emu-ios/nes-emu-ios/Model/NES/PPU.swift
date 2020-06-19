@@ -8,12 +8,25 @@
 
 import Foundation
 
-/// NES Picture Processing Unit
-class PPU: MemoryProtocol
+protocol PPUProtocol: MemoryProtocol // TODO: this is unused
 {
-    var cycle: Int = 340
-    var frame: UInt64 = 0
-    weak var console: ConsoleProtocol?
+    var frame: UInt64 { get }
+    var cycle: Int { get }
+    var scanline: Int { get }
+    var frontBuffer: [UInt32] { get }
+    var flagShowBackground: UInt8 { get }
+    var flagShowSprites: UInt8 { get }
+    func step(cpu aCPU: CPU?)
+    func readRegister(address aAddress: UInt16) -> UInt8
+    func writeRegister(address aAddress: UInt16, value aValue: UInt8)
+}
+
+/// NES Picture Processing Unit
+class PPU: PPUProtocol
+{
+    private(set) var cycle: Int = 340
+    private(set) var frame: UInt64 = 0
+    weak var cpu: CPUProtocol?
     
     private let mapper: MapperProtocol
     private var paletteData: [UInt8] = [UInt8].init(repeating: 0, count: 32)
@@ -127,9 +140,9 @@ class PPU: MemoryProtocol
     
     static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 240 * 256)
     
-    /// colors in RGBA format from Palette.colors
-    var frontBuffer: [UInt32] = PPU.emptyBuffer
-    /// colors in RGBA format from Palette.colors
+    /// colors in 0xBBGGRRAA format from Palette.colors
+    private(set) var frontBuffer: [UInt32] = PPU.emptyBuffer
+    /// colors in 0xBBGGRRAA format from Palette.colors
     private var backBuffer: [UInt32] = PPU.emptyBuffer
     private(set) var scanline: Int = 240
     
@@ -194,7 +207,7 @@ class PPU: MemoryProtocol
         return self.paletteData[Int(index)]
     }
 
-    func writePalette(address aAddress: UInt16, value aValue: UInt8)
+    private func writePalette(address aAddress: UInt16, value aValue: UInt8)
     {
         let index: UInt16 = (aAddress >= 16 && aAddress % 4 == 0) ? aAddress - 16 : aAddress
         self.paletteData[Int(index)] = aValue
@@ -240,7 +253,7 @@ class PPU: MemoryProtocol
     }
 
     // $2000: PPUCTRL
-    func writeControl(value aValue: UInt8)
+    private func writeControl(value aValue: UInt8)
     {
         self.flagNameTable = (aValue >> 0) & 3
         self.flagIncrement = (aValue >> 2) & 1
@@ -255,7 +268,7 @@ class PPU: MemoryProtocol
     }
 
     // $2001: PPUMASK
-    func writeMask(value aValue: UInt8)
+    private func writeMask(value aValue: UInt8)
     {
         self.flagGrayscale = (aValue >> 0) & 1
         self.flagShowLeftBackground = (aValue >> 1) & 1
@@ -268,7 +281,7 @@ class PPU: MemoryProtocol
     }
     
     // $2002: PPUSTATUS
-    func readStatus() -> UInt8
+    private func readStatus() -> UInt8
     {
         var result = self.register & 0x1F
         result |= self.flagSpriteOverflow << 5
@@ -285,26 +298,26 @@ class PPU: MemoryProtocol
     }
 
     // $2003: OAMADDR
-    func writeOAMAddress(value aValue: UInt8)
+    private func writeOAMAddress(value aValue: UInt8)
     {
         self.oamAddress = aValue
     }
 
     // $2004: OAMDATA (read)
-    func readOAMData() -> UInt8
+    private func readOAMData() -> UInt8
     {
         return self.oamData[Int(self.oamAddress)]
     }
 
     // $2004: OAMDATA (write)
-    func writeOAMData(value aValue: UInt8)
+    private func writeOAMData(value aValue: UInt8)
     {
         self.oamData[Int(self.oamAddress)] = aValue
         self.oamAddress &+= 1
     }
 
     // $2005: PPUSCROLL
-    func writeScroll(value aValue: UInt8)
+    private func writeScroll(value aValue: UInt8)
     {
         if self.w == false
         {
@@ -326,7 +339,7 @@ class PPU: MemoryProtocol
     }
 
     // $2006: PPUADDR
-    func writeAddress(value aValue: UInt8)
+    private func writeAddress(value aValue: UInt8)
     {
         if self.w == false {
             // t: ..FEDCBA ........ = d: ..FEDCBA
@@ -347,7 +360,7 @@ class PPU: MemoryProtocol
     }
 
     // $2007: PPUDATA (read)
-    func readData() -> UInt8
+    private func readData() -> UInt8
     {
         var value = self.read(address: self.v)
         
@@ -375,7 +388,7 @@ class PPU: MemoryProtocol
     }
 
     // $2007: PPUDATA (write)
-    func writeData(value aValue: UInt8)
+    private func writeData(value aValue: UInt8)
     {
         self.write(address: self.v, value: aValue)
         if self.flagIncrement == 0
@@ -389,30 +402,26 @@ class PPU: MemoryProtocol
     }
 
     // $4014: OAMDMA
-    func writeDMA(value aValue: UInt8)
+    private func writeDMA(value aValue: UInt8)
     {
-        guard let cpu: CPU = self.console?.cpu else
-        {
-            return
-        }
-        
         var address = UInt16(aValue) << 8
         for _ in 0 ..< 256
         {
-            self.oamData[Int(self.oamAddress)] = cpu.read(address: address)
+            self.oamData[Int(self.oamAddress)] = self.cpu?.read(address: address) ?? 0
             self.oamAddress &+= 1
             address += 1
         }
-        cpu.stall += 513
-        if cpu.cycles % 2 == 1
+        
+        self.cpu?.stall += 513
+        if (self.cpu?.cycles ?? 0) % 2 == 1
         {
-            cpu.stall += 1
+            self.cpu?.stall += 1
         }
     }
 
     // NTSC Timing Helper Functions
 
-    func incrementX()
+    private func incrementX()
     {
         // increment hori(v)
         // if coarse X == 31
@@ -430,7 +439,7 @@ class PPU: MemoryProtocol
         }
     }
 
-    func incrementY()
+    private func incrementY()
     {
         // increment vert(v)
         // if fine Y < 7
@@ -467,21 +476,21 @@ class PPU: MemoryProtocol
         }
     }
 
-    func copyX()
+    private func copyX()
     {
         // hori(v) = hori(t)
         // v: .....F.. ...EDCBA = t: .....F.. ...EDCBA
         self.v = (self.v & 0xFBE0) | (self.t & 0x041F)
     }
 
-    func copyY()
+    private func copyY()
     {
         // vert(v) = vert(t)
         // v: .IHGF.ED CBA..... = t: .IHGF.ED CBA.....
         self.v = (self.v & 0x841F) | (self.t & 0x7BE0)
     }
 
-    func nmiChange()
+    private func nmiChange()
     {
         let nmi = self.nmiOutput && self.nmiOccurred
         if nmi && !self.nmiPrevious
@@ -493,34 +502,30 @@ class PPU: MemoryProtocol
         self.nmiPrevious = nmi
     }
 
-    func setVerticalBlank()
+    private func setVerticalBlank()
     {
-        //self.frontBuffer = self.backBuffer
-        //self.backBuffer = [UInt32].init(repeating: 0, count: 240 * 256)
-        
-//        self.frontPaletteIndexBuffer = self.backPaletteIndexBuffer
-//        self.backPaletteIndexBuffer = [[Int]].init(repeating: [Int].init(repeating: 0, count: 240), count: 256)
-//        let temp = self.frontBuffer
+        // TODO: re-implement double buffering
+        swap(&self.frontBuffer, &self.backBuffer)
 //        self.frontBuffer = self.backBuffer
-//        self.backBuffer = temp
+//        //self.backBuffer = [UInt32].init(repeating: 0, count: 240 * 256)
         self.nmiOccurred = true
         self.nmiChange()
     }
 
-    func clearVerticalBlank()
+    private func clearVerticalBlank()
     {
         self.nmiOccurred = false
         self.nmiChange()
     }
 
-    func fetchNameTableByte()
+    private func fetchNameTableByte()
     {
         let v = self.v
         let address = 0x2000 | (v & 0x0FFF)
         self.nameTableByte = self.read(address: address)
     }
 
-    func fetchAttributeTableByte()
+    private func fetchAttributeTableByte()
     {
         let v = self.v
         let address = 0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07)
@@ -528,7 +533,7 @@ class PPU: MemoryProtocol
         self.attributeTableByte = ((self.read(address: address) >> shift) & 3) << 2
     }
 
-    func fetchLowTileByte()
+    private func fetchLowTileByte()
     {
         let fineY = (self.v >> 12) & 7
         let table = self.flagBackgroundTable
@@ -537,7 +542,7 @@ class PPU: MemoryProtocol
         self.lowTileByte = self.read(address: address)
     }
 
-    func fetchHighTileByte()
+    private func fetchHighTileByte()
     {
         let fineY = (self.v >> 12) & 7
         let table = self.flagBackgroundTable
@@ -546,7 +551,7 @@ class PPU: MemoryProtocol
         self.highTileByte = self.read(address: address + 8)
     }
 
-    func storeTileData()
+    private func storeTileData()
     {
         var data: UInt32 = 0
         for _ in 0 ..< 8
@@ -562,12 +567,12 @@ class PPU: MemoryProtocol
         self.tileData |= UInt64(data)
     }
 
-    func fetchTileData() -> UInt32
+    private func fetchTileData() -> UInt32
     {
         return UInt32(self.tileData >> 32)
     }
 
-    func backgroundPixel() -> UInt8
+    private func backgroundPixel() -> UInt8
     {
         if self.flagShowBackground == 0
         {
@@ -577,7 +582,7 @@ class PPU: MemoryProtocol
         return UInt8(data & 0x0F)
     }
 
-    func spritePixel() -> (UInt8, UInt8)
+    private func spritePixel() -> (UInt8, UInt8)
     {
         if self.flagShowSprites == 0
         {
@@ -602,7 +607,7 @@ class PPU: MemoryProtocol
         return (0, 0)
     }
 
-    func renderPixel()
+    private func renderPixel()
     {
         let x = self.cycle - 1
         let y = self.scanline
@@ -652,11 +657,10 @@ class PPU: MemoryProtocol
         }
         
         let c = Palette.colors[Int(self.readPalette(address: UInt16(color)) % 64)]
-        self.frontBuffer[(256 * (239 - y)) + x] = c
-        //self.backBuffer[(256 * (239 - y)) + x] = c // OLD
+        self.backBuffer[(256 * (239 - y)) + x] = c
     }
 
-    func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
+    private func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
     {
         var row = aRow
         var tile = self.oamData[(aI * 4) + 1]
@@ -719,7 +723,7 @@ class PPU: MemoryProtocol
         return data
     }
 
-    func evaluateSprites()
+    private func evaluateSprites()
     {
         var h: Int
         if self.flagSpriteSize == 0
@@ -766,14 +770,14 @@ class PPU: MemoryProtocol
     }
 
     // tick updates Cycle, ScanLine and Frame counters
-    func tick()
+    private func tick()
     {
         if self.nmiDelay > 0
         {
             self.nmiDelay -= 1
             if self.nmiDelay == 0 && self.nmiOutput && self.nmiOccurred
             {
-                self.console?.cpu.triggerNMI()
+                self.cpu?.triggerNMI()
             }
         }
 
@@ -804,7 +808,7 @@ class PPU: MemoryProtocol
         }
     }
 
-    // Step executes a single PPU cycle
+    /// executes a single PPU cycle
     func step(cpu aCPU: CPU?)
     {
         self.tick()
