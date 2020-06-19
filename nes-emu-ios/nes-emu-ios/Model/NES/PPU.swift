@@ -3,8 +3,25 @@
 //  nes-emu-ios
 //
 //  Created by Tom Salvo on 6/5/20.
-//  Copyright © 2020 Tom Salvo. All rights reserved.
+//  Copyright © 2020 Tom Salvo.
 //
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in all
+//  copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+//  SOFTWARE.
 
 import Foundation
 
@@ -14,8 +31,8 @@ protocol PPUProtocol: MemoryProtocol // TODO: this is unused
     var cycle: Int { get }
     var scanline: Int { get }
     var frontBuffer: [UInt32] { get }
-    var flagShowBackground: UInt8 { get }
-    var flagShowSprites: UInt8 { get }
+    var flagShowBackground: Bool { get }
+    var flagShowSprites: Bool { get }
     func step(cpu aCPU: CPU?)
     func readRegister(address aAddress: UInt16) -> UInt8
     func writeRegister(address aAddress: UInt16, value aValue: UInt8)
@@ -86,44 +103,44 @@ class PPU: PPUProtocol
     private var flagNameTable: UInt8 = 0
     
     /// 0: add 1; 1: add 32
-    private var flagIncrement: UInt8 = 0            // TODO: should this be a Bool?
+    private var flagIncrement: Bool = false
     
     /// 0: $0000; 1: $1000; ignored in 8x16 mode
-    private var flagSpriteTable: UInt8 = 0          // TODO: should this be a Bool?
+    private var flagSpriteTable: Bool = false
     
     /// 0: $0000; 1: $1000
-    private var flagBackgroundTable: UInt8 = 0      // TODO: should this be a Bool?
+    private var flagBackgroundTable: Bool = false
     
     /// 0: 8x8; 1: 8x16
-    private var flagSpriteSize: UInt8 = 0           // TODO: should this be a Bool?
+    private var flagSpriteSize: Bool = false
     
     /// 0: read EXT; 1: write EXT
-    private var flagMasterSlave: UInt8 = 0          // TODO: should this be a Bool?
+    private var flagMasterSlave: Bool = false
     
     // MARK: $2001 PPUMASK
-    /// 0: color; 1: grayscale
-    private var flagGrayscale: UInt8 = 0            // TODO: should this be a Bool?
+    /// false: color; true: grayscale
+    private var flagGrayscale: Bool = false
     
-    /// 0: hide; 1: show
-    private var flagShowLeftBackground: UInt8 = 0   // TODO: should this be a Bool?
+    /// false: hide; true: show
+    private var flagShowLeftBackground: Bool = false
     
-    /// 0: hide; 1: show
-    private var flagShowLeftSprites: UInt8 = 0      // TODO: should this be a Bool?
+    /// false: hide; true: show
+    private var flagShowLeftSprites: Bool = false
     
-    /// 0: hide; 1: show
-    private(set) var flagShowBackground: UInt8 = 0       // TODO: should this be a Bool?
+    /// false: hide; true: show
+    private(set) var flagShowBackground: Bool = false
     
-    /// 0: hide; 1: show
-    private(set) var flagShowSprites: UInt8 = 0          // TODO: should this be a Bool?
+    /// false: hide; true: show
+    private(set) var flagShowSprites: Bool = false
     
-    /// 0: normal; 1: emphasized
-    private var flagRedTint: UInt8 = 0              // TODO: should this be a Bool?
+    /// false: normal; true: emphasized
+    private var flagRedTint: Bool = false
     
-    /// 0: normal; 1: emphasized
-    private var flagGreenTint: UInt8 = 0            // TODO: should this be a Bool?
+    /// false: normal; true: emphasized
+    private var flagGreenTint: Bool = false
     
-    /// 0: normal; 1: emphasized
-    private var flagBlueTint: UInt8 = 0            // TODO: should this be a Bool?
+    /// false: normal; true: emphasized
+    private var flagBlueTint: Bool = false
     
     // MARK: $2002 PPUSTATUS
     private var flagSpriteZeroHit: UInt8 = 0
@@ -256,12 +273,12 @@ class PPU: PPUProtocol
     private func writeControl(value aValue: UInt8)
     {
         self.flagNameTable = (aValue >> 0) & 3
-        self.flagIncrement = (aValue >> 2) & 1
-        self.flagSpriteTable = (aValue >> 3) & 1
-        self.flagBackgroundTable = (aValue >> 4) & 1
-        self.flagSpriteSize = (aValue >> 5) & 1
-        self.flagMasterSlave = (aValue >> 6) & 1
-        self.nmiOutput = (aValue >> 7) & 1 == 1
+        self.flagIncrement = ((aValue >> 2) & 1) == 1
+        self.flagSpriteTable = ((aValue >> 3) & 1) == 1
+        self.flagBackgroundTable = ((aValue >> 4) & 1) == 1
+        self.flagSpriteSize = ((aValue >> 5) & 1) == 1
+        self.flagMasterSlave = ((aValue >> 6) & 1) == 1
+        self.nmiOutput = ((aValue >> 7) & 1) == 1
         self.nmiChange()
         // t: ....BA.. ........ = d: ......BA
         self.t = (self.t & 0xF3FF) | ((UInt16(aValue) & 0x03) << 10)
@@ -270,14 +287,14 @@ class PPU: PPUProtocol
     // $2001: PPUMASK
     private func writeMask(value aValue: UInt8)
     {
-        self.flagGrayscale = (aValue >> 0) & 1
-        self.flagShowLeftBackground = (aValue >> 1) & 1
-        self.flagShowLeftSprites = (aValue >> 2) & 1
-        self.flagShowBackground = (aValue >> 3) & 1
-        self.flagShowSprites = (aValue >> 4) & 1
-        self.flagRedTint = (aValue >> 5) & 1
-        self.flagGreenTint = (aValue >> 6) & 1
-        self.flagBlueTint = (aValue >> 7) & 1
+        self.flagGrayscale = ((aValue >> 0) & 1) == 1
+        self.flagShowLeftBackground = ((aValue >> 1) & 1) == 1
+        self.flagShowLeftSprites = ((aValue >> 2) & 1) == 1
+        self.flagShowBackground = ((aValue >> 3) & 1) == 1
+        self.flagShowSprites = ((aValue >> 4) & 1) == 1
+        self.flagRedTint = ((aValue >> 5) & 1) == 1
+        self.flagGreenTint = ((aValue >> 6) & 1) == 1
+        self.flagBlueTint = ((aValue >> 7) & 1) == 1
     }
     
     // $2002: PPUSTATUS
@@ -375,15 +392,8 @@ class PPU: PPUProtocol
         {
             self.bufferedData = self.read(address: self.v - 0x1000)
         }
-        // increment address
-        if self.flagIncrement == 0
-        {
-            self.v &+= 1
-        }
-        else
-        {
-            self.v &+= 32
-        }
+        
+        self.v &+= self.flagIncrement ? 32 : 1
         return value
     }
 
@@ -391,14 +401,7 @@ class PPU: PPUProtocol
     private func writeData(value aValue: UInt8)
     {
         self.write(address: self.v, value: aValue)
-        if self.flagIncrement == 0
-        {
-            self.v &+= 1
-        }
-        else
-        {
-            self.v &+= 32
-        }
+        self.v &+= self.flagIncrement ? 32 : 1
     }
 
     // $4014: OAMDMA
@@ -536,18 +539,18 @@ class PPU: PPUProtocol
     private func fetchLowTileByte()
     {
         let fineY = (self.v >> 12) & 7
-        let table = self.flagBackgroundTable
+        let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
         let tile = self.nameTableByte
-        let address = (0x1000 * UInt16(table)) + (UInt16(tile) * 16) + fineY
+        let address = table + (UInt16(tile) * 16) + fineY
         self.lowTileByte = self.read(address: address)
     }
 
     private func fetchHighTileByte()
     {
         let fineY = (self.v >> 12) & 7
-        let table = self.flagBackgroundTable
+        let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
         let tile = self.nameTableByte
-        let address = (0x1000 * UInt16(table)) + (UInt16(tile) * 16) + fineY
+        let address = table + (UInt16(tile) * 16) + fineY
         self.highTileByte = self.read(address: address + 8)
     }
 
@@ -574,7 +577,7 @@ class PPU: PPUProtocol
 
     private func backgroundPixel() -> UInt8
     {
-        if self.flagShowBackground == 0
+        if !self.flagShowBackground
         {
             return 0
         }
@@ -584,7 +587,7 @@ class PPU: PPUProtocol
 
     private func spritePixel() -> (UInt8, UInt8)
     {
-        if self.flagShowSprites == 0
+        if !self.flagShowSprites
         {
             return (0, 0)
         }
@@ -614,12 +617,12 @@ class PPU: PPUProtocol
         var background = self.backgroundPixel()
         var spritePixelTuple: (i: UInt8, sprite: UInt8) = self.spritePixel()
         
-        if x < 8 && self.flagShowLeftBackground == 0
+        if x < 8 && !self.flagShowLeftBackground
         {
             background = 0
         }
         
-        if x < 8 && self.flagShowLeftSprites == 0
+        if x < 8 && !self.flagShowLeftSprites
         {
             spritePixelTuple.sprite = 0
         }
@@ -667,15 +670,15 @@ class PPU: PPUProtocol
         let attributes = self.oamData[(aI * 4) + 2]
         var address: UInt16
         
-        if self.flagSpriteSize == 0
+        if !self.flagSpriteSize
         {
             if attributes & 0x80 == 0x80
             {
                 row = 7 - row
             }
             
-            let table = self.flagSpriteTable
-            address = (0x1000 * UInt16(table)) + (UInt16(tile) * 16) + UInt16(row)
+            let table: UInt16 = self.flagSpriteTable ? 0x1000 : 0
+            address = table + (UInt16(tile) * 16) + UInt16(row)
         }
         else
         {
@@ -725,16 +728,7 @@ class PPU: PPUProtocol
 
     private func evaluateSprites()
     {
-        var h: Int
-        if self.flagSpriteSize == 0
-        {
-            h = 8
-        }
-        else
-        {
-            h = 16
-        }
-        
+        let h: Int = self.flagSpriteSize ? 16 : 8
         var count: Int = 0
         
         for i in 0 ..< 64
@@ -781,7 +775,7 @@ class PPU: PPUProtocol
             }
         }
 
-        if self.flagShowBackground != 0 || self.flagShowSprites != 0
+        if self.flagShowBackground || self.flagShowSprites
         {
             if self.f == true && self.scanline == 261 && self.cycle == 339
             {
@@ -813,7 +807,7 @@ class PPU: PPUProtocol
     {
         self.tick()
 
-        let renderingEnabled = self.flagShowBackground != 0 || self.flagShowSprites != 0
+        let renderingEnabled = self.flagShowBackground || self.flagShowSprites
         let preLine = self.scanline == 261
         let visibleLine = self.scanline < 240
         let renderLine = preLine || visibleLine
