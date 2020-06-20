@@ -448,6 +448,9 @@ class NESRomViewController: UIViewController
     
     private func setOnScreenControlsHidden(_ hidden: Bool, animated aAnimated: Bool)
     {
+#if targetEnvironment(simulator)
+        
+#else
         let buttons: [UIButton] = [self.aButton, self.bButton, self.upButton, self.downButton, self.leftButton, self.rightButton, self.selectButton, self.startButton]
         
         guard aAnimated else
@@ -480,6 +483,7 @@ class NESRomViewController: UIViewController
                 b.isHidden = hidden
             }
         }
+#endif
     }
     
     private func setupButtons()
