@@ -26,18 +26,11 @@
 import UIKit
 import GameController
 
-protocol NesRomControllerDelegate: class
+class NESRomViewController: UIViewController
 {
-    var document: NesRomDocument? { get }
-    func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
-}
+    // MARK: - UI Outlets
 
-class NESRomViewController: UIViewController, NesRomControllerDelegate
-{
-    // MARk: - UI Outlets
     @IBOutlet weak private var screen: NESScreenView!
-    @IBOutlet weak private var dismissButton: UIButton!
-    @IBOutlet weak private var resetButton: UIButton!
     @IBOutlet weak private var aButton: UIButton!
     @IBOutlet weak private var bButton: UIButton!
     @IBOutlet weak private var upButton: UIButton!
@@ -47,15 +40,24 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
     @IBOutlet weak private var selectButton: UIButton!
     @IBOutlet weak private var startButton: UIButton!
     
-    // MARK: - Public Variables
-    var document: NesRomDocument?
+    // MARK: - Private Variable
+    private weak var dismissBarButtonItem: UIBarButtonItem?
+    private weak var resetBarButtonItem: UIBarButtonItem?
+    private weak var controller1BarButtonItem: UIBarButtonItem?
+    private weak var controller2BarButtonItem: UIBarButtonItem?
     
-    // MARK: - Private Variables
+    private var document: NesRomDocument? { return (self.navigationController as? NesRomNavigationController)?.document }
+    
     private var controller1: GCController?
     {
         didSet
         {
-            self.setOnScreenControlsHidden(self.controller1?.extendedGamepad != nil)
+            self.controller1BarButtonItem?.isEnabled = !(self.controller1?.extendedGamepad == nil)
+#if targetEnvironment(macCatalyst)
+            self.setOnScreenControlsHidden(true, animated: false)
+#else
+            self.setOnScreenControlsHidden(self.controller1?.extendedGamepad != nil, animated: true)
+#endif
             if self.controller1 == nil
             {
                 self.console?.set(buttonUpPressed: false, buttonDownPressed: false, buttonLeftPressed: false, buttonRightPressed: false, buttonSelectPressed: false, buttonStartPressed: false, buttonBPressed: false, buttonAPressed: false, forControllerAtIndex: 0)
@@ -67,6 +69,7 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
     {
         didSet
         {
+            self.controller2BarButtonItem?.isEnabled = !(self.controller2?.extendedGamepad == nil)
             if self.controller2 == nil
             {
                 self.console?.set(buttonUpPressed: false, buttonDownPressed: false, buttonLeftPressed: false, buttonRightPressed: false, buttonSelectPressed: false, buttonStartPressed: false, buttonBPressed: false, buttonAPressed: false, forControllerAtIndex: 1)
@@ -82,6 +85,10 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
     override func viewDidLoad()
     {
         super.viewDidLoad()
+        self.setupButtons()
+#if targetEnvironment(macCatalyst)
+        self.setOnScreenControlsHidden(true, animated: false)
+#endif
         if let safeCartridge = self.document?.cartridge
         {
             self.console = Console(withCartridge: safeCartridge, sampleRate: SampleRate._22050Hz)
@@ -95,6 +102,7 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
     override func viewWillAppear(_ animated: Bool)
     {
         super.viewWillAppear(animated)
+        self.becomeFirstResponder()
         self.checkForControllers()
         NotificationCenter.default.addObserver(self, selector: #selector(handleControllerConnect(_:)), name: NSNotification.Name.GCControllerDidConnect, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleControllerDisconnect(_:)), name: NSNotification.Name.GCControllerDidDisconnect, object: nil)
@@ -105,14 +113,15 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
+        self.destroyDisplayLink()
+        self.resignFirstResponder()
         NotificationCenter.default.removeObserver(self)
         UIApplication.shared.isIdleTimerDisabled = false
-        self.destroyDisplayLink()
     }
     
     
     // MARK: - Button Actions
-    @IBAction private func dismiss(_ sender: AnyObject?)
+    @objc private func dismissButtonPressed(_ sender: AnyObject?)
     {
         if !self.isBeingDismissed
         {
@@ -123,7 +132,7 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
         }
     }
     
-    @IBAction private func reset(_ sender: AnyObject?)
+    @objc private func resetButtonPressed(_ sender: AnyObject?)
     {
         self.console?.reset(completionHandler: { [weak self] in
             self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
@@ -210,6 +219,97 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
         self.console?.set(button: .buttonRight, enabled: false, forControllerAtIndex: 0)
     }
     
+    // MARK: - Keyboard
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+
+        var didHandleEvent = false
+        for press in presses
+        {
+            guard let keyCommand = press.key?.charactersIgnoringModifiers else { continue }
+            switch keyCommand
+            {
+            case UIKeyCommand.inputUpArrow:
+                self.upButtonPressed(nil)
+                didHandleEvent = true
+            case UIKeyCommand.inputDownArrow:
+                self.downButtonPressed(nil)
+                didHandleEvent = true
+            case UIKeyCommand.inputLeftArrow:
+                self.leftButtonPressed(nil)
+                didHandleEvent = true
+            case UIKeyCommand.inputRightArrow:
+                self.rightButtonPressed(nil)
+                didHandleEvent = true
+            case "a":
+                self.selectButtonPressed(nil)
+                didHandleEvent = true
+            case "s":
+                self.startButtonPressed(nil)
+                didHandleEvent = true
+            case "z":
+                self.bButtonPressed(nil)
+                didHandleEvent = true
+            case "x":
+                self.aButtonPressed(nil)
+                didHandleEvent = true
+            default:
+                break
+            }
+        }
+        
+        if didHandleEvent == false
+        {
+            // Didn't handle this key press, so pass the event to the next responder.
+            super.pressesBegan(presses, with: event)
+        }
+    }
+    
+    override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        // Stop running when the user releases the left or right arrow key.
+
+        var didHandleEvent = false
+        for press in presses
+        {
+            guard let keyCommand = press.key?.charactersIgnoringModifiers else { continue }
+            
+            switch keyCommand
+            {
+            case UIKeyCommand.inputUpArrow:
+                self.upButtonReleased(nil)
+                didHandleEvent = true
+            case UIKeyCommand.inputDownArrow:
+                self.downButtonReleased(nil)
+                didHandleEvent = true
+            case UIKeyCommand.inputLeftArrow:
+                self.leftButtonReleased(nil)
+                didHandleEvent = true
+            case UIKeyCommand.inputRightArrow:
+                self.rightButtonReleased(nil)
+                didHandleEvent = true
+            case "a":
+                self.selectButtonReleased(nil)
+                didHandleEvent = true
+            case "s":
+                self.startButtonReleased(nil)
+                didHandleEvent = true
+            case "z":
+                self.bButtonReleased(nil)
+                didHandleEvent = true
+            case "x":
+                self.aButtonReleased(nil)
+                didHandleEvent = true
+            default:
+                break
+            }
+        }
+        
+        if didHandleEvent == false
+        {
+            // Didn't handle this key press, so pass the event to the next responder.
+            super.pressesBegan(presses, with: event)
+        }
+    }
+    
     // MARK - Display Link Frame Update
     @objc private func updateFrame()
     {
@@ -226,37 +326,6 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
         self.console?.stepSeconds(seconds: 1.0 / 60.0, completionHandler: { [weak self] in
             self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
         })
-    }
-    
-    // MARK: - NesRomControllerDelegate
-    func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
-    {
-        func closeIfNeeded(completionHandler aCompletionHandler: ((Bool) -> Void)?)
-        {
-            if let safeDocument = self.document
-            {
-                safeDocument.close(completionHandler: { (success) in
-                    aCompletionHandler?(success)
-                })
-            }
-            else
-            {
-                aCompletionHandler?(true)
-            }
-        }
-        
-        self.destroyDisplayLink()
-        
-        if !self.isBeingDismissed
-        {
-            self.dismiss(animated: true, completion: {
-                closeIfNeeded(completionHandler: aCompletionHandler)
-            })
-        }
-        else
-        {
-            closeIfNeeded(completionHandler: aCompletionHandler)
-        }
     }
     
     // MARK: - Notifications
@@ -377,15 +446,67 @@ class NESRomViewController: UIViewController, NesRomControllerDelegate
         }
     }
     
-    private func setOnScreenControlsHidden(_ hidden: Bool)
+    private func setOnScreenControlsHidden(_ hidden: Bool, animated aAnimated: Bool)
     {
-        self.aButton.isHidden = hidden
-        self.bButton.isHidden = hidden
-        self.startButton.isHidden = hidden
-        self.selectButton.isHidden = hidden
-        self.upButton.isHidden = hidden
-        self.downButton.isHidden = hidden
-        self.leftButton.isHidden = hidden
-        self.rightButton.isHidden = hidden
+        let buttons: [UIButton] = [self.aButton, self.bButton, self.upButton, self.downButton, self.leftButton, self.rightButton, self.selectButton, self.startButton]
+        
+        guard aAnimated else
+        {
+            for b in buttons
+            {
+                b.alpha = hidden ? 0.0 : 1.0
+                b.isHidden = false
+            }
+            return
+        }
+        
+        if !hidden
+        {
+            for b in buttons
+            {
+                b.alpha = 0.0
+                b.isHidden = false
+            }
+        }
+        
+        UIView.animate(withDuration: 0.33, animations: {
+            for b in buttons
+            {
+                b.alpha = hidden ? 0.0 : 1.0
+            }
+        }) { _ in
+            for b in buttons
+            {
+                b.isHidden = hidden
+            }
+        }
+    }
+    
+    private func setupButtons()
+    {
+#if targetEnvironment(macCatalyst)
+        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 24.0, weight: .semibold)
+#else
+        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 21.0, weight: .semibold)
+#endif
+            
+        let resetButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "power", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(resetButtonPressed(_:)))
+        let controller1Button: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gamecontroller", withConfiguration: symbolConfig), style: .plain, target: self, action: nil)
+        let controller2Button: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gamecontroller", withConfiguration: symbolConfig), style: .plain, target: self, action: nil)
+        let closeButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(dismissButtonPressed(_:)))
+        controller1Button.isEnabled = false
+        controller2Button.isEnabled = false
+        
+        self.resetBarButtonItem = resetButton
+        self.controller1BarButtonItem = controller1Button
+        self.controller2BarButtonItem = controller2Button
+        self.dismissBarButtonItem = closeButton
+           
+        self.navigationItem.setLeftBarButtonItems([resetButton, controller1Button, controller2Button], animated: false)
+        
+#if targetEnvironment(macCatalyst)
+#else
+        self.navigationItem.setRightBarButtonItems([closeButton], animated: false)
+#endif
     }
 }

@@ -89,7 +89,7 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
         
         let document = NesRomDocument(fileURL: documentURL)
         
-        if let safeRomController = self.presentedViewController as? NesRomControllerDelegate
+        if let safeRomController = self.presentedViewController as? NesRomControllerProtocol
         {
             safeRomController.closeDueToExternalChange(completionHandler: { (success) in
                 present(document: document)
@@ -103,7 +103,7 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
-        if let safeRomVC = segue.destination as? NESRomViewController,
+        if let safeRomVC = segue.destination as? NesRomControllerProtocol,
             let document = sender as? NesRomDocument
         {
             safeRomVC.document = document
