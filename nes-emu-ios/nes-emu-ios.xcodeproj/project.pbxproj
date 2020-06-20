@@ -47,6 +47,7 @@
 		99E2E21724966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
 		99FB2208248DCAE000D557A4 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2207248DCAE000D557A4 /* Palette.swift */; };
 		99FB220A248DCC7A00D557A4 /* MapperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */; };
+		99FEEA60249DBB280072D225 /* NesRomNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -114,6 +115,7 @@
 		99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperIdentifier.swift; sourceTree = "<group>"; };
 		99FB2207248DCAE000D557A4 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
 		99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperProtocol.swift; sourceTree = "<group>"; };
+		99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomNavigationController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -244,8 +246,9 @@
 		99A372E62490D6FA00089773 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
-				99488F41248985F100942A1E /* DocumentBrowserViewController.swift */,
+				99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */,
 				999AA95B248F668000DA77AA /* NESRomViewController.swift */,
+				99488F41248985F100942A1E /* DocumentBrowserViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -401,6 +404,7 @@
 				999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */,
 				995C9ADB249BEC9A00429ECC /* Mapper_NROM_UNROM.swift in Sources */,
 				995C9AEA249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift in Sources */,
+				99FEEA60249DBB280072D225 /* NesRomNavigationController.swift in Sources */,
 				991B28CC248B470C00A6A6DD /* Console.swift in Sources */,
 				99C7F1732494096000E4C04D /* Filter.swift in Sources */,
 				99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */,
