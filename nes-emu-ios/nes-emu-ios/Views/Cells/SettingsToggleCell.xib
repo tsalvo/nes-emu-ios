@@ -3,7 +3,6 @@
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
-        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -36,7 +35,7 @@
                     </stackView>
                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="6Oc-9w-Cuu">
                         <rect key="frame" x="263" y="6.5" width="51" height="31"/>
-                        <color key="onTintColor" name="AppTint"/>
+                        <color key="onTintColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <connections>
                             <action selector="toggleChanged:" destination="KGk-i7-Jjw" eventType="valueChanged" id="ER0-HE-3Yz"/>
                         </connections>
@@ -61,9 +60,4 @@
             <point key="canvasLocation" x="57" y="38"/>
         </tableViewCell>
     </objects>
-    <resources>
-        <namedColor name="AppTint">
-            <color red="0.61500000953674316" green="0.15399999916553497" blue="0.20600000023841858" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </namedColor>
-    </resources>
 </document>

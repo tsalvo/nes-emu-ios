@@ -1,5 +1,5 @@
 //
-//  SettingsAboutCell.swift
+//  Date+Year.swift
 //  nes-emu-ios
 //
 //  Created by Tom Salvo on 5/12/19.
@@ -22,52 +22,14 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
+import Foundation
 
-import UIKit
-
-class SettingsAboutCell: UITableViewCell
+extension Date
 {
-    // MARK: - UI Outlets
-    
-    @IBOutlet weak private var aboutLabel1: UILabel!
-    @IBOutlet weak private var aboutLabel2: UILabel!
-    
-    // MARK: - Class Variables
-    
-    class var reuseIdentifier: String { return String(describing: self) }
-    
-    // MARK: - Life Cycle
-    
-    override func awakeFromNib()
+    internal var year: String
     {
-        super.awakeFromNib()
-        self.backgroundColor = .clear
-        self.backgroundView?.backgroundColor = .clear
-        self.setupUI()
-    }
-    
-    var aboutText1: String = ""
-    {
-        didSet
-        {
-            self.aboutLabel1.text = self.aboutText1
-        }
-    }
-    
-    var aboutText2: String = ""
-    {
-        didSet
-        {
-            self.aboutLabel2.text = self.aboutText2
-        }
-    }
-    
-    // MARK: - Private Functions
-    
-    private func setupUI()
-    {
-        self.aboutLabel1.textColor = UIColor.label
-        self.aboutLabel2.textColor = UIColor.label
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy"
+        return dateFormatter.string(from: self)
     }
 }
-

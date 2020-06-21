@@ -1,6 +1,6 @@
 //
 //  SampleRate.swift
-//  October
+//  nes-emu-ios
 //
 //  Created by Tom Salvo on 2/17/20.
 //  Copyright © 2020 Tom Salvo.
