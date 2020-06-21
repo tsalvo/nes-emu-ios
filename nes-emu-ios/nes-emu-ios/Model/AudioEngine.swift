@@ -36,7 +36,7 @@ protocol AudioEngineProtocol: class
 
 class AudioEngine: AudioEngineProtocol
 {
-    private var queue: DispatchQueue = DispatchQueue(label: "AudioEngineQueue", qos: .default)
+    private let queue: DispatchQueue = DispatchQueue(label: "AudioEngineQueue", qos: .default)
     private let engine: AVAudioEngine = AVAudioEngine.init()
     private let playerNode: AVAudioPlayerNode = AVAudioPlayerNode.init()
     private var engineState: AudioEngineState = .stopped

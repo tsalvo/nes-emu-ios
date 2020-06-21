@@ -36,6 +36,22 @@
 		99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A43E9724944CFD0009DB5B /* SampleRate.swift */; };
 		99B0355E2496763000D2723F /* RomHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B0355D2496763000D2723F /* RomHeader.swift */; };
 		99B0355F2496763000D2723F /* RomHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B0355D2496763000D2723F /* RomHeader.swift */; };
+		99B1ED9C249E91C600BC66F3 /* SettingsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1ED9B249E91C600BC66F3 /* SettingsTableViewController.swift */; };
+		99B1ED9F249E924500BC66F3 /* SettingsToggleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1ED9D249E924500BC66F3 /* SettingsToggleCell.swift */; };
+		99B1EDA0249E924500BC66F3 /* SettingsToggleCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 99B1ED9E249E924500BC66F3 /* SettingsToggleCell.xib */; };
+		99B1EDA2249EB07900BC66F3 /* SettingsInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDA1249EB07900BC66F3 /* SettingsInfoViewController.swift */; };
+		99B1EDAC249EB0A800BC66F3 /* SettingsSegmentedCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDA4249EB0A800BC66F3 /* SettingsSegmentedCell.swift */; };
+		99B1EDAD249EB0A800BC66F3 /* SettingsMoreInfoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDA5249EB0A800BC66F3 /* SettingsMoreInfoCell.swift */; };
+		99B1EDAE249EB0A800BC66F3 /* SettingsIconTextInfoCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 99B1EDA6249EB0A800BC66F3 /* SettingsIconTextInfoCell.xib */; };
+		99B1EDAF249EB0A800BC66F3 /* SettingsAboutCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 99B1EDA7249EB0A800BC66F3 /* SettingsAboutCell.xib */; };
+		99B1EDB0249EB0A800BC66F3 /* SettingsSegmentedCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 99B1EDA8249EB0A800BC66F3 /* SettingsSegmentedCell.xib */; };
+		99B1EDB1249EB0A800BC66F3 /* SettingsMoreInfoCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 99B1EDA9249EB0A800BC66F3 /* SettingsMoreInfoCell.xib */; };
+		99B1EDB2249EB0A800BC66F3 /* SettingsIconTextInfoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDAA249EB0A800BC66F3 /* SettingsIconTextInfoCell.swift */; };
+		99B1EDB3249EB0A800BC66F3 /* SettingsAboutCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDAB249EB0A800BC66F3 /* SettingsAboutCell.swift */; };
+		99B1EDB5249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDB4249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift */; };
+		99B1EDB7249EB2DF00BC66F3 /* Collection+SafeIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDB6249EB2DF00BC66F3 /* Collection+SafeIndex.swift */; };
+		99B1EDB9249EC8D000BC66F3 /* SettingsNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDB8249EC8D000BC66F3 /* SettingsNavigationController.swift */; };
+		99B7C307249F009100B26AC6 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 99B7C306249F009100B26AC6 /* Settings.bundle */; };
 		99C7F1732494096000E4C04D /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1722494096000E4C04D /* Filter.swift */; };
 		99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1742494221800E4C04D /* AudioEngine.swift */; };
 		99E2E2052495D8C1008AFCDB /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */; };
@@ -107,6 +123,22 @@
 		99A372C0249028DC00089773 /* nes-emu-ios.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "nes-emu-ios.entitlements"; sourceTree = "<group>"; };
 		99A43E9724944CFD0009DB5B /* SampleRate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleRate.swift; sourceTree = "<group>"; };
 		99B0355D2496763000D2723F /* RomHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomHeader.swift; sourceTree = "<group>"; };
+		99B1ED9B249E91C600BC66F3 /* SettingsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTableViewController.swift; sourceTree = "<group>"; };
+		99B1ED9D249E924500BC66F3 /* SettingsToggleCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsToggleCell.swift; sourceTree = "<group>"; };
+		99B1ED9E249E924500BC66F3 /* SettingsToggleCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SettingsToggleCell.xib; sourceTree = "<group>"; };
+		99B1EDA1249EB07900BC66F3 /* SettingsInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsInfoViewController.swift; sourceTree = "<group>"; };
+		99B1EDA4249EB0A800BC66F3 /* SettingsSegmentedCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsSegmentedCell.swift; sourceTree = "<group>"; };
+		99B1EDA5249EB0A800BC66F3 /* SettingsMoreInfoCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsMoreInfoCell.swift; sourceTree = "<group>"; };
+		99B1EDA6249EB0A800BC66F3 /* SettingsIconTextInfoCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SettingsIconTextInfoCell.xib; sourceTree = "<group>"; };
+		99B1EDA7249EB0A800BC66F3 /* SettingsAboutCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SettingsAboutCell.xib; sourceTree = "<group>"; };
+		99B1EDA8249EB0A800BC66F3 /* SettingsSegmentedCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SettingsSegmentedCell.xib; sourceTree = "<group>"; };
+		99B1EDA9249EB0A800BC66F3 /* SettingsMoreInfoCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SettingsMoreInfoCell.xib; sourceTree = "<group>"; };
+		99B1EDAA249EB0A800BC66F3 /* SettingsIconTextInfoCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsIconTextInfoCell.swift; sourceTree = "<group>"; };
+		99B1EDAB249EB0A800BC66F3 /* SettingsAboutCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsAboutCell.swift; sourceTree = "<group>"; };
+		99B1EDB4249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIStackView+ArrangedSubviews.swift"; sourceTree = "<group>"; };
+		99B1EDB6249EB2DF00BC66F3 /* Collection+SafeIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Collection+SafeIndex.swift"; sourceTree = "<group>"; };
+		99B1EDB8249EC8D000BC66F3 /* SettingsNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsNavigationController.swift; sourceTree = "<group>"; };
+		99B7C306249F009100B26AC6 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		99C7F1722494096000E4C04D /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		99C7F1742494221800E4C04D /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
 		99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "nes-thumbnail-provider.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -179,6 +211,7 @@
 		99488F3E248985F100942A1E /* nes-emu-ios */ = {
 			isa = PBXGroup;
 			children = (
+				99B7C306249F009100B26AC6 /* Settings.bundle */,
 				99A372C0249028DC00089773 /* nes-emu-ios.entitlements */,
 				99488F3F248985F100942A1E /* AppDelegate.swift */,
 				994C12112496F10600DD2FE1 /* SceneDelegate.swift */,
@@ -198,6 +231,7 @@
 		99488F552489AFBD00942A1E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				99B1EDA3249EB09100BC66F3 /* Cells */,
 				99A372BE248F8EC000089773 /* NESScreenView.swift */,
 			);
 			path = Views;
@@ -218,7 +252,9 @@
 		99488F572489BF6F00942A1E /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				99B1EDB4249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift */,
 				99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */,
+				99B1EDB6249EB2DF00BC66F3 /* Collection+SafeIndex.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -252,8 +288,28 @@
 				99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */,
 				999AA95B248F668000DA77AA /* NESRomViewController.swift */,
 				99488F41248985F100942A1E /* DocumentBrowserViewController.swift */,
+				99B1ED9B249E91C600BC66F3 /* SettingsTableViewController.swift */,
+				99B1EDB8249EC8D000BC66F3 /* SettingsNavigationController.swift */,
+				99B1EDA1249EB07900BC66F3 /* SettingsInfoViewController.swift */,
 			);
 			path = ViewControllers;
+			sourceTree = "<group>";
+		};
+		99B1EDA3249EB09100BC66F3 /* Cells */ = {
+			isa = PBXGroup;
+			children = (
+				99B1EDAB249EB0A800BC66F3 /* SettingsAboutCell.swift */,
+				99B1EDA7249EB0A800BC66F3 /* SettingsAboutCell.xib */,
+				99B1EDAA249EB0A800BC66F3 /* SettingsIconTextInfoCell.swift */,
+				99B1EDA6249EB0A800BC66F3 /* SettingsIconTextInfoCell.xib */,
+				99B1EDA5249EB0A800BC66F3 /* SettingsMoreInfoCell.swift */,
+				99B1EDA9249EB0A800BC66F3 /* SettingsMoreInfoCell.xib */,
+				99B1EDA4249EB0A800BC66F3 /* SettingsSegmentedCell.swift */,
+				99B1EDA8249EB0A800BC66F3 /* SettingsSegmentedCell.xib */,
+				99B1ED9D249E924500BC66F3 /* SettingsToggleCell.swift */,
+				99B1ED9E249E924500BC66F3 /* SettingsToggleCell.xib */,
+			);
+			path = Cells;
 			sourceTree = "<group>";
 		};
 		99E2E2032495D8C1008AFCDB /* Frameworks */ = {
@@ -364,10 +420,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99B1EDA0249E924500BC66F3 /* SettingsToggleCell.xib in Resources */,
 				99488F4E248985F300942A1E /* LaunchScreen.storyboard in Resources */,
+				99B7C307249F009100B26AC6 /* Settings.bundle in Resources */,
 				999EF98724988D8B007149C9 /* Localizable.strings in Resources */,
 				99488F4B248985F300942A1E /* Assets.xcassets in Resources */,
+				99B1EDAF249EB0A800BC66F3 /* SettingsAboutCell.xib in Resources */,
+				99B1EDAE249EB0A800BC66F3 /* SettingsIconTextInfoCell.xib in Resources */,
 				99488F49248985F100942A1E /* Main.storyboard in Resources */,
+				99B1EDB1249EB0A800BC66F3 /* SettingsMoreInfoCell.xib in Resources */,
+				99B1EDB0249EB0A800BC66F3 /* SettingsSegmentedCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -388,8 +450,10 @@
 				991B28C6248B24CB00A6A6DD /* MemoryProtocol.swift in Sources */,
 				991B28CA248B43B500A6A6DD /* PPU.swift in Sources */,
 				99FB220A248DCC7A00D557A4 /* MapperProtocol.swift in Sources */,
+				99B1ED9F249E924500BC66F3 /* SettingsToggleCell.swift in Sources */,
 				99488F46248985F100942A1E /* NesRomDocument.swift in Sources */,
 				991B28CE248B746A00A6A6DD /* Controller.swift in Sources */,
+				99B1EDB3249EB0A800BC66F3 /* SettingsAboutCell.swift in Sources */,
 				995C9AE3249BED0B00429ECC /* Mapper_MMC2.swift in Sources */,
 				995C9ADF249BECE000429ECC /* Mapper_CNROM.swift in Sources */,
 				99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */,
@@ -401,20 +465,28 @@
 				992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */,
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
 				99488F40248985F100942A1E /* AppDelegate.swift in Sources */,
+				99B1EDAD249EB0A800BC66F3 /* SettingsMoreInfoCell.swift in Sources */,
+				99B1EDB7249EB2DF00BC66F3 /* Collection+SafeIndex.swift in Sources */,
 				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
 				995C9ADD249BECCA00429ECC /* Mapper_MMC1.swift in Sources */,
 				99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */,
 				999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */,
 				995C9ADB249BEC9A00429ECC /* Mapper_NROM_UNROM.swift in Sources */,
+				99B1EDA2249EB07900BC66F3 /* SettingsInfoViewController.swift in Sources */,
 				995EEC49249DFB2300FE24F8 /* Settings.swift in Sources */,
 				995C9AEA249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift in Sources */,
 				99FEEA60249DBB280072D225 /* NesRomNavigationController.swift in Sources */,
+				99B1EDB2249EB0A800BC66F3 /* SettingsIconTextInfoCell.swift in Sources */,
 				991B28CC248B470C00A6A6DD /* Console.swift in Sources */,
+				99B1EDB9249EC8D000BC66F3 /* SettingsNavigationController.swift in Sources */,
 				99C7F1732494096000E4C04D /* Filter.swift in Sources */,
 				99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */,
 				99B0355E2496763000D2723F /* RomHeader.swift in Sources */,
+				99B1ED9C249E91C600BC66F3 /* SettingsTableViewController.swift in Sources */,
+				99B1EDAC249EB0A800BC66F3 /* SettingsSegmentedCell.swift in Sources */,
 				995C9AE5249BED4000429ECC /* Mapper_MMC3.swift in Sources */,
 				99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */,
+				99B1EDB5249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift in Sources */,
 				99E2E21324966A32008AFCDB /* MirroringMode.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

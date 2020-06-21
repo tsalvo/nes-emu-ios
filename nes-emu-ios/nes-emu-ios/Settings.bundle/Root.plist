@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>StringsTable</key>
+	<string>Root</string>
+	<key>PreferenceSpecifiers</key>
+	<array>
+		<dict>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+			<key>Title</key>
+			<string>settings-section-audio</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSMultiValueSpecifier</string>
+			<key>Title</key>
+			<string>settings-item-audio-sample-rate</string>
+			<key>Key</key>
+			<string>sampleRateKey</string>
+			<key>DefaultValue</key>
+			<integer>22050</integer>
+			<key>Titles</key>
+			<array>
+				<string>12000 Hz</string>
+				<string>16000 Hz</string>
+				<string>22050 Hz</string>
+				<string>44100 Hz</string>
+			</array>
+			<key>Values</key>
+			<array>
+				<integer>12000</integer>
+				<integer>16000</integer>
+				<integer>22050</integer>
+				<integer>44100</integer>
+			</array>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>settings-item-audio-filtering</string>
+			<key>Key</key>
+			<string>audioFiltersEnabledKey</string>
+			<key>DefaultValue</key>
+			<true/>
+			<key>TrueValue</key>
+			<string>YES</string>
+			<key>FalseValue</key>
+			<string>NO</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>settings-item-resume-other-audio</string>
+			<key>Key</key>
+			<string>audioSessionNotifyOthersOnDeactivationKey</string>
+			<key>DefaultValue</key>
+			<true/>
+			<key>TrueValue</key>
+			<string>YES</string>
+			<key>FalseValue</key>
+			<string>NO</string>
+		</dict>
+	</array>
+</dict>
+</plist>

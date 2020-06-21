@@ -39,10 +39,10 @@ class Console: ConsoleProtocol
     let controllers: [Controller]
     let queue: DispatchQueue
     
-    init(withCartridge aCartridge: Cartridge, sampleRate aSampleRate: SampleRate)
+    init(withCartridge aCartridge: Cartridge, sampleRate aSampleRate: SampleRate, audioFiltersEnabled aAudioFiltersEnabled: Bool)
     {
         self.queue = DispatchQueue(label: "ConsoleQueue", qos: .userInteractive)
-        let apu = APU(withSampleRate: aSampleRate)
+        let apu = APU(withSampleRate: aSampleRate, filtersEnabled: aAudioFiltersEnabled)
         let controllers: [Controller] = [Controller(), Controller()]
         let mapper = aCartridge.mapper
         let ppu = PPU(mapper: mapper)

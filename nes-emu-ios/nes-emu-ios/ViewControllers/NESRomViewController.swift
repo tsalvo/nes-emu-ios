@@ -89,9 +89,11 @@ class NESRomViewController: UIViewController
 #if targetEnvironment(macCatalyst)
         self.setOnScreenControlsHidden(true, animated: false)
 #endif
+        let sampleRate: SampleRate = SampleRate.init(rawValue: UserDefaults.standard.integer(forKey: Settings.sampleRateKey)) ?? Settings.defaultSampleRate
+        let audioFiltersEnabled: Bool = UserDefaults.standard.bool(forKey: Settings.audioFiltersEnabledKey)
         if let safeCartridge = self.document?.cartridge
         {
-            self.console = Console(withCartridge: safeCartridge, sampleRate: SampleRate._22050Hz)
+            self.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled)
             self.console?.set(audioEngineDelegate: self.audioEngine)
             self.console?.reset(completionHandler: { [weak self] in
                 self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []

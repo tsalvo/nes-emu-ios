@@ -25,9 +25,11 @@
 
 import Foundation
 
-enum SampleRate: Int, CaseIterable
+enum SampleRate: Int, CaseIterable, SettingsEnum
 {
-    case _22050Hz = 22050,
+    case _12000Hz = 12000,
+    _16000Hz = 16000,
+    _22050Hz = 22050,
     _44100Hz = 44100
     
     var floatValue: Float { return Float(self.rawValue) }
@@ -40,7 +42,13 @@ enum SampleRate: Int, CaseIterable
     
     var friendlyName: String
     {
-        return "\(self.rawValue)Hz"
+        switch self
+        {
+        case ._12000Hz: return "12"
+        case ._16000Hz: return "16"
+        case ._22050Hz: return "22"
+        case ._44100Hz: return "44"
+        }
     }
     
     var storedValue: Any { return self.rawValue }

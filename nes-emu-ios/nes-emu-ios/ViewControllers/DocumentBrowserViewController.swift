@@ -26,7 +26,7 @@
 import UIKit
 //import SwiftUI
 
-class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocumentBrowserViewControllerDelegate
+class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocumentBrowserViewControllerDelegate, UIPopoverPresentationControllerDelegate
 {
     
 #if targetEnvironment(macCatalyst)
@@ -40,9 +40,9 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        
+        self.additionalTrailingNavigationBarButtonItems = [UIBarButtonItem(image: UIImage(systemName: "gear"), style: .plain, target: self, action: #selector(settingsButtonPressed(_:)))]
         self.delegate = self
-        
+        self.view.tintColor = UIColor.init(named: "AppTint")
         self.allowsDocumentCreation = false
         self.allowsPickingMultipleItems = false
     }
@@ -70,6 +70,19 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
         let alertVC = UIAlertController(title: NSLocalizedString("title-error", comment: "Error"), message: NSLocalizedString("error-failed-to-import-document", comment: "Failed to import document"), preferredStyle: .alert)
         alertVC.addAction(UIAlertAction(title: NSLocalizedString("button-ok", comment: "OK"), style: .cancel, handler: nil))
         self.present(alertVC, animated: true, completion: nil)
+    }
+    
+    // MARK: - UIPopoverPresentationControllerDelegate
+    
+    func prepareForPopoverPresentation(_ popoverPresentationController: UIPopoverPresentationController)
+    {
+        popoverPresentationController.backgroundColor = UIColor.systemBackground
+        popoverPresentationController.canOverlapSourceViewRect = true
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
     }
     
     // MARK: - Document Presentation
@@ -108,6 +121,12 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
         {
             safeRomVC.document = document
         }
+        else if let settingsVC = segue.destination as? SettingsNavigationController
+        {
+            settingsVC.modalPresentationStyle = UIModalPresentationStyle.popover
+            settingsVC.popoverPresentationController?.delegate = self
+            settingsVC.popoverPresentationController?.barButtonItem = self.additionalTrailingNavigationBarButtonItems.first
+        }
     }
 
     func closeDocument(_ document: NesRomDocument)
@@ -115,5 +134,10 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
         self.dismiss(animated: true, completion: {
             document.close(completionHandler: nil)
         })
+    }
+    
+    @objc private func settingsButtonPressed(_ sender: AnyObject?)
+    {
+        self.performSegue(withIdentifier: "showSettingsFromDocumentBrowser", sender: nil)
     }
 }
