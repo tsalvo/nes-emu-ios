@@ -5,28 +5,28 @@
 //  Created by Tom Salvo on 6/4/20.
 //  Copyright © 2020 Tom Salvo.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+//  The above copyright notice and this permission notice shall be included in all
+//  copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+//  SOFTWARE.
 
 import UIKit
 //import SwiftUI
 
-class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocumentBrowserViewControllerDelegate
+class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocumentBrowserViewControllerDelegate, UIPopoverPresentationControllerDelegate
 {
     
 #if targetEnvironment(macCatalyst)
@@ -40,9 +40,9 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        
+        self.additionalTrailingNavigationBarButtonItems = [UIBarButtonItem(image: UIImage(systemName: "gear"), style: .plain, target: self, action: #selector(settingsButtonPressed(_:)))]
         self.delegate = self
-        
+        self.view.tintColor = UIColor.systemRed
         self.allowsDocumentCreation = false
         self.allowsPickingMultipleItems = false
     }
@@ -70,6 +70,19 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
         let alertVC = UIAlertController(title: NSLocalizedString("title-error", comment: "Error"), message: NSLocalizedString("error-failed-to-import-document", comment: "Failed to import document"), preferredStyle: .alert)
         alertVC.addAction(UIAlertAction(title: NSLocalizedString("button-ok", comment: "OK"), style: .cancel, handler: nil))
         self.present(alertVC, animated: true, completion: nil)
+    }
+    
+    // MARK: - UIPopoverPresentationControllerDelegate
+    
+    func prepareForPopoverPresentation(_ popoverPresentationController: UIPopoverPresentationController)
+    {
+        popoverPresentationController.backgroundColor = UIColor.systemBackground
+        popoverPresentationController.canOverlapSourceViewRect = true
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return UIModalPresentationStyle.none
     }
     
     // MARK: - Document Presentation
@@ -108,6 +121,12 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
         {
             safeRomVC.document = document
         }
+        else if let settingsVC = segue.destination as? SettingsNavigationController
+        {
+            settingsVC.modalPresentationStyle = UIModalPresentationStyle.popover
+            settingsVC.popoverPresentationController?.delegate = self
+            settingsVC.popoverPresentationController?.barButtonItem = self.additionalTrailingNavigationBarButtonItems.first
+        }
     }
 
     func closeDocument(_ document: NesRomDocument)
@@ -115,5 +134,10 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
         self.dismiss(animated: true, completion: {
             document.close(completionHandler: nil)
         })
+    }
+    
+    @objc private func settingsButtonPressed(_ sender: AnyObject?)
+    {
+        self.performSegue(withIdentifier: "showSettingsFromDocumentBrowser", sender: nil)
     }
 }

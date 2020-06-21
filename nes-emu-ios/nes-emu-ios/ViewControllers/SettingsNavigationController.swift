@@ -1,8 +1,8 @@
 //
-//  SampleRate.swift
+//  SettingsNavigationController.swift
 //  nes-emu-ios
 //
-//  Created by Tom Salvo on 2/17/20.
+//  Created by Tom Salvo on 6/20/20.
 //  Copyright © 2020 Tom Salvo.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,33 +23,25 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
-import Foundation
+import UIKit
 
-enum SampleRate: Int, CaseIterable, SettingsEnum
+class SettingsNavigationController: UINavigationController
 {
-    case _12000Hz = 12000,
-    _16000Hz = 16000,
-    _22050Hz = 22050,
-    _44100Hz = 44100
+    // MARK: - Life Cycle
     
-    var floatValue: Float { return Float(self.rawValue) }
-    var doubleValue: Double { return Double(self.rawValue) }
-    var ticksPerNodeTapBuffer: Int { return 6 }
-    var nodeTapBufferCapacity: UInt32 { return UInt32(self.rawValue) / 10 }
-    
-    /// number of samples for a buffer of one tick length (1/60 second)
-    var bufferCapacity: UInt32 { return UInt32(self.rawValue) / 60 }
-    
-    var friendlyName: String
+    override func viewDidLoad()
     {
-        switch self
-        {
-        case ._12000Hz: return "12"
-        case ._16000Hz: return "16"
-        case ._22050Hz: return "22"
-        case ._44100Hz: return "44"
-        }
+        super.viewDidLoad()
+        self.navigationBar.tintColor = UIColor.systemRed
+        self.applyTheme()
     }
     
-    var storedValue: Any { return self.rawValue }
+    // MARK: - Private Functions
+    
+    private func applyTheme()
+    {
+        self.navigationBar.barStyle = UIBarStyle.default
+        self.navigationBar.isTranslucent = true
+        self.popoverPresentationController?.backgroundColor = UIColor.systemBackground
+    }
 }

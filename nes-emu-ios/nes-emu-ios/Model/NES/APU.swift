@@ -59,7 +59,7 @@ class APU: APUProtocol
     var pulseTable: [Float32] = [Float32].init(repeating: 0, count: 31)
     var tndTable: [Float32] = [Float32].init(repeating: 0, count: 203)
     
-    init(withSampleRate aSampleRate: SampleRate)
+    init(withSampleRate aSampleRate: SampleRate, filtersEnabled aFiltersEnabled: Bool)
     {
         var pT: [Float32] = [Float32].init(repeating: 0, count: 31)
         var tT: [Float32] = [Float32].init(repeating: 0, count: 203)
@@ -80,7 +80,11 @@ class APU: APUProtocol
         self.tndTable = tT
         self.pulse1 = Pulse(channel: 1)
         self.pulse2 = Pulse(channel: 2)
-        self.filterChain = FilterChain(filters: [])
+        self.filterChain = FilterChain(filters: aFiltersEnabled ? [
+            APU.highPassFilter(sampleRate: aSampleRate.floatValue, cutoffFreq: 90),
+            APU.highPassFilter(sampleRate: aSampleRate.floatValue, cutoffFreq: 440),
+            APU.lowPassFilter(sampleRate: aSampleRate.floatValue, cutoffFreq: 14000),
+            ] : [])
     }
     
     func step()
@@ -105,7 +109,7 @@ class APU: APUProtocol
 
     func sendSample()
     {
-        let output = self.output() // TODO: adopt filterchain instead of sending raw samples e.g. self.filterChain.step(x: self.output())
+        let output = self.filterChain.step(x: self.output())
         self.audioBuffer[self.audioBufferIndex] = output
         self.audioBufferIndex += 1
         if self.audioBufferIndex >= self.audioBuffer.count
@@ -353,7 +357,7 @@ class APU: APUProtocol
     }
     
     /// sampleRate: samples per second cutoffFreq: oscillations per second
-    private func lowPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
+    private class func lowPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
     {
         let c = aSampleRate / Float32.pi / aCutoffFreq
         let a0i = 1 / (1 + c)
@@ -361,7 +365,7 @@ class APU: APUProtocol
     }
 
     /// sampleRate: samples per second cutoffFreq: oscillations per second
-    private func highPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
+    private class func highPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
     {
         let c = aSampleRate / Float32.pi / aCutoffFreq
         let a0i = 1 / (1 + c)

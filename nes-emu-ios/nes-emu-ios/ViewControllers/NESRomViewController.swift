@@ -5,23 +5,23 @@
 //  Created by Tom Salvo on 6/8/20.
 //  Copyright © 2020 Tom Salvo.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+//  The above copyright notice and this permission notice shall be included in all
+//  copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+//  SOFTWARE.
 
 import UIKit
 import GameController
@@ -29,7 +29,6 @@ import GameController
 class NESRomViewController: UIViewController
 {
     // MARK: - UI Outlets
-
     @IBOutlet weak private var screen: NESScreenView!
     @IBOutlet weak private var aButton: UIButton!
     @IBOutlet weak private var bButton: UIButton!
@@ -40,7 +39,7 @@ class NESRomViewController: UIViewController
     @IBOutlet weak private var selectButton: UIButton!
     @IBOutlet weak private var startButton: UIButton!
     
-    // MARK: - Private Variable
+    // MARK: - Private Variables
     private weak var dismissBarButtonItem: UIBarButtonItem?
     private weak var resetBarButtonItem: UIBarButtonItem?
     private weak var controller1BarButtonItem: UIBarButtonItem?
@@ -88,10 +87,14 @@ class NESRomViewController: UIViewController
         self.setupButtons()
 #if targetEnvironment(macCatalyst)
         self.setOnScreenControlsHidden(true, animated: false)
+#elseif targetEnvironment(simulator)
+        self.setOnScreenControlsHidden(false, animated: false)
 #endif
+        let sampleRate: SampleRate = SampleRate.init(rawValue: UserDefaults.standard.integer(forKey: Settings.sampleRateKey)) ?? Settings.defaultSampleRate
+        let audioFiltersEnabled: Bool = UserDefaults.standard.bool(forKey: Settings.audioFiltersEnabledKey)
         if let safeCartridge = self.document?.cartridge
         {
-            self.console = Console(withCartridge: safeCartridge, sampleRate: SampleRate._22050Hz)
+            self.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled)
             self.console?.set(audioEngineDelegate: self.audioEngine)
             self.console?.reset(completionHandler: { [weak self] in
                 self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
@@ -385,6 +388,8 @@ class NESRomViewController: UIViewController
     
     private func checkForControllers()
     {
+#if targetEnvironment(simulator)
+#else
         let currentControllers: [GCController] = GCController.controllers()
         
         if let safeController1 = self.controller1
@@ -444,13 +449,11 @@ class NESRomViewController: UIViewController
                 }
             }
         }
+#endif
     }
     
     private func setOnScreenControlsHidden(_ hidden: Bool, animated aAnimated: Bool)
     {
-#if targetEnvironment(simulator)
-        
-#else
         let buttons: [UIButton] = [self.aButton, self.bButton, self.upButton, self.downButton, self.leftButton, self.rightButton, self.selectButton, self.startButton]
         
         guard aAnimated else
@@ -483,7 +486,6 @@ class NESRomViewController: UIViewController
                 b.isHidden = hidden
             }
         }
-#endif
     }
     
     private func setupButtons()

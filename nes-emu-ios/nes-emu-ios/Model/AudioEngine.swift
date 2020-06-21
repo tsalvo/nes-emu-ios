@@ -25,6 +25,7 @@
 
 import Foundation
 import AVFoundation
+import os
 
 enum AudioEngineState { case stopped, started, paused, playing }
 
@@ -35,7 +36,7 @@ protocol AudioEngineProtocol: class
 
 class AudioEngine: AudioEngineProtocol
 {
-    private var queue: DispatchQueue = DispatchQueue(label: "AudioEngineQueue", qos: .default)
+    private let queue: DispatchQueue = DispatchQueue(label: "AudioEngineQueue", qos: .default)
     private let engine: AVAudioEngine = AVAudioEngine.init()
     private let playerNode: AVAudioPlayerNode = AVAudioPlayerNode.init()
     private var engineState: AudioEngineState = .stopped
@@ -89,6 +90,7 @@ class AudioEngine: AudioEngineProtocol
         {
         case .started:
             
+            self.setPlaybackCategory()
             self.playerNode.play(at: nil)
             self.engineState = .playing
             
@@ -108,6 +110,7 @@ class AudioEngine: AudioEngineProtocol
             self.engine.reset()
             for p in self.engine.attachedNodes.compactMap({ $0 as? AVAudioPlayerNode }) { self.engine.detach(p) }
             self.engineState = .stopped
+            self.setAudioSessionInactive()
             
         default:
             break
@@ -200,5 +203,22 @@ class AudioEngine: AudioEngineProtocol
         guard self.engine.attachedNodes.compactMap({ $0 as? AVAudioPlayerNode }).isEmpty else { return }
         self.engine.attach(self.playerNode)
         self.engine.connect(self.playerNode, to: self.engine.mainMixerNode, format: aAudioFormat)
+    }
+    
+    private func setPlaybackCategory()
+    {
+        do { try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, policy: .longFormAudio, options: []) }
+        catch { os_log(OSLogType.error, "Failed to set audio session playback category: %@", error.localizedDescription) }
+       
+        do { try AVAudioSession.sharedInstance().setActive(true, options: []) }
+        catch { os_log(OSLogType.error, "Failed to set audio session active: %@", error.localizedDescription) }
+    }
+   
+    private func setAudioSessionInactive()
+    {
+        let notifyOthers: Bool = UserDefaults.standard.bool(forKey: Settings.audioSessionNotifyOthersOnDeactivationKey)
+       
+        do { try AVAudioSession.sharedInstance().setActive(false, options: notifyOthers ? .notifyOthersOnDeactivation : []) }
+        catch { os_log(OSLogType.error, "Failed to set audio session inactive: %@", error.localizedDescription) }
     }
 }

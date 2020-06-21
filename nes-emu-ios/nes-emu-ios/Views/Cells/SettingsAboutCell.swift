@@ -1,8 +1,8 @@
 //
-//  SampleRate.swift
+//  SettingsAboutCell.swift
 //  nes-emu-ios
 //
-//  Created by Tom Salvo on 2/17/20.
+//  Created by Tom Salvo on 5/12/19.
 //  Copyright © 2020 Tom Salvo.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,33 +23,51 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
-import Foundation
+import UIKit
 
-enum SampleRate: Int, CaseIterable, SettingsEnum
+class SettingsAboutCell: UITableViewCell
 {
-    case _12000Hz = 12000,
-    _16000Hz = 16000,
-    _22050Hz = 22050,
-    _44100Hz = 44100
+    // MARK: - UI Outlets
     
-    var floatValue: Float { return Float(self.rawValue) }
-    var doubleValue: Double { return Double(self.rawValue) }
-    var ticksPerNodeTapBuffer: Int { return 6 }
-    var nodeTapBufferCapacity: UInt32 { return UInt32(self.rawValue) / 10 }
+    @IBOutlet weak private var aboutLabel1: UILabel!
+    @IBOutlet weak private var aboutLabel2: UILabel!
     
-    /// number of samples for a buffer of one tick length (1/60 second)
-    var bufferCapacity: UInt32 { return UInt32(self.rawValue) / 60 }
+    // MARK: - Class Variables
     
-    var friendlyName: String
+    class var reuseIdentifier: String { return String(describing: self) }
+    
+    // MARK: - Life Cycle
+    
+    override func awakeFromNib()
     {
-        switch self
+        super.awakeFromNib()
+        self.backgroundColor = .clear
+        self.backgroundView?.backgroundColor = .clear
+        self.setupUI()
+    }
+    
+    var aboutText1: String = ""
+    {
+        didSet
         {
-        case ._12000Hz: return "12"
-        case ._16000Hz: return "16"
-        case ._22050Hz: return "22"
-        case ._44100Hz: return "44"
+            self.aboutLabel1.text = self.aboutText1
         }
     }
     
-    var storedValue: Any { return self.rawValue }
+    var aboutText2: String = ""
+    {
+        didSet
+        {
+            self.aboutLabel2.text = self.aboutText2
+        }
+    }
+    
+    // MARK: - Private Functions
+    
+    private func setupUI()
+    {
+        self.aboutLabel1.textColor = UIColor.label
+        self.aboutLabel2.textColor = UIColor.label
+    }
 }
+

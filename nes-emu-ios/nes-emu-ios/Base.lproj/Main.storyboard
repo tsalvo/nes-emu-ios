@@ -20,11 +20,53 @@
                     <connections>
                         <segue destination="5BT-EE-k8e" kind="presentation" identifier="playROM" id="gw5-kr-Irw"/>
                         <segue destination="5BT-EE-k8e" kind="presentation" identifier="playROMCrossDissolve" modalTransitionStyle="crossDissolve" id="wI2-dd-0Ge"/>
+                        <segue destination="UiQ-dc-SHc" kind="presentation" identifier="showSettingsFromDocumentBrowser" id="RAD-Ji-suz"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="22" y="375"/>
+        </scene>
+        <!--Settings Table View Controller-->
+        <scene sceneID="vvT-HW-k9Q">
+            <objects>
+                <tableViewController id="hmr-eV-lPG" customClass="SettingsTableViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="LMx-Ai-N2b">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="548"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <connections>
+                            <outlet property="dataSource" destination="hmr-eV-lPG" id="eU8-Do-fVC"/>
+                            <outlet property="delegate" destination="hmr-eV-lPG" id="Q6e-7c-9r2"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" id="RIw-tJ-0B8"/>
+                    <connections>
+                        <segue destination="jSo-Gi-y31" kind="show" identifier="showMoreInfo" id="K5E-vQ-cFa"/>
+                    </connections>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="pmn-3Q-0M9" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1018.125" y="-375"/>
+        </scene>
+        <!--Settings Info View Controller-->
+        <scene sceneID="x8z-EG-h9s">
+            <objects>
+                <tableViewController id="jSo-Gi-y31" customClass="SettingsInfoViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="wqf-Je-dwM">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="548"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <connections>
+                            <outlet property="dataSource" destination="jSo-Gi-y31" id="seT-vD-0ws"/>
+                            <outlet property="delegate" destination="jSo-Gi-y31" id="dLY-qp-Xd5"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" id="VMQ-H2-h4f"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="R1u-3X-alt" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1879" y="-375"/>
         </scene>
         <!--Nes Rom Navigation Controller-->
         <scene sceneID="MyH-nG-MLB">
@@ -33,6 +75,7 @@
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="ue3-zN-qSd">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
+                        <color key="tintColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </navigationBar>
                     <connections>
                         <segue destination="tG2-AL-uMa" kind="relationship" relationship="rootViewController" id="F59-lU-01Z"/>
@@ -297,6 +340,24 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="g06-vX-JML" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1879" y="375"/>
+        </scene>
+        <!--Settings Navigation Controller-->
+        <scene sceneID="T63-5a-rvl">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="UiQ-dc-SHc" customClass="SettingsNavigationController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="KzW-dK-72Q">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="56"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="hmr-eV-lPG" kind="relationship" relationship="rootViewController" id="MI2-Pd-v0K"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="vMm-QJ-a9B" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="186" y="-375"/>
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>

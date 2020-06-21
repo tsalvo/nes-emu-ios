@@ -1,8 +1,8 @@
 //
-//  SampleRate.swift
+//  Collection+SafeIndex.swift
 //  nes-emu-ios
 //
-//  Created by Tom Salvo on 2/17/20.
+//  Created by Tom Salvo on 6/20/20.
 //  Copyright © 2020 Tom Salvo.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,31 +25,13 @@
 
 import Foundation
 
-enum SampleRate: Int, CaseIterable, SettingsEnum
+import Foundation
+
+extension Collection
 {
-    case _12000Hz = 12000,
-    _16000Hz = 16000,
-    _22050Hz = 22050,
-    _44100Hz = 44100
-    
-    var floatValue: Float { return Float(self.rawValue) }
-    var doubleValue: Double { return Double(self.rawValue) }
-    var ticksPerNodeTapBuffer: Int { return 6 }
-    var nodeTapBufferCapacity: UInt32 { return UInt32(self.rawValue) / 10 }
-    
-    /// number of samples for a buffer of one tick length (1/60 second)
-    var bufferCapacity: UInt32 { return UInt32(self.rawValue) / 60 }
-    
-    var friendlyName: String
+    /// Returns the element at the specified index iff it is within bounds, otherwise nil.
+    subscript (safe index: Index) -> Element?
     {
-        switch self
-        {
-        case ._12000Hz: return "12"
-        case ._16000Hz: return "16"
-        case ._22050Hz: return "22"
-        case ._44100Hz: return "44"
-        }
+        return indices.contains(index) ? self[index] : nil
     }
-    
-    var storedValue: Any { return self.rawValue }
 }
