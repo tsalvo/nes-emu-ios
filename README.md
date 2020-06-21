@@ -40,7 +40,6 @@ For best performance, build the app for **release** mode instead of debug.  Or, 
 
 ## Near Future Plans
 - Add support for more mappers.
-- Add setting to adjust audio sample rate, giving the user some control over the tradeoff between CPU usage and sound quality.
 - Performance improvements (look for low hanging fruit in areas of the app that are taking the longest).
 - On-screen control improvements (bigger tap areas, better layout).
 - Save states
