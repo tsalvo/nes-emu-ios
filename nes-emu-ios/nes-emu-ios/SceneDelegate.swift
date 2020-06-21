@@ -32,7 +32,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate
 {
     var window: UIWindow?
     
-    weak var documentDelegate: NesRomControllerProtocol?
+    weak var documentDelegate: NesRomNavigationControllerProtocol?
     
     func stateRestorationActivity(for scene: UIScene) -> NSUserActivity?
     {
@@ -53,7 +53,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate
         // This occurs shortly after the scene enters the background, or when its session is discarded.
         // Release any resources associated with this scene that can be re-created the next time the scene connects.
         // The scene may re-connect later, as its session was not neccessarily discarded (see `application:didDiscardSceneSessions` instead).
-        (((scene as? UIWindowScene)?.windows.first?.rootViewController?.presentedViewController) as? NesRomControllerProtocol)?.closeDueToExternalChange(completionHandler: nil)
+        (((scene as? UIWindowScene)?.windows.first?.rootViewController?.presentedViewController) as? NesRomNavigationControllerProtocol)?.pauseEmulation()
     }
     
     func sceneDidEnterBackground(_ scene: UIScene)

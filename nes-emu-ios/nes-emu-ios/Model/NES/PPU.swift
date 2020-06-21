@@ -33,7 +33,7 @@ protocol PPUProtocol: MemoryProtocol // TODO: this is unused
     var frontBuffer: [UInt32] { get }
     var flagShowBackground: Bool { get }
     var flagShowSprites: Bool { get }
-    func step(cpu aCPU: CPU?)
+    func step()
     func readRegister(address aAddress: UInt16) -> UInt8
     func writeRegister(address aAddress: UInt16, value aValue: UInt8)
 }
@@ -803,7 +803,7 @@ class PPU: PPUProtocol
     }
 
     /// executes a single PPU cycle
-    func step(cpu aCPU: CPU?)
+    func step()
     {
         self.tick()
 
@@ -895,6 +895,6 @@ class PPU: PPUProtocol
             self.flagSpriteOverflow = 0
         }
         
-        self.mapper.step(ppu: self, cpu: aCPU)
+        self.mapper.step(ppu: self, cpu: self.cpu)
     }
 }

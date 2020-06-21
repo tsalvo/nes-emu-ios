@@ -116,7 +116,7 @@ class Console: ConsoleProtocol
         
         for _ in 0 ..< ppuCycles
         {
-            self.ppu.step(cpu: self.cpu)
+            self.ppu.step()
         }
         
         for _ in 0 ..< cpuCycles

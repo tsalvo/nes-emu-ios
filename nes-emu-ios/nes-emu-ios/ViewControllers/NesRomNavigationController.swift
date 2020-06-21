@@ -25,15 +25,21 @@
 
 import UIKit
 
-protocol NesRomControllerProtocol: class
+protocol NesRomNavigationControllerProtocol: class
 {
     var document: NesRomDocument? { get set }
+    func pauseEmulation()
     func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
 }
 
-class NesRomNavigationController: UINavigationController, NesRomControllerProtocol
+class NesRomNavigationController: UINavigationController, NesRomNavigationControllerProtocol
 {
     var document: NesRomDocument?
+    
+    func pauseEmulation()
+    {
+        (self.viewControllers.first as? EmulationControlProtocol)?.pauseEmulation()
+    }
     
     func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
     {
