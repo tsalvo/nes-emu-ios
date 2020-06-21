@@ -30,7 +30,7 @@
 		995C9AE5249BED4000429ECC /* Mapper_MMC3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */; };
 		995C9AEA249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */; };
 		995EEC49249DFB2300FE24F8 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995EEC48249DFB2300FE24F8 /* Settings.swift */; };
-		999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999AA95B248F668000DA77AA /* NESRomViewController.swift */; };
+		999AA95C248F668000DA77AA /* NesRomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999AA95B248F668000DA77AA /* NesRomViewController.swift */; };
 		999EF98724988D8B007149C9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 999EF98624988D8B007149C9 /* Localizable.strings */; };
 		99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A372BE248F8EC000089773 /* NESScreenView.swift */; };
 		99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A43E9724944CFD0009DB5B /* SampleRate.swift */; };
@@ -119,7 +119,7 @@
 		995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC3.swift; sourceTree = "<group>"; };
 		995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mapper_UnsupportedPlaceholder.swift; sourceTree = "<group>"; };
 		995EEC48249DFB2300FE24F8 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
-		999AA95B248F668000DA77AA /* NESRomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESRomViewController.swift; sourceTree = "<group>"; };
+		999AA95B248F668000DA77AA /* NesRomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomViewController.swift; sourceTree = "<group>"; };
 		999EF98624988D8B007149C9 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		99A372BE248F8EC000089773 /* NESScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESScreenView.swift; sourceTree = "<group>"; };
 		99A372C0249028DC00089773 /* nes-emu-ios.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "nes-emu-ios.entitlements"; sourceTree = "<group>"; };
@@ -292,7 +292,7 @@
 			isa = PBXGroup;
 			children = (
 				99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */,
-				999AA95B248F668000DA77AA /* NESRomViewController.swift */,
+				999AA95B248F668000DA77AA /* NesRomViewController.swift */,
 				99488F41248985F100942A1E /* DocumentBrowserViewController.swift */,
 				99B1ED9B249E91C600BC66F3 /* SettingsTableViewController.swift */,
 				99B1EDB8249EC8D000BC66F3 /* SettingsNavigationController.swift */,
@@ -478,7 +478,7 @@
 				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
 				995C9ADD249BECCA00429ECC /* Mapper_MMC1.swift in Sources */,
 				99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */,
-				999AA95C248F668000DA77AA /* NESRomViewController.swift in Sources */,
+				999AA95C248F668000DA77AA /* NesRomViewController.swift in Sources */,
 				995C9ADB249BEC9A00429ECC /* Mapper_NROM_UNROM.swift in Sources */,
 				99B1EDA2249EB07900BC66F3 /* SettingsInfoViewController.swift in Sources */,
 				995EEC49249DFB2300FE24F8 /* Settings.swift in Sources */,

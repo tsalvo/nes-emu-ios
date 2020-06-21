@@ -85,10 +85,10 @@
             </objects>
             <point key="canvasLocation" x="1067" y="375"/>
         </scene>
-        <!--Rom View Controller-->
+        <!--Nes Rom View Controller-->
         <scene sceneID="OLt-KN-1dR">
             <objects>
-                <viewController modalPresentationStyle="fullScreen" id="tG2-AL-uMa" customClass="NESRomViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController modalPresentationStyle="fullScreen" id="tG2-AL-uMa" customClass="NesRomViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="iZl-zf-zL1">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

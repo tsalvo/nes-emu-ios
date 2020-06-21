@@ -1,5 +1,5 @@
 //
-//  NESRomViewController.swift
+//  NesRomViewController.swift
 //  nes-emu-ios
 //
 //  Created by Tom Salvo on 6/8/20.
@@ -26,8 +26,16 @@
 import UIKit
 import GameController
 
-class NESRomViewController: UIViewController
+protocol EmulationControlProtocol
 {
+    func pauseEmulation()
+}
+
+class NesRomViewController: UIViewController, EmulationControlProtocol
+{
+    // MARK: - Constants
+    private static let defaultFrameQueueSize: Int = 10
+    
     // MARK: - UI Outlets
     @IBOutlet weak private var screen: NESScreenView!
     @IBOutlet weak private var aButton: UIButton!
@@ -45,6 +53,8 @@ class NESRomViewController: UIViewController
     private weak var controller1BarButtonItem: UIBarButtonItem?
     private weak var controller2BarButtonItem: UIBarButtonItem?
     
+    private var consoleFrameQueueSize: Int = NesRomViewController.defaultFrameQueueSize
+    private var consoleFramesQueued: Int = 0
     private var document: NesRomDocument? { return (self.navigationController as? NesRomNavigationController)?.document }
     
     private var controller1: GCController?
@@ -84,6 +94,7 @@ class NESRomViewController: UIViewController
     override func viewDidLoad()
     {
         super.viewDidLoad()
+        self.consoleFrameQueueSize = NesRomViewController.defaultFrameQueueSize
         self.setupButtons()
 #if targetEnvironment(macCatalyst)
         self.setOnScreenControlsHidden(true, animated: false)
@@ -122,6 +133,12 @@ class NESRomViewController: UIViewController
         UIApplication.shared.isIdleTimerDisabled = false
     }
     
+    // MARK: EmulationControlProtocol
+    func pauseEmulation()
+    {
+        self.consoleFrameQueueSize = 0
+        self.destroyDisplayLink()
+    }
     
     // MARK: - Button Actions
     @objc private func dismissButtonPressed(_ sender: AnyObject?)
@@ -326,7 +343,10 @@ class NESRomViewController: UIViewController
             self.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 1)
         }
         
+        guard self.consoleFramesQueued <= self.consoleFrameQueueSize else { return }
+        self.consoleFramesQueued += 1
         self.console?.stepSeconds(seconds: 1.0 / 60.0, completionHandler: { [weak self] in
+            self?.consoleFramesQueued -= 1
             self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
         })
     }
