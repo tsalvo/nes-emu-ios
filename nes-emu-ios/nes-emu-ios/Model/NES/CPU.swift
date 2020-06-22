@@ -485,7 +485,7 @@ class CPU: CPUProtocol
             return 0
             // TODO: I/O registers
         case 0x6000 ... 0xFFFF:
-            return self.mapper?.read(address: aAddress) ?? 0
+            return self.mapper?.cpuRead(address: aAddress) ?? 0
         default:
             return 0
         }
@@ -513,7 +513,7 @@ class CPU: CPUProtocol
             // TODO: I/O registers
             break
         case 0x6000 ... 0xFFFF:
-            self.mapper?.write(address: aAddress, value: aValue)
+            self.mapper?.cpuWrite(address: aAddress, value: aValue)
         default:
             break
         }

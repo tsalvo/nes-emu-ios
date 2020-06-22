@@ -97,10 +97,10 @@
                                 <rect key="frame" x="10" y="54" width="300" height="358"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="f8W-xa-Q3Q" customClass="NESScreenView" customModule="nes_emu_ios" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="38.5" width="300" height="281"/>
+                                        <rect key="frame" x="0.0" y="48" width="300" height="262.5"/>
                                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                         <constraints>
-                                            <constraint firstAttribute="width" secondItem="f8W-xa-Q3Q" secondAttribute="height" multiplier="16:15" id="KLC-9d-tlh"/>
+                                            <constraint firstAttribute="width" secondItem="f8W-xa-Q3Q" secondAttribute="height" multiplier="16:14" id="KLC-9d-tlh"/>
                                         </constraints>
                                     </view>
                                 </subviews>

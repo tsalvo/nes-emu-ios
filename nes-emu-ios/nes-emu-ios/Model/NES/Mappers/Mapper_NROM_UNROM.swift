@@ -28,6 +28,8 @@ import os
 
 class Mapper_NROM_UNROM: MapperProtocol
 {
+    let hasStep: Bool = false
+    
     let mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
@@ -74,12 +76,10 @@ class Mapper_NROM_UNROM: MapperProtocol
         self.prgBank2 = self.prgBanks - 1
     }
     
-    func read(address aAddress: UInt16) -> UInt8
+    func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
-        case 0x0000 ..< 0x2000: // CHR Block
-            return self.chr[Int(aAddress)]
         case 0x8000 ..< 0xC000: // PRG Block 0
             return self.prg[self.prgBank1 * 0x4000 + Int(aAddress - 0x8000)]
         case 0xC000 ... 0xFFFF: // PRG Block 1 (or mirror of PRG block 0 if only one PRG exists)
@@ -92,11 +92,9 @@ class Mapper_NROM_UNROM: MapperProtocol
         }
     }
     
-    func write(address aAddress: UInt16, value aValue: UInt8)
+    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
         switch aAddress {
-        case 0x0000 ..< 0x2000: // CHR RAM?
-            self.chr[Int(aAddress)] = aValue
         case 0x8000 ... 0xFFFF:
             self.prgBank1 = Int(aValue) % self.prgBanks
         case 0x6000 ..< 0x8000: // write to SRAM save
@@ -105,6 +103,16 @@ class Mapper_NROM_UNROM: MapperProtocol
             os_log("unhandled Mapper_NROM write at address: 0x%04X", aAddress)
             break
         }
+    }
+    
+    func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
+    {
+        return self.chr[Int(aAddress)]
+    }
+    
+    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    {
+        self.chr[Int(aAddress)] = aValue
     }
     
     func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)

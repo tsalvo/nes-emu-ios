@@ -28,6 +28,8 @@ import os
 
 class Mapper_MMC1: MapperProtocol
 {
+    let hasStep: Bool = false
+    
     var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
@@ -76,17 +78,11 @@ class Mapper_MMC1: MapperProtocol
     {
         
     }
-
-    func read(address aAddress: UInt16) -> UInt8
+    
+    func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
-        case 0x0000 ..< 0x2000:
-            let bank = aAddress / 0x1000
-            let offset = aAddress % 0x1000
-            let chrBaseOffset: Int = self.chrOffsets[Int(bank)]
-            let chrFinalOffset: Int = chrBaseOffset + Int(offset)
-            return self.chr[chrFinalOffset]
         case 0x8000 ... 0xFFFF:
             let adjustedAddress = aAddress - 0x8000
             let bank = adjustedAddress / 0x4000
@@ -99,15 +95,11 @@ class Mapper_MMC1: MapperProtocol
             return 0
         }
     }
-
-    func write(address aAddress: UInt16, value aValue: UInt8)
+    
+    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
-        case 0x0000 ..< 0x2000:
-            let bank = aAddress / 0x1000
-            let offset = aAddress % 0x1000
-            self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
         case 0x8000 ... 0xFFFF:
             self.loadRegister(address: aAddress, value: aValue)
         case 0x6000 ..< 0x8000:
@@ -116,6 +108,22 @@ class Mapper_MMC1: MapperProtocol
             os_log("unhandled Mapper_MMC1 write at address: 0x%04X", aAddress)
             break
         }
+    }
+    
+    func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
+    {
+        let bank = aAddress / 0x1000
+        let offset = aAddress % 0x1000
+        let chrBaseOffset: Int = self.chrOffsets[Int(bank)]
+        let chrFinalOffset: Int = chrBaseOffset + Int(offset)
+        return self.chr[chrFinalOffset]
+    }
+    
+    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    {
+        let bank = aAddress / 0x1000
+        let offset = aAddress % 0x1000
+        self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
     }
 
     private func loadRegister(address aAddress: UInt16, value aValue: UInt8)

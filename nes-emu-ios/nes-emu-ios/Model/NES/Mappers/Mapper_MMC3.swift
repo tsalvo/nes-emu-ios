@@ -28,6 +28,8 @@ import os
 
 class Mapper_MMC3: MapperProtocol
 {
+    let hasStep: Bool = true
+    
     var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
@@ -75,6 +77,52 @@ class Mapper_MMC3: MapperProtocol
         self.prgOffsets[3] = self.prgBankOffset(index: -1)
     }
     
+    func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
+    {
+        switch aAddress
+        {
+        case 0x8000 ... 0xFFFF:
+            var address = aAddress
+            address = address - 0x8000
+            let bank = address / 0x2000
+            let offset = address % 0x2000
+            return self.prg[self.prgOffsets[Int(bank)] + Int(offset)]
+        case 0x6000 ..< 0x8000:
+            return self.sram[Int(aAddress) - 0x6000]
+        default:
+            os_log("unhandled Mapper_MMC3 read at address: 0x%04X", aAddress)
+            return 0
+        }
+    }
+    
+    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
+    {
+        switch aAddress
+        {
+        case 0x8000 ... 0xFFFF:
+            self.writeRegister(address: aAddress, value: aValue)
+        case 0x6000 ..< 0x8000:
+            self.sram[Int(aAddress) - 0x6000] = aValue
+        default:
+            os_log("unhandled Mapper_MMC3 write at address: 0x%04X", aAddress)
+            break
+        }
+    }
+    
+    func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
+    {
+        let bank = aAddress / 0x0400
+        let offset = aAddress % 0x0400
+        return self.chr[self.chrOffsets[Int(bank)] + Int(offset)]
+    }
+    
+    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    {
+        let bank = aAddress / 0x0400
+        let offset = aAddress % 0x0400
+        self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
+    }
+    
     func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
     {
         guard let ppu = aPPU,
@@ -101,66 +149,8 @@ class Mapper_MMC3: MapperProtocol
         
         self.handleScanline(cpu: cpu)
     }
-    
-    private func handleScanline(cpu aCPU: CPUProtocol)
-    {
-        if self.counter == 0
-        {
-            self.counter = self.reload
-        }
-        else
-        {
-            self.counter -= 1
-            
-            if self.counter == 0 && self.irqEnable
-            {
-                aCPU.triggerIRQ()
-            }
-        }
-    }
-    
-    func read(address aAddress: UInt16) -> UInt8
-    {
-        switch aAddress
-        {
-        case 0x0000 ..< 0x2000:
-            let bank = aAddress / 0x0400
-            let offset = aAddress % 0x0400
-            return self.chr[self.chrOffsets[Int(bank)] + Int(offset)]
-        case 0x8000 ... 0xFFFF:
-            var address = aAddress
-            address = address - 0x8000
-            let bank = address / 0x2000
-            let offset = address % 0x2000
-            return self.prg[self.prgOffsets[Int(bank)] + Int(offset)]
-        case 0x6000 ..< 0x8000:
-            return self.sram[Int(aAddress) - 0x6000]
-        default:
-            os_log("unhandled Mapper_MMC3 read at address: 0x%04X", aAddress)
-            return 0
-        }
-        
-    }
-    
-    func write(address aAddress: UInt16, value aValue: UInt8)
-    {
-        switch aAddress
-        {
-        case 0x0000 ..< 0x2000:
-            let bank = aAddress / 0x0400
-            let offset = aAddress % 0x0400
-            self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
-        case 0x8000 ... 0xFFFF:
-            self.writeRegister(address: aAddress, value: aValue)
-        case 0x6000 ..< 0x8000:
-            self.sram[Int(aAddress) - 0x6000] = aValue
-        default:
-            os_log("unhandled Mapper_MMC3 write at address: 0x%04X", aAddress)
-            break
-        }
-    }
 
-    func writeRegister(address aAddress: UInt16, value aValue: UInt8)
+    private func writeRegister(address aAddress: UInt16, value aValue: UInt8)
     {
         switch aAddress
         {
@@ -204,7 +194,7 @@ class Mapper_MMC3: MapperProtocol
         }
     }
 
-    func writeBankSelect(value aValue: UInt8)
+    private func writeBankSelect(value aValue: UInt8)
     {
         self.prgMode = (aValue >> 6) & 1
         self.chrMode = (aValue >> 7) & 1
@@ -212,13 +202,13 @@ class Mapper_MMC3: MapperProtocol
         self.updateOffsets()
     }
 
-    func writeBankData(value aValue: UInt8)
+    private func writeBankData(value aValue: UInt8)
     {
         self.registers[Int(self.register)] = aValue
         self.updateOffsets()
     }
 
-    func writeMirror(value aValue: UInt8)
+    private func writeMirror(value aValue: UInt8)
     {
         switch aValue & 1
         {
@@ -230,32 +220,32 @@ class Mapper_MMC3: MapperProtocol
         }
     }
 
-    func writeProtect(value aValue: UInt8)
+    private func writeProtect(value aValue: UInt8)
     {
         
     }
     
-    func writeIRQLatch(value aValue: UInt8)
+    private func writeIRQLatch(value aValue: UInt8)
     {
         self.reload = aValue
     }
 
-    func writeIRQReload(value aValue: UInt8)
+    private func writeIRQReload(value aValue: UInt8)
     {
         self.counter = 0
     }
 
-    func writeIRQDisable(value aValue: UInt8)
+    private func writeIRQDisable(value aValue: UInt8)
     {
         self.irqEnable = false
     }
 
-    func writeIRQEnable(value aValue: UInt8)
+    private func writeIRQEnable(value aValue: UInt8)
     {
         self.irqEnable = true
     }
 
-    func prgBankOffset(index aIndex: Int) -> Int
+    private func prgBankOffset(index aIndex: Int) -> Int
     {
         guard self.prg.count >= 0x2000 else { return 0 }
         
@@ -275,7 +265,7 @@ class Mapper_MMC3: MapperProtocol
         return offset
     }
 
-    func chrBankOffset(index aIndex: Int) -> Int
+    private func chrBankOffset(index aIndex: Int) -> Int
     {
         var index = aIndex
         if index >= 0x80
@@ -291,7 +281,7 @@ class Mapper_MMC3: MapperProtocol
         return offset
     }
 
-    func updateOffsets()
+    private func updateOffsets()
     {
         switch self.prgMode {
         case 0:
@@ -328,5 +318,24 @@ class Mapper_MMC3: MapperProtocol
         default: break
         }
     }
+    
+    private func handleScanline(cpu aCPU: CPUProtocol)
+    {
+        if self.counter == 0
+        {
+            self.counter = self.reload
+        }
+        else
+        {
+            self.counter -= 1
+            
+            if self.counter == 0 && self.irqEnable
+            {
+                aCPU.triggerIRQ()
+            }
+        }
+    }
+    
+    
 }
 
