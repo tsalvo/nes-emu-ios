@@ -53,7 +53,7 @@ class PPU: PPUProtocol
     private var nameTableData: [UInt8] = [UInt8].init(repeating: 0, count: 2048)
     private var oamData: [UInt8] = [UInt8].init(repeating: 0, count: 256)
     
-    /// for each mirroring mode, 
+    /// for each mirroring mode, return nametable offset sequence
     private static let nameTableOffsetSequence: [[UInt16]] = [
         [0, 0, 1024, 1024],
         [0, 1024, 0, 1024],
@@ -618,14 +618,17 @@ class PPU: PPUProtocol
         var background = self.backgroundPixel()
         var spritePixelTuple: (i: UInt8, sprite: UInt8) = self.spritePixel()
         
-        if x < 8 && !self.flagShowLeftBackground
+        if x < 8
         {
-            background = 0
-        }
-        
-        if x < 8 && !self.flagShowLeftSprites
-        {
-            spritePixelTuple.sprite = 0
+            if !self.flagShowLeftBackground
+            {
+                background = 0
+            }
+            
+            if !self.flagShowLeftSprites
+            {
+                spritePixelTuple.sprite = 0
+            }
         }
         
         let b = background % 4 != 0
@@ -860,8 +863,7 @@ class PPU: PPUProtocol
                 {
                     self.incrementY()
                 }
-                
-                if self.cycle == 257
+                else if self.cycle == 257
                 {
                     self.copyX()
                 }
