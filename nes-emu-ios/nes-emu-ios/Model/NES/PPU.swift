@@ -158,7 +158,7 @@ class PPU: PPUProtocol
     
     // MARK: Pixel Buffer
     
-    static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 256 * 240)
+    static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 256 * 224)
     
     /// colors in 0xBBGGRRAA format from Palette.colors
     private(set) var frontBuffer: [UInt32] = PPU.emptyBuffer
@@ -450,7 +450,7 @@ class PPU: PPUProtocol
     {
         // increment vert(v)
         // if fine Y < 7
-        if self.v&0x7000 != 0x7000
+        if self.v & 0x7000 != 0x7000
         {
             // increment fine Y
             self.v &+= 0x1000
@@ -614,7 +614,7 @@ class PPU: PPUProtocol
     private func renderPixel()
     {
         let x = self.cycle - 1
-        let y = self.scanline
+        let y = self.scanline - 8
         var background = self.backgroundPixel()
         var spritePixelTuple: (i: UInt8, sprite: UInt8) = self.spritePixel()
         
@@ -661,7 +661,7 @@ class PPU: PPUProtocol
         }
         
         let c = Palette.colors[Int(self.readPalette(address: UInt16(color)) % 64)]
-        self.backBuffer[(256 * (239 - y)) + x] = c
+        self.backBuffer[(256 * (223 - y)) + x] = c
     }
 
     private func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
@@ -811,6 +811,7 @@ class PPU: PPUProtocol
         let renderingEnabled: Bool = self.flagShowBackground || self.flagShowSprites
         let preLine: Bool = self.scanline == 261
         let visibleLine: Bool = self.scanline < 240
+        let safeAreaLine: Bool = self.scanline >= 8 && self.scanline < 232
         let renderLine: Bool = preLine || visibleLine
         let preFetchCycle: Bool = self.cycle >= 321 && self.cycle <= 336
         let visibleCycle: Bool = self.cycle >= 1 && self.cycle <= 256
@@ -819,7 +820,7 @@ class PPU: PPUProtocol
         // background logic
         if renderingEnabled
         {
-            if visibleLine && visibleCycle
+            if safeAreaLine && visibleCycle
             {
                 self.renderPixel()
             }

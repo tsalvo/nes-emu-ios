@@ -335,7 +335,5 @@ class Mapper_MMC3: MapperProtocol
             }
         }
     }
-    
-    
 }
 
