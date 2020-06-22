@@ -28,6 +28,8 @@ import os
 
 class Mapper_MMC2: MapperProtocol
 {
+    let hasStep: Bool = false
+    
     var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
@@ -70,18 +72,10 @@ class Mapper_MMC2: MapperProtocol
 
     }
     
-    func read(address aAddress: UInt16) -> UInt8
+    func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
-        case 0x0000 ..< 0x1000: // 4KB Switchable CHR Bank 1
-            let result =  self.chr[Int(self.chrBanks1[chrLatch1] * 0x1000) + Int(aAddress)]
-            self.updateChrLatch1(forAddress: aAddress)
-            return result
-        case 0x1000 ..< 0x2000: // 4KB Switchable CHR Bank 2
-            let result = self.chr[Int(self.chrBanks2[chrLatch2] * 0x1000) + Int(aAddress - 0x1000)]
-            self.updateChrLatch2(forAddress: aAddress)
-            return result
         case 0x8000 ..< 0xA000: // 8KB Switchable PRG Bank
             return self.prg[Int(self.prgBank1 * 0x2000) + Int(aAddress - 0x8000)]
         case 0xA000 ... 0xFFFF: // Fixed 24KB PRG
@@ -94,7 +88,7 @@ class Mapper_MMC2: MapperProtocol
         }
     }
     
-    func write(address aAddress: UInt16, value aValue: UInt8)
+    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
@@ -114,6 +108,29 @@ class Mapper_MMC2: MapperProtocol
             os_log("unhandled Mapper_MMC2 write at address: 0x%04X", aAddress)
             break
         }
+    }
+    
+    func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
+    {
+        switch aAddress
+        {
+        case 0x0000 ..< 0x1000: // 4KB Switchable CHR Bank 1
+            let result =  self.chr[Int(self.chrBanks1[chrLatch1] * 0x1000) + Int(aAddress)]
+            self.updateChrLatch1(forAddress: aAddress)
+            return result
+        case 0x1000 ..< 0x2000: // 4KB Switchable CHR Bank 2
+            let result = self.chr[Int(self.chrBanks2[chrLatch2] * 0x1000) + Int(aAddress - 0x1000)]
+            self.updateChrLatch2(forAddress: aAddress)
+            return result
+        default:
+            os_log("unhandled Mapper_MMC2 read at address: 0x%04X", aAddress)
+            return 0
+        }
+    }
+    
+    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    {
+        
     }
     
     func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)

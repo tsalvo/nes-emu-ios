@@ -28,6 +28,8 @@ import os
 
 class Mapper_AxROM: MapperProtocol
 {
+    let hasStep: Bool = false
+    
     var mirroringMode: MirroringMode
     
     private var prgBank: Int = 0
@@ -62,12 +64,10 @@ class Mapper_AxROM: MapperProtocol
         }
     }
     
-    func read(address aAddress: UInt16) -> UInt8
+    func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
-        case 0x0000 ..< 0x2000: // CHR Block
-            return self.chr[Int(aAddress)]
         case 0x8000 ... 0xFFFF: // PRG Blocks
             return self.prg[self.prgBank * 0x8000 + Int(aAddress - 0x8000)]
         case 0x6000 ..< 0x8000:
@@ -78,12 +78,10 @@ class Mapper_AxROM: MapperProtocol
         }
     }
     
-    func write(address aAddress: UInt16, value aValue: UInt8)
+    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
-        case 0x0000 ..< 0x2000:
-            self.chr[Int(aAddress)] = aValue
         case 0x8000 ... 0xFFFF:
             self.prgBank = Int(aValue & 7)
             switch aValue & 0x10 {
@@ -101,6 +99,16 @@ class Mapper_AxROM: MapperProtocol
         }
     }
     
+    func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
+    {
+        return self.chr[Int(aAddress)]
+    }
+    
+    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    {
+        self.chr[Int(aAddress)] = aValue
+    }
+
     func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
     {
         

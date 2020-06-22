@@ -28,8 +28,21 @@ import os
 
 protocol MapperProtocol: class
 {
+    var hasStep: Bool { get }
     var mirroringMode: MirroringMode { get }
-    func read(address aAddress: UInt16) -> UInt8
-    func write(address aAddress: UInt16, value aValue: UInt8)
+    
+    /// read a given mapper address from the CPU (must be an address in the range 0x6000 ... 0xFFFF)
+    func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
+    
+    /// write to a given mapper address from the CPU (must be an address in the range 0x6000 ... 0xFFFF)
+    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
+    
+    /// read a given mapper address from the PPU (must be an address in the range 0x0000 ... 0x1FFF)
+    func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
+    
+    /// write to a given mapper address from the PPU (must be an address in the range 0x0000 ... 0x1FFF)
+    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    
+    /// run a single cycle on the mapper, corresponding with a PPU cycle, if the mapper needs to interface with the CPU or PPU
     func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
 }

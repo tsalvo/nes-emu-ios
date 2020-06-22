@@ -25,7 +25,7 @@
 
 import Foundation
 
-protocol PPUProtocol: MemoryProtocol // TODO: this is unused
+protocol PPUProtocol: MemoryProtocol
 {
     var frame: UInt64 { get }
     var cycle: Int { get }
@@ -44,6 +44,9 @@ class PPU: PPUProtocol
     private(set) var cycle: Int = 340
     private(set) var frame: UInt64 = 0
     weak var cpu: CPUProtocol?
+    
+    /// an optimization to prevent unnecessary Mapper object type lookups and mapper step calls during frequent PPU.step() calls
+    private let mapperHasStep: Bool
     
     private let mapper: MapperProtocol
     private var paletteData: [UInt8] = [UInt8].init(repeating: 0, count: 32)
@@ -155,7 +158,7 @@ class PPU: PPUProtocol
     
     // MARK: Pixel Buffer
     
-    static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 240 * 256)
+    static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 256 * 224)
     
     /// colors in 0xBBGGRRAA format from Palette.colors
     private(set) var frontBuffer: [UInt32] = PPU.emptyBuffer
@@ -166,6 +169,7 @@ class PPU: PPUProtocol
     init(mapper aMapper: MapperProtocol)
     {
         self.mapper = aMapper
+        self.mapperHasStep = aMapper.hasStep
     }
     
     func read(address aAddress: UInt16) -> UInt8
@@ -173,7 +177,7 @@ class PPU: PPUProtocol
         let address = aAddress % 0x4000
         switch address {
         case 0x0000 ..< 0x2000:
-            return self.mapper.read(address: address)
+            return self.mapper.ppuRead(address: address)
         case 0x2000 ..< 0x3F00:
             return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)]
         case 0x3F00 ..< 0x4000:
@@ -188,7 +192,7 @@ class PPU: PPUProtocol
         let address = aAddress % 0x4000
         switch address {
         case 0x0000 ..< 0x2000:
-            self.mapper.write(address: address, value: aValue)
+            self.mapper.ppuWrite(address: address, value: aValue)
         case 0x2000 ..< 0x3F00:
             self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)] = aValue
         case 0x3F00 ..< 0x4000:
@@ -446,7 +450,7 @@ class PPU: PPUProtocol
     {
         // increment vert(v)
         // if fine Y < 7
-        if self.v&0x7000 != 0x7000
+        if self.v & 0x7000 != 0x7000
         {
             // increment fine Y
             self.v &+= 0x1000
@@ -507,10 +511,7 @@ class PPU: PPUProtocol
 
     private func setVerticalBlank()
     {
-        // TODO: re-implement double buffering
         swap(&self.frontBuffer, &self.backBuffer)
-//        self.frontBuffer = self.backBuffer
-//        //self.backBuffer = [UInt32].init(repeating: 0, count: 240 * 256)
         self.nmiOccurred = true
         self.nmiChange()
     }
@@ -613,7 +614,7 @@ class PPU: PPUProtocol
     private func renderPixel()
     {
         let x = self.cycle - 1
-        let y = self.scanline
+        let y = self.scanline - 8
         var background = self.backgroundPixel()
         var spritePixelTuple: (i: UInt8, sprite: UInt8) = self.spritePixel()
         
@@ -660,7 +661,7 @@ class PPU: PPUProtocol
         }
         
         let c = Palette.colors[Int(self.readPalette(address: UInt16(color)) % 64)]
-        self.backBuffer[(256 * (239 - y)) + x] = c
+        self.backBuffer[(256 * (223 - y)) + x] = c
     }
 
     private func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
@@ -807,18 +808,19 @@ class PPU: PPUProtocol
     {
         self.tick()
 
-        let renderingEnabled = self.flagShowBackground || self.flagShowSprites
-        let preLine = self.scanline == 261
-        let visibleLine = self.scanline < 240
-        let renderLine = preLine || visibleLine
-        let preFetchCycle = self.cycle >= 321 && self.cycle <= 336
-        let visibleCycle = self.cycle >= 1 && self.cycle <= 256
-        let fetchCycle = preFetchCycle || visibleCycle
+        let renderingEnabled: Bool = self.flagShowBackground || self.flagShowSprites
+        let preLine: Bool = self.scanline == 261
+        let visibleLine: Bool = self.scanline < 240
+        let safeAreaLine: Bool = self.scanline >= 8 && self.scanline < 232
+        let renderLine: Bool = preLine || visibleLine
+        let preFetchCycle: Bool = self.cycle >= 321 && self.cycle <= 336
+        let visibleCycle: Bool = self.cycle >= 1 && self.cycle <= 256
+        let fetchCycle: Bool = preFetchCycle || visibleCycle
 
         // background logic
         if renderingEnabled
         {
-            if visibleLine && visibleCycle
+            if safeAreaLine && visibleCycle
             {
                 self.renderPixel()
             }
@@ -895,6 +897,9 @@ class PPU: PPUProtocol
             self.flagSpriteOverflow = 0
         }
         
-        self.mapper.step(ppu: self, cpu: self.cpu)
+        if self.mapperHasStep
+        {
+            self.mapper.step(ppu: self, cpu: self.cpu)
+        }
     }
 }
