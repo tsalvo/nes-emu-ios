@@ -56,8 +56,8 @@ class APU: APUProtocol
 
     static let lengthTable: [UInt8] = [10, 254, 20, 2, 40, 4, 80, 6, 160, 8, 60, 10, 14, 12, 26, 14, 12, 16, 24, 18, 48, 20, 96, 22, 192, 24, 72, 26, 16, 28, 32, 30]
     
-    var pulseTable: [Float32] = [Float32].init(repeating: 0, count: 31)
-    var tndTable: [Float32] = [Float32].init(repeating: 0, count: 203)
+    private var pulseTable: [Float32] = [Float32].init(repeating: 0, count: 31)
+    private var tndTable: [Float32] = [Float32].init(repeating: 0, count: 203)
     
     init(withSampleRate aSampleRate: SampleRate, filtersEnabled aFiltersEnabled: Bool)
     {
@@ -126,8 +126,8 @@ class APU: APUProtocol
         let t = self.triangle.output()
         let n = self.noise.output()
         let d = self.dmc.output()
-        let pulseOut = pulseTable[Int(p1 + p2)]
-        let tndOut = tndTable[Int((3 * t) + (2 * n) + d)]
+        let pulseOut = self.pulseTable[Int(p1 + p2)]
+        let tndOut = self.tndTable[Int((3 * t) + (2 * n) + d)]
         return pulseOut + tndOut
     }
 
@@ -639,17 +639,7 @@ class APU: APUProtocol
 
         func output() -> UInt8
         {
-            if !self.enabled
-            {
-                return 0
-            }
-            
-            if self.lengthValue == 0
-            {
-                return 0
-            }
-            
-            if self.counterValue == 0
+            if !self.enabled || self.lengthValue == 0 || self.counterValue == 0
             {
                 return 0
             }
@@ -704,16 +694,7 @@ class APU: APUProtocol
             if self.timerValue == 0
             {
                 self.timerValue = self.timerPeriod
-                let shift: UInt8
-                if self.mode
-                {
-                    shift = 6
-                }
-                else
-                {
-                    shift = 1
-                }
-                
+                let shift: UInt8 = self.mode ? 6 : 1
                 let b1 = self.shiftRegister & 1
                 let b2 = (self.shiftRegister >> shift) & 1
                 self.shiftRegister >>= 1
@@ -761,17 +742,7 @@ class APU: APUProtocol
 
         func output() -> UInt8
         {
-            if !self.enabled
-            {
-                return 0
-            }
-            
-            if self.lengthValue == 0
-            {
-                return 0
-            }
-            
-            if self.shiftRegister & 1 == 1
+            if !self.enabled || self.lengthValue == 0 || self.shiftRegister & 1 == 1
             {
                 return 0
             }
@@ -886,7 +857,7 @@ class APU: APUProtocol
                 return
             }
             
-            if self.shiftRegister&1 == 1
+            if self.shiftRegister & 1 == 1
             {
                 if self.value <= 125
                 {
