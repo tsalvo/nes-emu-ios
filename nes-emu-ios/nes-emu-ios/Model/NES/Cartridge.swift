@@ -25,14 +25,14 @@
 
 import Foundation
 
-protocol CartridgeProtocol: class
+protocol CartridgeProtocol
 {
     var header: RomHeader { get }
     var prgBlocks: [[UInt8]] { get }
     var chrBlocks: [[UInt8]] { get set }
 }
 
-class Cartridge: CartridgeProtocol
+struct Cartridge: CartridgeProtocol
 {
     init(fromData aData: Data)
     {
