@@ -33,9 +33,16 @@ protocol PPUProtocol: MemoryProtocol
     var frontBuffer: [UInt32] { get }
     var flagShowBackground: Bool { get }
     var flagShowSprites: Bool { get }
-    func step()
+    func step() -> PPUStepResults
+    func writeOAMDMA(oamDMA aOamData: [UInt8])
     func readRegister(address aAddress: UInt16) -> UInt8
     func writeRegister(address aAddress: UInt16, value aValue: UInt8)
+}
+
+struct PPUStepResults
+{
+    let shouldTriggerNMIOnCPU: Bool
+    let shouldTriggerIRQOnCPU: Bool
 }
 
 /// NES Picture Processing Unit
@@ -43,7 +50,6 @@ class PPU: PPUProtocol
 {
     private(set) var cycle: Int = 340
     private(set) var frame: UInt64 = 0
-    weak var cpu: CPUProtocol?
     
     /// an optimization to prevent unnecessary Mapper object type lookups and mapper step calls during frequent PPU.step() calls
     private let mapperHasStep: Bool
@@ -268,10 +274,13 @@ class PPU: PPUProtocol
         case 0x2007:
             self.writeData(value: aValue)
         case 0x4014:
-            self.writeDMA(value: aValue)
+            // Write DMA (this is actually handled elsewhere when the CPU calls the PPU's writeOAMData function)
+            break
         default: break
         }
     }
+    
+    
 
     // $2000: PPUCTRL
     private func writeControl(value aValue: UInt8)
@@ -409,23 +418,17 @@ class PPU: PPUProtocol
     }
 
     // $4014: OAMDMA
-    private func writeDMA(value aValue: UInt8)
+    
+    /// called by the CPU with 256 bytes of OAM data for sprites and metadata
+    func writeOAMDMA(oamDMA aOamData: [UInt8])
     {
-        var address = UInt16(aValue) << 8
-        for _ in 0 ..< 256
+        for i in 0 ..< 256
         {
-            self.oamData[Int(self.oamAddress)] = self.cpu?.read(address: address) ?? 0
+            self.oamData[Int(self.oamAddress)] = aOamData[i]
             self.oamAddress &+= 1
-            address += 1
-        }
-        
-        self.cpu?.stall += 513
-        if (self.cpu?.cycles ?? 0) % 2 == 1
-        {
-            self.cpu?.stall += 1
         }
     }
-
+    
     // NTSC Timing Helper Functions
 
     private func incrementX()
@@ -767,18 +770,9 @@ class PPU: PPUProtocol
         self.spriteCount = count
     }
 
-    // tick updates Cycle, ScanLine and Frame counters
+    /// Updates Cycle, ScanLine and Frame counters.
     private func tick()
     {
-        if self.nmiDelay > 0
-        {
-            self.nmiDelay -= 1
-            if self.nmiDelay == 0 && self.nmiOutput && self.nmiOccurred
-            {
-                self.cpu?.triggerNMI()
-            }
-        }
-
         if self.flagShowBackground || self.flagShowSprites
         {
             if self.f == true && self.scanline == 261 && self.cycle == 339
@@ -805,10 +799,27 @@ class PPU: PPUProtocol
             }
         }
     }
-
-    /// executes a single PPU cycle
-    func step()
+    
+    /// processes NMI delay timing and returns a Boolean indicating whether the CPU should trigger an NMI
+    private func nmiCheck() -> Bool
     {
+        var shouldTriggerNMIOnCPU: Bool = false
+        if self.nmiDelay > 0
+        {
+            self.nmiDelay -= 1
+            if self.nmiDelay == 0 && self.nmiOutput && self.nmiOccurred
+            {
+                shouldTriggerNMIOnCPU = true
+            }
+        }
+        
+        return shouldTriggerNMIOnCPU
+    }
+
+    /// executes a single PPU cycle, and returns a Boolean indicating whether the CPU should trigger an NMI based on this cycle
+    func step() -> PPUStepResults
+    {
+        let shouldTriggerNMI: Bool = self.nmiCheck()
         self.tick()
 
         let renderingEnabled: Bool = self.flagShowBackground || self.flagShowSprites
@@ -899,9 +910,16 @@ class PPU: PPUProtocol
             self.flagSpriteOverflow = 0
         }
         
+        let shouldTriggerIRQ: Bool
         if self.mapperHasStep
         {
-            self.mapper.step(ppu: self, cpu: self.cpu)
+            shouldTriggerIRQ = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites))?.shouldTriggerIRQOnCPU ?? false
         }
+        else
+        {
+            shouldTriggerIRQ = false
+        }
+        
+        return PPUStepResults(shouldTriggerNMIOnCPU: shouldTriggerNMI, shouldTriggerIRQOnCPU: shouldTriggerIRQ)
     }
 }

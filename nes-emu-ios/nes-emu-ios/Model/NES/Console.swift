@@ -52,8 +52,6 @@ class Console: ConsoleProtocol
         self.ppu = ppu
         self.cartridge = aCartridge
         self.controllers = controllers
-        self.ppu.cpu = cpu
-        self.apu.cpu = cpu
     }
     
     func set(audioEngineDelegate aAudioEngineDelegate: AudioEngineProtocol?)
@@ -111,17 +109,34 @@ class Console: ConsoleProtocol
     
     private func step() -> Int
     {
+        // CPU Step
         let cpuCycles = self.cpu.step()
         let ppuCycles = cpuCycles * 3
         
+        // PPU Step
         for _ in 0 ..< ppuCycles
         {
-            self.ppu.step()
+            let ppuStepResults: PPUStepResults = self.ppu.step()
+            if ppuStepResults.shouldTriggerNMIOnCPU
+            {
+                self.cpu.triggerNMI()
+            }
+            else if ppuStepResults.shouldTriggerIRQOnCPU
+            {
+                self.cpu.triggerIRQ()
+            }
         }
         
+        // APU Step
         for _ in 0 ..< cpuCycles
         {
-            self.apu.step()
+            let dmcCurrentAddressValue: UInt8 = self.cpu.read(address: self.apu.dmcCurrentAddress)
+            let apuStepResults: APUStepResults = self.apu.step(dmcCurrentAddressValue: dmcCurrentAddressValue)
+            self.cpu.stall += apuStepResults.numCPUStallCycles
+            if apuStepResults.shouldTriggerIRQOnCPU
+            {
+                self.cpu.triggerIRQ()
+            }
         }
         
         return cpuCycles

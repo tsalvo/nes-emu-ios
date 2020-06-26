@@ -498,7 +498,9 @@ class CPU: CPUProtocol
         case 0x4000 ..< 0x4014:
             self.apu?.writeRegister(address: aAddress, value: aValue)
         case 0x4014:
-            self.ppu?.writeRegister(address: aAddress, value: aValue)
+            let startIndex: Int = Int(UInt16(aValue) << 8)
+            self.ppu?.writeOAMDMA(oamDMA: [UInt8](self.ram[startIndex ..< startIndex + 256]))
+            self.stall += (self.cycles % 2 == 0) ? 513 : 514
         case 0x4015:
             self.apu?.writeRegister(address: aAddress, value: aValue)
         case 0x4016:

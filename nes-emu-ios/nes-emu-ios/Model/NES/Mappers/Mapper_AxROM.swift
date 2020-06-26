@@ -109,8 +109,8 @@ class Mapper_AxROM: MapperProtocol
         self.chr[Int(aAddress)] = aValue
     }
 
-    func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
+    func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        
+        return nil
     }
 }

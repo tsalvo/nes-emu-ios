@@ -123,31 +123,26 @@ class Mapper_MMC3: MapperProtocol
         self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
     }
     
-    func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
+    func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        guard let ppu = aPPU,
-            let cpu = aCPU
-        else
+        if aMapperStepInput.ppuCycle != 280 // TODO: this *should* be 260
         {
-            return
+            return MapperStepResults(shouldTriggerIRQOnCPU: false)
         }
         
-        if ppu.cycle != 280 // TODO: this *should* be 260
+        if aMapperStepInput.ppuScanline > 239 && aMapperStepInput.ppuScanline < 261
         {
-            return
+            return MapperStepResults(shouldTriggerIRQOnCPU: false)
         }
         
-        if ppu.scanline > 239 && ppu.scanline < 261
+        if !aMapperStepInput.ppuShowBackground && !aMapperStepInput.ppuShowSprites
         {
-            return
+            return MapperStepResults(shouldTriggerIRQOnCPU: false)
         }
         
-        if !ppu.flagShowBackground && !ppu.flagShowSprites
-        {
-            return
-        }
+        let shouldTriggerIRQ = self.handleScanline()
         
-        self.handleScanline(cpu: cpu)
+        return MapperStepResults(shouldTriggerIRQOnCPU: shouldTriggerIRQ)
     }
 
     private func writeRegister(address aAddress: UInt16, value aValue: UInt8)
@@ -319,21 +314,22 @@ class Mapper_MMC3: MapperProtocol
         }
     }
     
-    private func handleScanline(cpu aCPU: CPUProtocol)
+    private func handleScanline() -> Bool
     {
+        let shouldTriggerIRQ: Bool
+        
         if self.counter == 0
         {
             self.counter = self.reload
+            shouldTriggerIRQ = false
         }
         else
         {
             self.counter -= 1
-            
-            if self.counter == 0 && self.irqEnable
-            {
-                aCPU.triggerIRQ()
-            }
+            shouldTriggerIRQ = self.counter == 0 && self.irqEnable
         }
+        
+        return shouldTriggerIRQ
     }
 }
 

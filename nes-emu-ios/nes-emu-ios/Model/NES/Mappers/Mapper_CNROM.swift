@@ -108,9 +108,9 @@ class Mapper_CNROM: MapperProtocol
         self.chr[(self.chrBank * 0x2000) + Int(aAddress)] = aValue
     }
     
-    func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
+    func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        
+        return nil
     }
 }
 

@@ -74,9 +74,9 @@ class Mapper_MMC1: MapperProtocol
         self.prgOffsets[1] = self.prgBankOffset(index: -1)
     }
     
-    func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
+    func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        
+        return nil
     }
     
     func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF

@@ -59,5 +59,8 @@ class Mapper_UnsupportedPlaceholder: MapperProtocol
         
     }
     
-    func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?) { }
+    func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
+    {
+        return nil
+    }
 }

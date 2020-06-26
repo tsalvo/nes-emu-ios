@@ -133,9 +133,9 @@ class Mapper_MMC2: MapperProtocol
         
     }
     
-    func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
+    func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        
+        return nil
     }
     
     private func updateChrLatch1(forAddress aAddress: UInt16)
