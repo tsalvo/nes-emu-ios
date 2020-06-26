@@ -26,7 +26,7 @@
 import Foundation
 import os
 
-class Mapper_MMC1: MapperProtocol
+struct Mapper_MMC1: MapperProtocol
 {
     let hasStep: Bool = false
     
@@ -96,7 +96,7 @@ class Mapper_MMC1: MapperProtocol
         }
     }
     
-    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
+    mutating func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
@@ -119,14 +119,14 @@ class Mapper_MMC1: MapperProtocol
         return self.chr[chrFinalOffset]
     }
     
-    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
         let bank = aAddress / 0x1000
         let offset = aAddress % 0x1000
         self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
     }
 
-    private func loadRegister(address aAddress: UInt16, value aValue: UInt8)
+    private mutating func loadRegister(address aAddress: UInt16, value aValue: UInt8)
     {
         if aValue & 0x80 == 0x80
         {
@@ -146,7 +146,7 @@ class Mapper_MMC1: MapperProtocol
         }
     }
 
-    private func writeRegister(address aAddress: UInt16, value aValue: UInt8)
+    private mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)
     {
         switch aAddress
         {
@@ -164,7 +164,7 @@ class Mapper_MMC1: MapperProtocol
     }
 
     // Control (internal, $8000-$9FFF)
-    private func writeControl(value aValue: UInt8)
+    private mutating func writeControl(value aValue: UInt8)
     {
         self.control = aValue
         self.chrMode = (aValue >> 4) & 1
@@ -185,21 +185,21 @@ class Mapper_MMC1: MapperProtocol
     }
 
     // CHR bank 0 (internal, $A000-$BFFF)
-    private func writeCHRBank0(value aValue: UInt8)
+    private mutating func writeCHRBank0(value aValue: UInt8)
     {
         self.chrBank0 = aValue
         self.updateOffsets()
     }
 
     // CHR bank 1 (internal, $C000-$DFFF)
-    private func writeCHRBank1(value aValue: UInt8)
+    private mutating func writeCHRBank1(value aValue: UInt8)
     {
         self.chrBank1 = aValue
         self.updateOffsets()
     }
 
     // PRG bank (internal, $E000-$FFFF)
-    private func writePRGBank(value aValue: UInt8)
+    private mutating func writePRGBank(value aValue: UInt8)
     {
         self.prgBank = aValue & 0x0F
         self.updateOffsets()
@@ -246,7 +246,7 @@ class Mapper_MMC1: MapperProtocol
     //                    2: fix first bank at $8000 and switch 16 KB bank at $C000;
     //                    3: fix last bank at $C000 and switch 16 KB bank at $8000)
     // CHR ROM bank mode (0: switch 8 KB at a time; 1: switch two separate 4 KB banks)
-    private func updateOffsets()
+    private mutating func updateOffsets()
     {
         switch self.prgMode
         {

@@ -25,128 +25,59 @@
 
 import Foundation
 
-protocol ConsoleProtocol: class
+struct Console
 {
-    var cpu: CPU { get }
-}
-
-class Console: ConsoleProtocol
-{
-    let apu: APU
-    let ppu: PPU
-    let cpu: CPU
-    let cartridge: Cartridge
-    let controllers: [Controller]
-    let queue: DispatchQueue
+    private(set) var cpu: CPU
     
     init(withCartridge aCartridge: Cartridge, sampleRate aSampleRate: SampleRate, audioFiltersEnabled aAudioFiltersEnabled: Bool)
     {
-        self.queue = DispatchQueue(label: "ConsoleQueue", qos: .userInteractive)
-        let apu = APU(withSampleRate: aSampleRate, filtersEnabled: aAudioFiltersEnabled)
-        let controllers: [Controller] = [Controller(), Controller()]
-        let mapper = aCartridge.mapper
-        let ppu = PPU(mapper: mapper)
-        let cpu = CPU(ppu: ppu, apu: apu, mapper: mapper, controller1: controllers[0], controller2: controllers[1])
-        self.cpu = cpu
-        self.apu = apu
-        self.ppu = ppu
-        self.cartridge = aCartridge
-        self.controllers = controllers
+        self.cpu = CPU(ppu: PPU(mapper: aCartridge.mapper), apu: APU(withSampleRate: aSampleRate, filtersEnabled: aAudioFiltersEnabled), controllers: [Controller(), Controller()])
     }
     
-    func set(audioEngineDelegate aAudioEngineDelegate: AudioEngineProtocol?)
+    mutating func set(audioEngineDelegate aAudioEngineDelegate: AudioEngineProtocol?)
     {
-        self.queue.async { [weak self] in
-            self?.apu.audioEngineDelegate = aAudioEngineDelegate
-        }
+        self.cpu.apu.audioEngineDelegate = aAudioEngineDelegate
     }
     
-    func set(button aButton: ControllerButton, enabled aEnabled: Bool, forControllerAtIndex aIndex: Int)
+    mutating func set(button aButton: ControllerButton, enabled aEnabled: Bool, forControllerAtIndex aIndex: Int)
     {
-        self.queue.async { [weak self] in
-            guard aIndex < self?.controllers.count ?? Int.max else { return }
-            self?.controllers[aIndex].set(buttonAtIndex: aButton.rawValue, enabled: aEnabled)
-        }
+        guard aIndex < self.cpu.controllers.count else { return }
+        self.cpu.controllers[aIndex].set(buttonAtIndex: aButton.rawValue, enabled: aEnabled)
     }
     
     /// set all buttons at once for a given controller
-    func set(buttonUpPressed aButtonUpPressed: Bool, buttonDownPressed aButtonDownPressed: Bool, buttonLeftPressed aButtonLeftPressed: Bool, buttonRightPressed aButtonRightPressed: Bool, buttonSelectPressed aButtonSelectPressed: Bool, buttonStartPressed aButtonStartPressed: Bool, buttonBPressed aButtonBPressed: Bool, buttonAPressed aButtonAPressed: Bool, forControllerAtIndex aIndex: Int)
+    mutating func set(buttonUpPressed aButtonUpPressed: Bool, buttonDownPressed aButtonDownPressed: Bool, buttonLeftPressed aButtonLeftPressed: Bool, buttonRightPressed aButtonRightPressed: Bool, buttonSelectPressed aButtonSelectPressed: Bool, buttonStartPressed aButtonStartPressed: Bool, buttonBPressed aButtonBPressed: Bool, buttonAPressed aButtonAPressed: Bool, forControllerAtIndex aIndex: Int)
     {
-        self.queue.async { [weak self] in
-            guard aIndex < self?.controllers.count ?? Int.max else { return }
-            self?.controllers[aIndex].set(buttons: [aButtonAPressed, aButtonBPressed, aButtonSelectPressed, aButtonStartPressed, aButtonUpPressed, aButtonDownPressed, aButtonLeftPressed, aButtonRightPressed])
+        guard aIndex < self.cpu.controllers.count else { return }
+        self.cpu.controllers[aIndex].set(buttons: [aButtonAPressed, aButtonBPressed, aButtonSelectPressed, aButtonStartPressed, aButtonUpPressed, aButtonDownPressed, aButtonLeftPressed, aButtonRightPressed])
+    }
+    
+    mutating func reset()
+    {
+        self.cpu.reset()
+        self.cpu.ppu.reset()
+    }
+    
+    mutating func stepSeconds(seconds aSeconds: Float64)
+    {
+        var cycles = Int(Float64(CPU.frequency) * aSeconds)
+        while cycles > 0
+        {
+            cycles -= self.step()
         }
     }
     
-    func reset(completionHandler aCompletionHandler: (() -> Void)?)
+    private mutating func step() -> Int
     {
-        self.queue.async { [weak self] in
-            
-            self?.cpu.reset()
-            self?.ppu.reset()
-            
-            DispatchQueue.main.async {
-                aCompletionHandler?()
-            }
-        }
-    }
-    
-    func stepSeconds(seconds aSeconds: Float64, completionHandler aCompletionHandler: (() -> Void)?)
-    {
-        self.queue.async { [weak self] in
-            
-            var cycles = Int(Float64(CPU.frequency) * aSeconds)
-            while cycles > 0
-            {
-                cycles -= self?.step() ?? cycles
-            }
-            
-            DispatchQueue.main.async {
-                aCompletionHandler?()
-            }
-        }
-    }
-    
-    private func step() -> Int
-    {
-        // CPU Step
         let cpuCycles = self.cpu.step()
-        let ppuCycles = cpuCycles * 3
-        
-        // PPU Step
-        for _ in 0 ..< ppuCycles
-        {
-            let ppuStepResults: PPUStepResults = self.ppu.step()
-            if ppuStepResults.shouldTriggerNMIOnCPU
-            {
-                self.cpu.triggerNMI()
-            }
-            else if ppuStepResults.shouldTriggerIRQOnCPU
-            {
-                self.cpu.triggerIRQ()
-            }
-        }
-        
-        // APU Step
-        for _ in 0 ..< cpuCycles
-        {
-            let dmcCurrentAddressValue: UInt8 = self.cpu.read(address: self.apu.dmcCurrentAddress)
-            let apuStepResults: APUStepResults = self.apu.step(dmcCurrentAddressValue: dmcCurrentAddressValue)
-            self.cpu.stall += apuStepResults.numCPUStallCycles
-            if apuStepResults.shouldTriggerIRQOnCPU
-            {
-                self.cpu.triggerIRQ()
-            }
-        }
-        
         return cpuCycles
     }
     
-    private func stepFrame() -> Int
+    private mutating func stepFrame() -> Int
     {
         var cpuCycles = 0
-        let frame = self.ppu.frame
-        while frame == self.ppu.frame
+        let frame = self.cpu.ppu.frame
+        while frame == self.cpu.ppu.frame
         {
             cpuCycles += self.step()
         }

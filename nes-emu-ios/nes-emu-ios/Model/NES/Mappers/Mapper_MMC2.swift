@@ -26,7 +26,7 @@
 import Foundation
 import os
 
-class Mapper_MMC2: MapperProtocol
+struct Mapper_MMC2: MapperProtocol
 {
     let hasStep: Bool = false
     
@@ -88,7 +88,7 @@ class Mapper_MMC2: MapperProtocol
         }
     }
     
-    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
+    mutating func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
@@ -110,7 +110,7 @@ class Mapper_MMC2: MapperProtocol
         }
     }
     
-    func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
+    mutating func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
     {
         switch aAddress
         {
@@ -128,7 +128,7 @@ class Mapper_MMC2: MapperProtocol
         }
     }
     
-    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
         
     }
@@ -138,7 +138,7 @@ class Mapper_MMC2: MapperProtocol
         return nil
     }
     
-    private func updateChrLatch1(forAddress aAddress: UInt16)
+    private mutating func updateChrLatch1(forAddress aAddress: UInt16)
     {
         switch aAddress
         {
@@ -150,7 +150,7 @@ class Mapper_MMC2: MapperProtocol
         }
     }
     
-    private func updateChrLatch2(forAddress aAddress: UInt16)
+    private mutating func updateChrLatch2(forAddress aAddress: UInt16)
     {
         switch aAddress
         {

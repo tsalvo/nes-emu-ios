@@ -31,15 +31,8 @@ struct APUStepResults
     let numCPUStallCycles: Int
 }
 
-protocol APUProtocol: class
-{
-    func readRegister(address aAddress: UInt16) -> UInt8
-    func writeRegister(address aAddress: UInt16, value aValue: UInt8)
-    func step(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> APUStepResults
-}
-
 /// NES Audio Processing Unit
-class APU: APUProtocol
+struct APU
 {
     weak var audioEngineDelegate: AudioEngineProtocol?
     private var audioBufferIndex: Int = 0
@@ -93,7 +86,7 @@ class APU: APUProtocol
             ] : [])
     }
     
-    func step(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> APUStepResults
+    mutating func step(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> APUStepResults
     {
         let shouldFireIRQ: Bool
         let cycle1 = self.cycle
@@ -120,7 +113,7 @@ class APU: APUProtocol
         return APUStepResults(shouldTriggerIRQOnCPU: shouldFireIRQ, numCPUStallCycles: numCPUStallCycles)
     }
 
-    func sendSample()
+    mutating func sendSample()
     {
         let output = self.filterChain.step(x: self.output())
         self.audioBuffer[self.audioBufferIndex] = output
@@ -149,7 +142,7 @@ class APU: APUProtocol
     //  - - - f    - - - - -    IRQ (if bit 6 is clear)
     //  - l - l    l - l - -    Length counter and sweep
     //  e e e e    e e e e -    Envelope and linear counter
-    func stepFrameCounter() -> Bool
+    mutating func stepFrameCounter() -> Bool
     {
         var shouldFireIRQ: Bool = false
         switch self.framePeriod
@@ -192,7 +185,7 @@ class APU: APUProtocol
         return shouldFireIRQ
     }
 
-    func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
+    mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
     {
         let numCPUStallCycles: Int
         if self.cycle % 2 == 0
@@ -211,7 +204,7 @@ class APU: APUProtocol
         return numCPUStallCycles
     }
 
-    func stepEnvelope()
+    mutating func stepEnvelope()
     {
         self.pulse1.stepEnvelope()
         self.pulse2.stepEnvelope()
@@ -219,13 +212,13 @@ class APU: APUProtocol
         self.noise.stepEnvelope()
     }
 
-    func stepSweep()
+    mutating func stepSweep()
     {
         self.pulse1.stepSweep()
         self.pulse2.stepSweep()
     }
 
-    func stepLength()
+    mutating func stepLength()
     {
         self.pulse1.stepLength()
         self.pulse2.stepLength()
@@ -243,7 +236,7 @@ class APU: APUProtocol
         }
     }
 
-    func writeRegister(address aAddress: UInt16, value aValue: UInt8)
+    mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)
     {
         switch aAddress {
         case 0x4000:
@@ -321,7 +314,7 @@ class APU: APUProtocol
         return result
     }
 
-    func writeControl(value aValue: UInt8)
+    mutating func writeControl(value aValue: UInt8)
     {
         self.pulse1.enabled = aValue & 1 == 1
         self.pulse2.enabled = aValue & 2 == 2
@@ -362,7 +355,7 @@ class APU: APUProtocol
         }
     }
 
-    func writeFrameCounter(value aValue: UInt8)
+    mutating func writeFrameCounter(value aValue: UInt8)
     {
         self.framePeriod = 4 + (aValue >> 7) & 1
         self.frameIRQ = (aValue >> 6) & 1 == 0
@@ -375,7 +368,7 @@ class APU: APUProtocol
     }
     
     /// sampleRate: samples per second cutoffFreq: oscillations per second
-    private class func lowPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
+    private static func lowPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
     {
         let c = aSampleRate / Float32.pi / aCutoffFreq
         let a0i = 1 / (1 + c)
@@ -383,7 +376,7 @@ class APU: APUProtocol
     }
 
     /// sampleRate: samples per second cutoffFreq: oscillations per second
-    private class func highPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
+    private static func highPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
     {
         let c = aSampleRate / Float32.pi / aCutoffFreq
         let a0i = 1 / (1 + c)

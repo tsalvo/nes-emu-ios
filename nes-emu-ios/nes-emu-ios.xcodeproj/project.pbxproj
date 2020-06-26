@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		991B28C12489F66300A6A6DD /* Cartridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C02489F66300A6A6DD /* Cartridge.swift */; };
 		991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C3248A22BA00A6A6DD /* CPU.swift */; };
-		991B28C6248B24CB00A6A6DD /* MemoryProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C5248B24CB00A6A6DD /* MemoryProtocol.swift */; };
 		991B28C8248B43A700A6A6DD /* APU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C7248B43A700A6A6DD /* APU.swift */; };
 		991B28CA248B43B500A6A6DD /* PPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C9248B43B500A6A6DD /* PPU.swift */; };
 		991B28CC248B470C00A6A6DD /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28CB248B470C00A6A6DD /* Console.swift */; };
@@ -96,7 +95,6 @@
 /* Begin PBXFileReference section */
 		991B28C02489F66300A6A6DD /* Cartridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cartridge.swift; sourceTree = "<group>"; };
 		991B28C3248A22BA00A6A6DD /* CPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPU.swift; sourceTree = "<group>"; };
-		991B28C5248B24CB00A6A6DD /* MemoryProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryProtocol.swift; sourceTree = "<group>"; };
 		991B28C7248B43A700A6A6DD /* APU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APU.swift; sourceTree = "<group>"; };
 		991B28C9248B43B500A6A6DD /* PPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPU.swift; sourceTree = "<group>"; };
 		991B28CB248B470C00A6A6DD /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
@@ -282,7 +280,6 @@
 		995C9AE8249C064300429ECC /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
-				991B28C5248B24CB00A6A6DD /* MemoryProtocol.swift */,
 				99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */,
 			);
 			path = Protocols;
@@ -453,7 +450,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				991B28C6248B24CB00A6A6DD /* MemoryProtocol.swift in Sources */,
 				991B28CA248B43B500A6A6DD /* PPU.swift in Sources */,
 				99FB220A248DCC7A00D557A4 /* MapperProtocol.swift in Sources */,
 				99B1ED9F249E924500BC66F3 /* SettingsToggleCell.swift in Sources */,

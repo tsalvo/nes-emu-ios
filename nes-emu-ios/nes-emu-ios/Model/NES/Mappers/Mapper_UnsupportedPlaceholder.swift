@@ -25,7 +25,7 @@
 
 import Foundation
 
-class Mapper_UnsupportedPlaceholder: MapperProtocol
+struct Mapper_UnsupportedPlaceholder: MapperProtocol
 {
     let hasStep: Bool = false
     
@@ -42,7 +42,7 @@ class Mapper_UnsupportedPlaceholder: MapperProtocol
     }
     
     /// write to a given mapper address from the CPU (must be an address in the range 0x6000 ... 0xFFFF)
-    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
+    mutating func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
         
     }
@@ -54,12 +54,12 @@ class Mapper_UnsupportedPlaceholder: MapperProtocol
     }
     
     /// write to a given mapper address from the PPU (must be an address in the range 0x0000 ... 0x1FFF)
-    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
         
     }
     
-    func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
+    mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
         return nil
     }
