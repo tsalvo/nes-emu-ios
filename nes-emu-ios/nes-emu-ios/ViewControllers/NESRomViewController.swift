@@ -56,6 +56,7 @@ class NesRomViewController: UIViewController, EmulationControlProtocol
     private var consoleFrameQueueSize: Int = NesRomViewController.defaultFrameQueueSize
     private var consoleFramesQueued: Int = 0
     private var document: NesRomDocument? { return (self.navigationController as? NesRomNavigationController)?.document }
+    private let consoleQueue: DispatchQueue = DispatchQueue(label: "ConsoleQueue", qos: .userInteractive)
     
     private var controller1: GCController?
     {
@@ -103,13 +104,14 @@ class NesRomViewController: UIViewController, EmulationControlProtocol
 #endif
         let sampleRate: SampleRate = SampleRate.init(rawValue: UserDefaults.standard.integer(forKey: Settings.sampleRateKey)) ?? Settings.defaultSampleRate
         let audioFiltersEnabled: Bool = UserDefaults.standard.bool(forKey: Settings.audioFiltersEnabledKey)
+        self.screen.buffer = PPU.emptyBuffer
         if let safeCartridge = self.document?.cartridge
         {
-            self.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled)
-            self.console?.set(audioEngineDelegate: self.audioEngine)
-            self.console?.reset(completionHandler: { [weak self] in
-                self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
-            })
+            self.consoleQueue.async { [weak self] in
+                self?.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled)
+                self?.console?.set(audioEngineDelegate: self?.audioEngine)
+                self?.console?.reset()
+            }
         }
     }
     
@@ -154,89 +156,124 @@ class NesRomViewController: UIViewController, EmulationControlProtocol
     
     @objc private func resetButtonPressed(_ sender: AnyObject?)
     {
-        self.console?.reset(completionHandler: { [weak self] in
-            self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
-        })
+        self.consoleQueue.async { [weak self] in
+            self?.console?.reset()
+            DispatchQueue.main.async {
+                self?.screen.buffer = PPU.emptyBuffer
+            }
+        }
     }
     
     @IBAction private func startButtonPressed(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonStart, enabled: true, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonStart, enabled: true, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func startButtonReleased(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonStart, enabled: false, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonStart, enabled: false, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func selectButtonPressed(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonSelect, enabled: true, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonSelect, enabled: true, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func selectButtonReleased(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonSelect, enabled: false, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonSelect, enabled: false, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func aButtonPressed(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonA, enabled: true, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonA, enabled: true, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func aButtonReleased(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonA, enabled: false, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonA, enabled: false, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func bButtonPressed(_ sender: AnyObject?)
     {
-       self.console?.set(button: .buttonB, enabled: true, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonB, enabled: true, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func bButtonReleased(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonB, enabled: false, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonB, enabled: false, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func upButtonPressed(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonUp, enabled: true, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonUp, enabled: true, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func upButtonReleased(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonUp, enabled: false, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonUp, enabled: false, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func downButtonPressed(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonDown, enabled: true, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonDown, enabled: true, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func downButtonReleased(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonDown, enabled: false, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonDown, enabled: false, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func leftButtonPressed(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonLeft, enabled: true, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonLeft, enabled: true, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func leftButtonReleased(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonLeft, enabled: false, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonLeft, enabled: false, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func rightButtonPressed(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonRight, enabled: true, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonRight, enabled: true, forControllerAtIndex: 0)
+        }
     }
     
     @IBAction private func rightButtonReleased(_ sender: AnyObject?)
     {
-        self.console?.set(button: .buttonRight, enabled: false, forControllerAtIndex: 0)
+        self.consoleQueue.async { [weak self] in
+            self?.console?.set(button: .buttonRight, enabled: false, forControllerAtIndex: 0)
+        }
     }
     
     // MARK: - Keyboard
@@ -335,20 +372,29 @@ class NesRomViewController: UIViewController, EmulationControlProtocol
     {
         if let extendedPad = self.controller1?.extendedGamepad
         {
-            self.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 0)
+            self.consoleQueue.async { [weak self] in
+                self?.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 0)
+            }
         }
         
         if let extendedPad = self.controller2?.extendedGamepad
         {
-            self.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 1)
+            self.consoleQueue.async { [weak self] in
+                self?.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 1)
+            }
         }
         
         guard self.consoleFramesQueued <= self.consoleFrameQueueSize else { return }
         self.consoleFramesQueued += 1
-        self.console?.stepSeconds(seconds: 1.0 / 60.0, completionHandler: { [weak self] in
-            self?.consoleFramesQueued -= 1
-            self?.screen.buffer = self?.console?.ppu.frontBuffer ?? []
-        })
+        
+        self.consoleQueue.async { [weak self] in
+            self?.console?.stepSeconds(seconds: 1.0 / 60.0)
+            
+            DispatchQueue.main.async { [weak self] in
+                self?.consoleFramesQueued -= 1
+                self?.screen.buffer = self?.console?.cpu.ppu.frontBuffer ?? PPU.emptyBuffer
+            }
+        }
     }
     
     // MARK: - Notifications
