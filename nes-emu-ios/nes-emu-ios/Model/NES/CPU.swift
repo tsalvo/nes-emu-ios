@@ -736,6 +736,7 @@ struct CPU
 
     private mutating func execute(instruction aInstruction: Instruction, ofType aInstructionType: InstructionCategory, stepInfo aStepInfo: StepInfo)
     {
+        // TODO: capture which instructions and categories are most frequent for most games, and check for them sooner
         switch aInstructionType
         {
         case .load:
