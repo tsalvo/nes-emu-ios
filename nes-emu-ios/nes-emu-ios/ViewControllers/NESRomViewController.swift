@@ -32,13 +32,14 @@ protocol EmulatorProtocol: class
     func pauseEmulation()
 }
 
-class NesRomViewController: UIViewController, EmulatorProtocol
+class NesRomViewController: GCEventViewController, EmulatorProtocol
 {
     // MARK: - Constants
     private static let defaultFrameQueueSize: Int = 10
     
     // MARK: - UI Outlets
     @IBOutlet weak private var screen: NESScreenView!
+#if !os(tvOS)
     @IBOutlet weak private var aButton: UIButton!
     @IBOutlet weak private var bButton: UIButton!
     @IBOutlet weak private var upButton: UIButton!
@@ -47,6 +48,7 @@ class NesRomViewController: UIViewController, EmulatorProtocol
     @IBOutlet weak private var rightButton: UIButton!
     @IBOutlet weak private var selectButton: UIButton!
     @IBOutlet weak private var startButton: UIButton!
+#endif
     
     // MARK: - Private Variables
     private weak var dismissBarButtonItem: UIBarButtonItem?
@@ -109,6 +111,7 @@ class NesRomViewController: UIViewController, EmulatorProtocol
     override func viewDidLoad()
     {
         super.viewDidLoad()
+        self.controllerUserInteractionEnabled = false
         self.consoleFrameQueueSize = NesRomViewController.defaultFrameQueueSize
         self.setupButtons()
 #if targetEnvironment(macCatalyst)
@@ -151,7 +154,11 @@ class NesRomViewController: UIViewController, EmulatorProtocol
         if !self.isBeingDismissed
         {
             self.destroyDisplayLink()
+#if os(tvOS)
+            self.navigationController?.popViewController(animated: true)
+#else
             self.dismiss(animated: true, completion: nil)
+#endif
         }
     }
     
@@ -521,6 +528,7 @@ class NesRomViewController: UIViewController, EmulatorProtocol
     
     private func setOnScreenControlsHidden(_ hidden: Bool, animated aAnimated: Bool)
     {
+#if !os(tvOS)
         let buttons: [UIButton] = [self.aButton, self.bButton, self.upButton, self.downButton, self.leftButton, self.rightButton, self.selectButton, self.startButton]
         
         guard aAnimated else
@@ -553,6 +561,7 @@ class NesRomViewController: UIViewController, EmulatorProtocol
                 b.isHidden = hidden
             }
         }
+#endif
     }
     
     private func setupButtons()
