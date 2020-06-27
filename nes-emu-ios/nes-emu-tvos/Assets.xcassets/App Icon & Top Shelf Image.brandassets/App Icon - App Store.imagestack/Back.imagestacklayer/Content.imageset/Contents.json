@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "NES EMU IOS.png",
+      "idiom" : "tv"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

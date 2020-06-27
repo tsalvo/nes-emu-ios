@@ -63,6 +63,40 @@
 		99E2E21424966A32008AFCDB /* MirroringMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21224966A32008AFCDB /* MirroringMode.swift */; };
 		99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
 		99E2E21724966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
+		99FA3C9124A6E7CD0065E539 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FA3C9024A6E7CD0065E539 /* AppDelegate.swift */; };
+		99FA3C9324A6E7CD0065E539 /* RomListTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FA3C9224A6E7CD0065E539 /* RomListTableViewController.swift */; };
+		99FA3C9624A6E7CD0065E539 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99FA3C9424A6E7CD0065E539 /* Main.storyboard */; };
+		99FA3C9824A6E7D00065E539 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 99FA3C9724A6E7D00065E539 /* Assets.xcassets */; };
+		99FA3C9B24A6E7D00065E539 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99FA3C9924A6E7D00065E539 /* LaunchScreen.storyboard */; };
+		99FA3CA324A6F08C0065E539 /* NesRomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999AA95B248F668000DA77AA /* NesRomViewController.swift */; };
+		99FA3CA424A6F1000065E539 /* UInt8+ByteUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */; };
+		99FA3CA524A6F1030065E539 /* Collection+SafeIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDB6249EB2DF00BC66F3 /* Collection+SafeIndex.swift */; };
+		99FA3CA624A6F1050065E539 /* Bundle+Version.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B7C308249F33DC00B26AC6 /* Bundle+Version.swift */; };
+		99FA3CA724A6F1090065E539 /* Date+Year.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B7C30A249F33EF00B26AC6 /* Date+Year.swift */; };
+		99FA3CA824A6F10B0065E539 /* UIStackView+ArrangedSubviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDB4249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift */; };
+		99FA3CA924A6F1100065E539 /* MapperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */; };
+		99FA3CAA24A6F1120065E539 /* Mapper_AxROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 992164A2249D113D00EB4BAA /* Mapper_AxROM.swift */; };
+		99FA3CAB24A6F1140065E539 /* Mapper_CNROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADE249BECE000429ECC /* Mapper_CNROM.swift */; };
+		99FA3CAC24A6F1160065E539 /* Mapper_MMC1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */; };
+		99FA3CAD24A6F1180065E539 /* Mapper_MMC2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */; };
+		99FA3CAE24A6F11A0065E539 /* Mapper_MMC3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */; };
+		99FA3CAF24A6F11D0065E539 /* Mapper_NROM_UNROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADA249BEC9A00429ECC /* Mapper_NROM_UNROM.swift */; };
+		99FA3CB024A6F11F0065E539 /* Mapper_UnsupportedPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */; };
+		99FA3CB124A6F1270065E539 /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
+		99FA3CB224A6F1270065E539 /* MirroringMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21224966A32008AFCDB /* MirroringMode.swift */; };
+		99FA3CB324A6F1270065E539 /* RomHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B0355D2496763000D2723F /* RomHeader.swift */; };
+		99FA3CB424A6F12A0065E539 /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28CB248B470C00A6A6DD /* Console.swift */; };
+		99FA3CB524A6F12A0065E539 /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C3248A22BA00A6A6DD /* CPU.swift */; };
+		99FA3CB624A6F12A0065E539 /* APU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C7248B43A700A6A6DD /* APU.swift */; };
+		99FA3CB724A6F12A0065E539 /* PPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C9248B43B500A6A6DD /* PPU.swift */; };
+		99FA3CB824A6F12A0065E539 /* Cartridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C02489F66300A6A6DD /* Cartridge.swift */; };
+		99FA3CB924A6F12A0065E539 /* Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28CD248B746A00A6A6DD /* Controller.swift */; };
+		99FA3CBA24A6F12A0065E539 /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1722494096000E4C04D /* Filter.swift */; };
+		99FA3CBC24A6F1500065E539 /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1742494221800E4C04D /* AudioEngine.swift */; };
+		99FA3CBD24A6F1500065E539 /* SampleRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A43E9724944CFD0009DB5B /* SampleRate.swift */; };
+		99FA3CBE24A6F1500065E539 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995EEC48249DFB2300FE24F8 /* Settings.swift */; };
+		99FA3CBF24A6F16D0065E539 /* NESScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A372BE248F8EC000089773 /* NESScreenView.swift */; };
+		99FA3CC224A7A6130065E539 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99FA3CC124A7A6130065E539 /* CloudKit.framework */; };
 		99FB220A248DCC7A00D557A4 /* MapperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */; };
 		99FEEA60249DBB280072D225 /* NesRomNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */; };
 /* End PBXBuildFile section */
@@ -148,6 +182,15 @@
 		99E2E2092495D8C1008AFCDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99E2E21224966A32008AFCDB /* MirroringMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirroringMode.swift; sourceTree = "<group>"; };
 		99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperIdentifier.swift; sourceTree = "<group>"; };
+		99FA3C8E24A6E7CD0065E539 /* nes-emu-tvos.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "nes-emu-tvos.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		99FA3C9024A6E7CD0065E539 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		99FA3C9224A6E7CD0065E539 /* RomListTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomListTableViewController.swift; sourceTree = "<group>"; };
+		99FA3C9524A6E7CD0065E539 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		99FA3C9724A6E7D00065E539 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		99FA3C9A24A6E7D00065E539 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		99FA3C9C24A6E7D00065E539 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		99FA3CC024A7A4050065E539 /* nes-emu-tvos.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "nes-emu-tvos.entitlements"; sourceTree = "<group>"; };
+		99FA3CC124A7A6130065E539 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS13.4.sdk/System/Library/Frameworks/CloudKit.framework; sourceTree = DEVELOPER_DIR; };
 		99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperProtocol.swift; sourceTree = "<group>"; };
 		99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomNavigationController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -165,6 +208,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				99E2E2052495D8C1008AFCDB /* QuickLookThumbnailing.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		99FA3C8B24A6E7CD0065E539 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99FA3CC224A7A6130065E539 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -192,6 +243,7 @@
 			isa = PBXGroup;
 			children = (
 				99488F3E248985F100942A1E /* nes-emu-ios */,
+				99FA3C8F24A6E7CD0065E539 /* nes-emu-tvos */,
 				99E2E2062495D8C1008AFCDB /* nes-thumbnail-provider */,
 				99E2E2032495D8C1008AFCDB /* Frameworks */,
 				99488F3D248985F100942A1E /* Products */,
@@ -203,6 +255,7 @@
 			children = (
 				99488F3C248985F100942A1E /* nes-emu-ios.app */,
 				99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */,
+				99FA3C8E24A6E7CD0065E539 /* nes-emu-tvos.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -315,6 +368,7 @@
 		99E2E2032495D8C1008AFCDB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				99FA3CC124A7A6130065E539 /* CloudKit.framework */,
 				99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */,
 			);
 			name = Frameworks;
@@ -337,6 +391,28 @@
 				99B0355D2496763000D2723F /* RomHeader.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		99FA3C8F24A6E7CD0065E539 /* nes-emu-tvos */ = {
+			isa = PBXGroup;
+			children = (
+				99FA3CC324A7A7640065E539 /* Resources */,
+				99FA3CC024A7A4050065E539 /* nes-emu-tvos.entitlements */,
+				99FA3C9024A6E7CD0065E539 /* AppDelegate.swift */,
+				99FA3C9224A6E7CD0065E539 /* RomListTableViewController.swift */,
+				99FA3C9424A6E7CD0065E539 /* Main.storyboard */,
+				99FA3C9724A6E7D00065E539 /* Assets.xcassets */,
+				99FA3C9924A6E7D00065E539 /* LaunchScreen.storyboard */,
+				99FA3C9C24A6E7D00065E539 /* Info.plist */,
+			);
+			path = "nes-emu-tvos";
+			sourceTree = "<group>";
+		};
+		99FA3CC324A7A7640065E539 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -378,6 +454,23 @@
 			productReference = 99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		99FA3C8D24A6E7CD0065E539 /* nes-emu-tvos */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 99FA3C9F24A6E7D00065E539 /* Build configuration list for PBXNativeTarget "nes-emu-tvos" */;
+			buildPhases = (
+				99FA3C8A24A6E7CD0065E539 /* Sources */,
+				99FA3C8B24A6E7CD0065E539 /* Frameworks */,
+				99FA3C8C24A6E7CD0065E539 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "nes-emu-tvos";
+			productName = "nes-emu-tvos";
+			productReference = 99FA3C8E24A6E7CD0065E539 /* nes-emu-tvos.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -392,6 +485,9 @@
 						CreatedOnToolsVersion = 11.5;
 					};
 					99E2E2012495D8C1008AFCDB = {
+						CreatedOnToolsVersion = 11.5;
+					};
+					99FA3C8D24A6E7CD0065E539 = {
 						CreatedOnToolsVersion = 11.5;
 					};
 				};
@@ -410,6 +506,7 @@
 			projectRoot = "";
 			targets = (
 				99488F3B248985F100942A1E /* nes-emu-ios */,
+				99FA3C8D24A6E7CD0065E539 /* nes-emu-tvos */,
 				99E2E2012495D8C1008AFCDB /* nes-thumbnail-provider */,
 			);
 		};
@@ -437,6 +534,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		99FA3C8C24A6E7CD0065E539 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99FA3C9B24A6E7D00065E539 /* LaunchScreen.storyboard in Resources */,
+				99FA3C9824A6E7D00065E539 /* Assets.xcassets in Resources */,
+				99FA3C9624A6E7CD0065E539 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -503,6 +610,43 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		99FA3C8A24A6E7CD0065E539 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99FA3CAA24A6F1120065E539 /* Mapper_AxROM.swift in Sources */,
+				99FA3CB724A6F12A0065E539 /* PPU.swift in Sources */,
+				99FA3CAD24A6F1180065E539 /* Mapper_MMC2.swift in Sources */,
+				99FA3CAF24A6F11D0065E539 /* Mapper_NROM_UNROM.swift in Sources */,
+				99FA3CAE24A6F11A0065E539 /* Mapper_MMC3.swift in Sources */,
+				99FA3CA324A6F08C0065E539 /* NesRomViewController.swift in Sources */,
+				99FA3CB124A6F1270065E539 /* MapperIdentifier.swift in Sources */,
+				99FA3CB924A6F12A0065E539 /* Controller.swift in Sources */,
+				99FA3CA524A6F1030065E539 /* Collection+SafeIndex.swift in Sources */,
+				99FA3CA924A6F1100065E539 /* MapperProtocol.swift in Sources */,
+				99FA3CAB24A6F1140065E539 /* Mapper_CNROM.swift in Sources */,
+				99FA3CBD24A6F1500065E539 /* SampleRate.swift in Sources */,
+				99FA3CA624A6F1050065E539 /* Bundle+Version.swift in Sources */,
+				99FA3CB424A6F12A0065E539 /* Console.swift in Sources */,
+				99FA3C9324A6E7CD0065E539 /* RomListTableViewController.swift in Sources */,
+				99FA3CA824A6F10B0065E539 /* UIStackView+ArrangedSubviews.swift in Sources */,
+				99FA3CB824A6F12A0065E539 /* Cartridge.swift in Sources */,
+				99FA3CAC24A6F1160065E539 /* Mapper_MMC1.swift in Sources */,
+				99FA3CB524A6F12A0065E539 /* CPU.swift in Sources */,
+				99FA3CB324A6F1270065E539 /* RomHeader.swift in Sources */,
+				99FA3CB024A6F11F0065E539 /* Mapper_UnsupportedPlaceholder.swift in Sources */,
+				99FA3CBC24A6F1500065E539 /* AudioEngine.swift in Sources */,
+				99FA3CB624A6F12A0065E539 /* APU.swift in Sources */,
+				99FA3CA724A6F1090065E539 /* Date+Year.swift in Sources */,
+				99FA3CBE24A6F1500065E539 /* Settings.swift in Sources */,
+				99FA3C9124A6E7CD0065E539 /* AppDelegate.swift in Sources */,
+				99FA3CA424A6F1000065E539 /* UInt8+ByteUtils.swift in Sources */,
+				99FA3CBF24A6F16D0065E539 /* NESScreenView.swift in Sources */,
+				99FA3CBA24A6F12A0065E539 /* Filter.swift in Sources */,
+				99FA3CB224A6F1270065E539 /* MirroringMode.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -526,6 +670,22 @@
 			isa = PBXVariantGroup;
 			children = (
 				99488F4D248985F300942A1E /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		99FA3C9424A6E7CD0065E539 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				99FA3C9524A6E7CD0065E539 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		99FA3C9924A6E7D00065E539 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				99FA3C9A24A6E7D00065E539 /* Base */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -731,6 +891,50 @@
 			};
 			name = Release;
 		};
+		99FA3C9D24A6E7D00065E539 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				CODE_SIGN_ENTITLEMENTS = "nes-emu-tvos/nes-emu-tvos.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 354MRHL389;
+				INFOPLIST_FILE = "nes-emu-tvos/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomsalvo.nes-emu-tvos";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 13.4;
+			};
+			name = Debug;
+		};
+		99FA3C9E24A6E7D00065E539 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				CODE_SIGN_ENTITLEMENTS = "nes-emu-tvos/nes-emu-tvos.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 354MRHL389;
+				INFOPLIST_FILE = "nes-emu-tvos/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tomsalvo.nes-emu-tvos";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_DISABLE_SAFETY_CHECKS = YES;
+				SWIFT_ENFORCE_EXCLUSIVE_ACCESS = off;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 13.4;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -757,6 +961,15 @@
 			buildConfigurations = (
 				99E2E20E2495D8C1008AFCDB /* Debug */,
 				99E2E20F2495D8C1008AFCDB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		99FA3C9F24A6E7D00065E539 /* Build configuration list for PBXNativeTarget "nes-emu-tvos" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				99FA3C9D24A6E7D00065E539 /* Debug */,
+				99FA3C9E24A6E7D00065E539 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
