@@ -63,7 +63,6 @@
 		99E2E21424966A32008AFCDB /* MirroringMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21224966A32008AFCDB /* MirroringMode.swift */; };
 		99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
 		99E2E21724966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
-		99FB2208248DCAE000D557A4 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2207248DCAE000D557A4 /* Palette.swift */; };
 		99FB220A248DCC7A00D557A4 /* MapperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */; };
 		99FEEA60249DBB280072D225 /* NesRomNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */; };
 /* End PBXBuildFile section */
@@ -149,7 +148,6 @@
 		99E2E2092495D8C1008AFCDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99E2E21224966A32008AFCDB /* MirroringMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirroringMode.swift; sourceTree = "<group>"; };
 		99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperIdentifier.swift; sourceTree = "<group>"; };
-		99FB2207248DCAE000D557A4 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
 		99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperProtocol.swift; sourceTree = "<group>"; };
 		99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomNavigationController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -185,7 +183,6 @@
 				991B28C9248B43B500A6A6DD /* PPU.swift */,
 				991B28C02489F66300A6A6DD /* Cartridge.swift */,
 				991B28CD248B746A00A6A6DD /* Controller.swift */,
-				99FB2207248DCAE000D557A4 /* Palette.swift */,
 				99C7F1722494096000E4C04D /* Filter.swift */,
 			);
 			path = NES;
@@ -464,7 +461,6 @@
 				994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */,
 				99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */,
 				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
-				99FB2208248DCAE000D557A4 /* Palette.swift in Sources */,
 				992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */,
 				99B7C309249F33DC00B26AC6 /* Bundle+Version.swift in Sources */,
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,

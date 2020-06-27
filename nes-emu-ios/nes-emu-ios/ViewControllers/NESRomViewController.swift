@@ -389,9 +389,10 @@ class NesRomViewController: UIViewController, EmulationControlProtocol
         
         self.consoleQueue.async { [weak self] in
             self?.console?.stepSeconds(seconds: 1.0 / 60.0)
+            
             DispatchQueue.main.async { [weak self] in
                 self?.consoleFramesQueued -= 1
-                self?.screen.buffer = self?.console?.cpu.ppu.frontBuffer ?? []
+                self?.screen.buffer = self?.console?.cpu.ppu.frontBuffer ?? PPU.emptyBuffer
             }
         }
     }

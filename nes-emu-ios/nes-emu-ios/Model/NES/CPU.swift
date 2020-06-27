@@ -408,6 +408,8 @@ struct CPU
         self.pc = self.read16(address: 0xFFFC)
         self.sp = 0xFD
         self.set(flags: 0x24)
+        
+        self.ppu.reset()
     }
     
     // MARK: Flag Operations
@@ -627,39 +629,6 @@ struct CPU
     {
         var retValue: Int = 1
         
-        defer
-        {
-            // CPU Step
-            let ppuCycles = retValue * 3
-            
-            // PPU Step
-            for _ in 0 ..< ppuCycles
-            {
-                let ppuStepResults: PPUStepResults = self.ppu.step()
-                if ppuStepResults.shouldTriggerNMIOnCPU
-                {
-                    self.triggerNMI()
-                }
-                else if ppuStepResults.shouldTriggerIRQOnCPU
-                {
-                    self.triggerIRQ()
-                }
-            }
-            
-            // APU Step
-            for _ in 0 ..< retValue
-            {
-                let dmcCurrentAddressValue: UInt8 = self.read(address: self.apu.dmcCurrentAddress)
-                let apuStepResults: APUStepResults = self.apu.step(dmcCurrentAddressValue: dmcCurrentAddressValue)
-                self.stall += apuStepResults.numCPUStallCycles
-                if apuStepResults.shouldTriggerIRQOnCPU
-                {
-                    self.triggerIRQ()
-                }
-            }
-        }
-        
-        
         if self.stall > 0
         {
             self.stall -= 1
@@ -732,35 +701,39 @@ struct CPU
         //instructioninfo.code(info)
 
         retValue = Int(self.cycles - cycles)
+        
+        // PPU Step
+        for _ in 0 ..< retValue * 3
+        {
+            let ppuStepResults: PPUStepResults = self.ppu.step()
+            if ppuStepResults.shouldTriggerNMIOnCPU
+            {
+                self.triggerNMI()
+            }
+            else if ppuStepResults.shouldTriggerIRQOnCPU
+            {
+                self.triggerIRQ()
+            }
+        }
+        
+        // APU Step
+        for _ in 0 ..< retValue
+        {
+            let dmcCurrentAddressValue: UInt8 = self.read(address: self.apu.dmcCurrentAddress)
+            let apuStepResults: APUStepResults = self.apu.step(dmcCurrentAddressValue: dmcCurrentAddressValue)
+            self.stall += apuStepResults.numCPUStallCycles
+            if apuStepResults.shouldTriggerIRQOnCPU
+            {
+                self.triggerIRQ()
+            }
+        }
+        
+        
         return retValue
     }
     
     // MARK: 6502 functions
-    
-    private static let instructionTypeMap: [Instruction : InstructionCategory] = [
-        .lda: .load,
-        .ldx: .load,
-        .ldy: .load,
-        .sta: .store,
-        .stx: .store,
-        .sty: .store,
-        .bpl: .branch,
-        .bmi: .branch,
-        .bvc: .branch,
-        .bvs: .branch,
-        .bcc: .branch,
-        .bcs: .branch,
-        .bne: .branch,
-        .beq: .branch,
-        .clc: .flag,
-        .sec: .flag,
-        .cli: .flag,
-        .sei: .flag,
-        .clv: .flag,
-        .cld: .flag,
-        .sed: .flag,
-    ]
-    
+
     private mutating func execute(instruction aInstruction: Instruction, ofType aInstructionType: InstructionCategory, stepInfo aStepInfo: StepInfo)
     {
         switch aInstructionType

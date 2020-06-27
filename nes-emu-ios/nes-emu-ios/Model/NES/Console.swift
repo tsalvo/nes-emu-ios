@@ -55,7 +55,6 @@ struct Console
     mutating func reset()
     {
         self.cpu.reset()
-        self.cpu.ppu.reset()
     }
     
     mutating func stepSeconds(seconds aSeconds: Float64)
@@ -70,17 +69,6 @@ struct Console
     private mutating func step() -> Int
     {
         let cpuCycles = self.cpu.step()
-        return cpuCycles
-    }
-    
-    private mutating func stepFrame() -> Int
-    {
-        var cpuCycles = 0
-        let frame = self.cpu.ppu.frame
-        while frame == self.cpu.ppu.frame
-        {
-            cpuCycles += self.step()
-        }
         return cpuCycles
     }
 }

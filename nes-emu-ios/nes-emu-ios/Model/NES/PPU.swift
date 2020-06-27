@@ -151,6 +151,15 @@ struct PPU
     // MARK: Pixel Buffer
     
     static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 256 * 224)
+    private static let paletteColors: [UInt32] = [
+        0x666666FF, 0x882A00FF, 0xA71214FF, 0xA4003BFF, 0x7E005CFF, 0x40006EFF, 0x00066CFF, 0x001D56FF,
+        0x003533FF, 0x00480BFF, 0x005200FF, 0x084F00FF, 0x4D4000FF, 0x000000FF, 0x000000FF, 0x000000FF,
+        0xADADADFF, 0xD95F15FF, 0xFF4042FF, 0xFE2775FF, 0xCC1AA0FF, 0x7B1EB7FF, 0x2031B5FF, 0x004E99FF,
+        0x006D6BFF, 0x008738FF, 0x00930CFF, 0x328F00FF, 0x8D7C00FF, 0x000000FF, 0x000000FF, 0x000000FF,
+        0xFFFEFFFF, 0xFFB064FF, 0xFF9092FF, 0xFF76C6FF, 0xFF6AF3FF, 0xCC6EFEFF, 0x7081FEFF, 0x229EEAFF,
+        0x00BEBCFF, 0x00D888FF, 0x30E45CFF, 0x82E045FF, 0xDECD48FF, 0x4F4F4FFF, 0x000000FF, 0x000000FF,
+        0xFFFEFFFF, 0xFFDFC0FF, 0xFFD2D3FF, 0xFFC8E8FF, 0xFFC2FBFF, 0xEAC4FEFF, 0xC5CCFEFF, 0xA5D8F7FF,
+        0x94E5E4FF, 0x96EFCFFF, 0xABF4BDFF, 0xCCF3B3FF, 0xF2EBB5FF, 0xB8B8B8FF, 0x000000FF, 0x000000FF]
     
     /// colors in 0xBBGGRRAA format from Palette.colors
     private(set) var frontBuffer: [UInt32] = PPU.emptyBuffer
@@ -214,7 +223,7 @@ struct PPU
         self.frontBuffer = PPU.emptyBuffer
     }
     
-    func readPalette(address aAddress: UInt16) -> UInt8
+    private mutating func readPalette(address aAddress: UInt16) -> UInt8 // mutating because it makes a copy of PPU otherwise
     {
         let index: UInt16 = (aAddress >= 16 && aAddress % 4 == 0) ? aAddress - 16 : aAddress
         return self.paletteData[Int(index)]
@@ -622,7 +631,7 @@ struct PPU
         
         let b = background % 4 != 0
         let s = spritePixelTuple.sprite % 4 != 0
-        var color: UInt8
+        let color: UInt8
         if !b && !s
         {
             color = 0
@@ -652,8 +661,10 @@ struct PPU
             }
         }
         
-        let c = Palette.colors[Int(self.readPalette(address: UInt16(color)) % 64)]
-        self.backBuffer[(256 * (223 - y)) + x] = c
+        /// TODO: why does this line cause "outlined destroy of PPU"?
+        let index: Int = /*Int(arc4random() % 64)*/ Int(self.readPalette(address: UInt16(color)) % 64)
+        let paletteColor: UInt32 = PPU.paletteColors[index]
+        self.backBuffer[(256 * (223 - y)) + x] = paletteColor
     }
 
     private mutating func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
@@ -786,22 +797,6 @@ struct PPU
         }
     }
     
-    /// processes NMI delay timing and returns a Boolean indicating whether the CPU should trigger an NMI
-//    private mutating func nmiCheck() -> Bool
-//    {
-//        var shouldTriggerNMIOnCPU: Bool = false
-//        if self.nmiDelay > 0
-//        {
-//            self.nmiDelay -= 1
-//            if self.nmiDelay == 0 && self.nmiOutput && self.nmiOccurred
-//            {
-//                shouldTriggerNMIOnCPU = true
-//            }
-//        }
-//        
-//        return shouldTriggerNMIOnCPU
-//    }
-
     /// executes a single PPU cycle, and returns a Boolean indicating whether the CPU should trigger an NMI based on this cycle
     mutating func step() -> PPUStepResults
     {
@@ -834,7 +829,7 @@ struct PPU
             {
                 self.renderPixel()
             }
-            
+
             if renderLine && fetchCycle
             {
                 self.tileData <<= 4
@@ -853,19 +848,19 @@ struct PPU
                 default: break
                 }
             }
-            
+
             if preLine && self.cycle >= 280 && self.cycle <= 304
             {
                 self.copyY()
             }
-            
+
             if renderLine
             {
                 if fetchCycle && self.cycle % 8 == 0
                 {
                     self.incrementX()
                 }
-                
+
                 if self.cycle == 256
                 {
                     self.incrementY()
@@ -898,14 +893,14 @@ struct PPU
         {
             self.setVerticalBlank()
         }
-        
+
         if preLine && self.cycle == 1
         {
             self.clearVerticalBlank()
             self.flagSpriteZeroHit = 0
             self.flagSpriteOverflow = 0
         }
-        
+
         let shouldTriggerIRQ: Bool
         if self.mapperHasStep
         {
