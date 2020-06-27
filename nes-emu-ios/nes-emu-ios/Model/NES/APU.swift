@@ -25,17 +25,15 @@
 
 import Foundation
 
-protocol APUProtocol: class
+struct APUStepResults
 {
-    func readRegister(address aAddress: UInt16) -> UInt8
-    func writeRegister(address aAddress: UInt16, value aValue: UInt8)
-    func step()
+    let shouldTriggerIRQOnCPU: Bool
+    let numCPUStallCycles: Int
 }
 
 /// NES Audio Processing Unit
-class APU: APUProtocol
+struct APU
 {
-    weak var cpu: CPUProtocol?
     weak var audioEngineDelegate: AudioEngineProtocol?
     private var audioBufferIndex: Int = 0
     private var audioBuffer: [Float32]
@@ -51,6 +49,7 @@ class APU: APUProtocol
     private var frameValue: UInt8 = 0
     private var frameIRQ: Bool = false
     private var filterChain: FilterChain
+    var dmcCurrentAddress: UInt16 { return self.dmc.currentAddress }
     
     static let frameCounterRate: Double = Double(CPU.frequency) / 240.0
 
@@ -87,17 +86,22 @@ class APU: APUProtocol
             ] : [])
     }
     
-    func step()
+    mutating func step(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> APUStepResults
     {
+        let shouldFireIRQ: Bool
         let cycle1 = self.cycle
         self.cycle += 1
         let cycle2 = self.cycle
-        self.stepTimer()
+        let numCPUStallCycles: Int = self.stepTimer(dmcCurrentAddressValue: aDmcCurrentAddressValue)
         let f1 = Int(Double(cycle1) / APU.frameCounterRate)
         let f2 = Int(Double(cycle2) / APU.frameCounterRate)
         if f1 != f2
         {
-            self.stepFrameCounter()
+            shouldFireIRQ = self.stepFrameCounter()
+        }
+        else
+        {
+            shouldFireIRQ = false
         }
         let s1 = Int(Double(cycle1) / self.cycleSampleRate)
         let s2 = Int(Double(cycle2) / self.cycleSampleRate)
@@ -105,9 +109,11 @@ class APU: APUProtocol
         {
             self.sendSample()
         }
+        
+        return APUStepResults(shouldTriggerIRQOnCPU: shouldFireIRQ, numCPUStallCycles: numCPUStallCycles)
     }
 
-    func sendSample()
+    mutating func sendSample()
     {
         let output = self.filterChain.step(x: self.output())
         self.audioBuffer[self.audioBufferIndex] = output
@@ -136,8 +142,9 @@ class APU: APUProtocol
     //  - - - f    - - - - -    IRQ (if bit 6 is clear)
     //  - l - l    l - l - -    Length counter and sweep
     //  e e e e    e e e e -    Envelope and linear counter
-    func stepFrameCounter()
+    mutating func stepFrameCounter() -> Bool
     {
+        var shouldFireIRQ: Bool = false
         switch self.framePeriod
         {
         case 4:
@@ -154,7 +161,10 @@ class APU: APUProtocol
                 self.stepEnvelope()
                 self.stepSweep()
                 self.stepLength()
-                self.fireIRQ()
+                if self.frameIRQ
+                {
+                    shouldFireIRQ = true
+                }
             default: break
             }
         case 5:
@@ -171,21 +181,30 @@ class APU: APUProtocol
             }
         default: break
         }
+        
+        return shouldFireIRQ
     }
 
-    func stepTimer()
+    mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
     {
+        let numCPUStallCycles: Int
         if self.cycle % 2 == 0
         {
             self.pulse1.stepTimer()
             self.pulse2.stepTimer()
             self.noise.stepTimer()
-            self.dmc.stepTimer(withCPU: self.cpu)
+            numCPUStallCycles = self.dmc.stepTimer(dmcCurrentAddressValue: aDmcCurrentAddressValue)
+        }
+        else
+        {
+            numCPUStallCycles = 0
         }
         self.triangle.stepTimer()
+        
+        return numCPUStallCycles
     }
 
-    func stepEnvelope()
+    mutating func stepEnvelope()
     {
         self.pulse1.stepEnvelope()
         self.pulse2.stepEnvelope()
@@ -193,26 +212,18 @@ class APU: APUProtocol
         self.noise.stepEnvelope()
     }
 
-    func stepSweep()
+    mutating func stepSweep()
     {
         self.pulse1.stepSweep()
         self.pulse2.stepSweep()
     }
 
-    func stepLength()
+    mutating func stepLength()
     {
         self.pulse1.stepLength()
         self.pulse2.stepLength()
         self.triangle.stepLength()
         self.noise.stepLength()
-    }
-
-    func fireIRQ()
-    {
-        if self.frameIRQ
-        {
-            self.cpu?.triggerIRQ()
-        }
     }
 
     func readRegister(address aAddress: UInt16) -> UInt8
@@ -225,7 +236,7 @@ class APU: APUProtocol
         }
     }
 
-    func writeRegister(address aAddress: UInt16, value aValue: UInt8)
+    mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)
     {
         switch aAddress {
         case 0x4000:
@@ -303,7 +314,7 @@ class APU: APUProtocol
         return result
     }
 
-    func writeControl(value aValue: UInt8)
+    mutating func writeControl(value aValue: UInt8)
     {
         self.pulse1.enabled = aValue & 1 == 1
         self.pulse2.enabled = aValue & 2 == 2
@@ -344,7 +355,7 @@ class APU: APUProtocol
         }
     }
 
-    func writeFrameCounter(value aValue: UInt8)
+    mutating func writeFrameCounter(value aValue: UInt8)
     {
         self.framePeriod = 4 + (aValue >> 7) & 1
         self.frameIRQ = (aValue >> 6) & 1 == 0
@@ -357,7 +368,7 @@ class APU: APUProtocol
     }
     
     /// sampleRate: samples per second cutoffFreq: oscillations per second
-    private class func lowPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
+    private static func lowPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
     {
         let c = aSampleRate / Float32.pi / aCutoffFreq
         let a0i = 1 / (1 + c)
@@ -365,7 +376,7 @@ class APU: APUProtocol
     }
 
     /// sampleRate: samples per second cutoffFreq: oscillations per second
-    private class func highPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
+    private static func highPassFilter(sampleRate aSampleRate: Float32, cutoffFreq aCutoffFreq: Float32) -> Filter
     {
         let c = aSampleRate / Float32.pi / aCutoffFreq
         let a0i = 1 / (1 + c)
@@ -805,14 +816,14 @@ class APU: APUProtocol
             self.currentLength = self.sampleLength
         }
 
-        mutating func stepTimer(withCPU aCPU: CPUProtocol?)
+        mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
         {
             if !self.enabled
             {
-                return
+                return 0
             }
             
-            self.stepReader(withCPU: aCPU)
+            let numCPUStallCycles: Int = self.stepReader(dmcCurrentAddressValue: aDmcCurrentAddressValue)
             
             if self.tickValue == 0
             {
@@ -823,18 +834,19 @@ class APU: APUProtocol
             {
                 self.tickValue -= 1
             }
+            
+            return numCPUStallCycles
         }
 
-        mutating func stepReader(withCPU aCPU: CPUProtocol?)
+        mutating func stepReader(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
         {
-            guard let safeCPU = aCPU else { return }
-            
+            let numCPUStallCycles: Int
             if self.currentLength > 0 && self.bitCount == 0
             {
-                safeCPU.stall += 4
-                self.shiftRegister = safeCPU.read(address: self.currentAddress)
+                numCPUStallCycles = 4
+                self.shiftRegister = aDmcCurrentAddressValue
                 self.bitCount = 8
-                self.currentAddress += 1
+                self.currentAddress &+= 1
                 
                 if self.currentAddress == 0
                 {
@@ -848,6 +860,12 @@ class APU: APUProtocol
                     self.restart()
                 }
             }
+            else
+            {
+                numCPUStallCycles = 0
+            }
+            
+            return numCPUStallCycles
         }
 
         mutating func stepShifter()

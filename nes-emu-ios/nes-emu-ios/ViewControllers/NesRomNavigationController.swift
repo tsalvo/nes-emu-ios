@@ -36,36 +36,36 @@ class NesRomNavigationController: UINavigationController, NesRomNavigationContro
 {
     var document: NesRomDocument?
     
+    override func viewDidLoad()
+    {
+        if let safeCartridge = self.document?.cartridge,
+            let safeEmulatorVC = self.viewControllers.first as? EmulatorProtocol
+        {
+            safeEmulatorVC.cartridge = safeCartridge
+        }
+        
+        // close right away because we don't need the document anymore
+        self.document?.close(completionHandler: { [weak self] (_) in
+            self?.document = nil
+        })
+    }
+    
     func pauseEmulation()
     {
-        (self.viewControllers.first as? EmulationControlProtocol)?.pauseEmulation()
+        (self.viewControllers.first as? EmulatorProtocol)?.pauseEmulation()
     }
     
     func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
     {
-        func closeIfNeeded(completionHandler aCompletionHandler: ((Bool) -> Void)?)
-        {
-            if let safeDocument = self.document
-            {
-                safeDocument.close(completionHandler: { (success) in
-                    aCompletionHandler?(success)
-                })
-            }
-            else
-            {
-                aCompletionHandler?(true)
-            }
-        }
-        
         if !self.isBeingDismissed
         {
             self.dismiss(animated: true, completion: {
-                closeIfNeeded(completionHandler: aCompletionHandler)
+                aCompletionHandler?(true)
             })
         }
         else
         {
-            closeIfNeeded(completionHandler: aCompletionHandler)
+            aCompletionHandler?(true)
         }
     }
 }

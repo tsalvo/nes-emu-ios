@@ -25,14 +25,6 @@
 
 import Foundation
 
-protocol ControllerProtocol: class
-{
-    func read() -> UInt8
-    func write(value aValue: UInt8)
-    func set(buttons aButtons: [Bool])
-    func set(buttonAtIndex aIndex: Int, enabled aEnabled: Bool)
-}
-
 enum ControllerButton: Int
 {
     case buttonA = 0,
@@ -45,13 +37,13 @@ enum ControllerButton: Int
     buttonRight = 7
 }
 
-class Controller: ControllerProtocol
+struct Controller
 {
-    var index: UInt8 = 0
-    var buttons: [Bool] = [Bool].init(repeating: false, count: 8)
-    var strobe: UInt8 = 0
+    private var index: UInt8 = 0
+    private var buttons: [Bool] = [Bool].init(repeating: false, count: 8)
+    private var strobe: UInt8 = 0
     
-    func read() -> UInt8
+    mutating func read() -> UInt8
     {
         var value: UInt8 = 0
         
@@ -69,7 +61,7 @@ class Controller: ControllerProtocol
         return value
     }
     
-    func write(value aValue: UInt8)
+    mutating func write(value aValue: UInt8)
     {
         self.strobe = aValue
         if self.strobe & 1 == 1
@@ -78,12 +70,12 @@ class Controller: ControllerProtocol
         }
     }
     
-    func set(buttons aButtons: [Bool])
+    mutating func set(buttons aButtons: [Bool])
     {
         self.buttons = aButtons
     }
     
-    func set(buttonAtIndex aIndex: Int, enabled aEnabled: Bool)
+    mutating func set(buttonAtIndex aIndex: Int, enabled aEnabled: Bool)
     {
         guard aIndex < 8 else { return }
         self.buttons[aIndex] = aEnabled

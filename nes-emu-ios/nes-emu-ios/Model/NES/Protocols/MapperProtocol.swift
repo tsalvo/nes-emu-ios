@@ -26,23 +26,39 @@
 import Foundation
 import os
 
-protocol MapperProtocol: class
+struct MapperStepResults
 {
+    let shouldTriggerIRQOnCPU: Bool
+}
+
+struct MapperStepInput
+{
+    let ppuScanline: Int
+    let ppuCycle: Int
+    let ppuShowBackground: Bool
+    let ppuShowSprites: Bool
+}
+
+protocol MapperProtocol
+{
+    /// returns a Bool indicating whether the step function returns anything
     var hasStep: Bool { get }
+    
+    /// returns the current mirroring mode for the mapper.  the mirroring mode is initially set to whatever the NES ROM iNES header specifies, but some mappers allow this to be changed at runtime
     var mirroringMode: MirroringMode { get }
     
     /// read a given mapper address from the CPU (must be an address in the range 0x6000 ... 0xFFFF)
     func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
     
     /// write to a given mapper address from the CPU (must be an address in the range 0x6000 ... 0xFFFF)
-    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
+    mutating func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     
     /// read a given mapper address from the PPU (must be an address in the range 0x0000 ... 0x1FFF)
-    func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
+    mutating func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
     
     /// write to a given mapper address from the PPU (must be an address in the range 0x0000 ... 0x1FFF)
-    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     
     /// run a single cycle on the mapper, corresponding with a PPU cycle, if the mapper needs to interface with the CPU or PPU
-    func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
+    mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
 }

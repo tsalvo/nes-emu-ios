@@ -26,7 +26,7 @@
 import Foundation
 import os
 
-class Mapper_MMC3: MapperProtocol
+struct Mapper_MMC3: MapperProtocol
 {
     let hasStep: Bool = true
     
@@ -41,15 +41,15 @@ class Mapper_MMC3: MapperProtocol
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
     
-    var register: UInt8 = 0
-    var registers: [UInt8] = [UInt8].init(repeating: 0, count: 8)
-    var prgMode: UInt8 = 0
-    var chrMode: UInt8 = 0
-    var prgOffsets: [Int] = [Int].init(repeating: 0, count: 4)
-    var chrOffsets: [Int] = [Int].init(repeating: 0, count: 8)
-    var reload: UInt8 = 0
-    var counter: UInt8 = 0
-    var irqEnable: Bool = false
+    private var register: UInt8 = 0
+    private var registers: [UInt8] = [UInt8].init(repeating: 0, count: 8)
+    private var prgMode: UInt8 = 0
+    private var chrMode: UInt8 = 0
+    private var prgOffsets: [Int] = [Int].init(repeating: 0, count: 4)
+    private var chrOffsets: [Int] = [Int].init(repeating: 0, count: 8)
+    private var reload: UInt8 = 0
+    private var counter: UInt8 = 0
+    private var irqEnable: Bool = false
     
     init(withCartridge aCartridge: CartridgeProtocol)
     {
@@ -95,7 +95,7 @@ class Mapper_MMC3: MapperProtocol
         }
     }
     
-    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
+    mutating func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
@@ -116,41 +116,36 @@ class Mapper_MMC3: MapperProtocol
         return self.chr[self.chrOffsets[Int(bank)] + Int(offset)]
     }
     
-    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
         let bank = aAddress / 0x0400
         let offset = aAddress % 0x0400
         self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
     }
     
-    func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
+    mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        guard let ppu = aPPU,
-            let cpu = aCPU
-        else
+        if aMapperStepInput.ppuCycle != 280 // TODO: this *should* be 260
         {
-            return
+            return MapperStepResults(shouldTriggerIRQOnCPU: false)
         }
         
-        if ppu.cycle != 280 // TODO: this *should* be 260
+        if aMapperStepInput.ppuScanline > 239 && aMapperStepInput.ppuScanline < 261
         {
-            return
+            return MapperStepResults(shouldTriggerIRQOnCPU: false)
         }
         
-        if ppu.scanline > 239 && ppu.scanline < 261
+        if !aMapperStepInput.ppuShowBackground && !aMapperStepInput.ppuShowSprites
         {
-            return
+            return MapperStepResults(shouldTriggerIRQOnCPU: false)
         }
         
-        if !ppu.flagShowBackground && !ppu.flagShowSprites
-        {
-            return
-        }
+        let shouldTriggerIRQ = self.handleScanline()
         
-        self.handleScanline(cpu: cpu)
+        return MapperStepResults(shouldTriggerIRQOnCPU: shouldTriggerIRQ)
     }
 
-    private func writeRegister(address aAddress: UInt16, value aValue: UInt8)
+    private mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)
     {
         switch aAddress
         {
@@ -194,7 +189,7 @@ class Mapper_MMC3: MapperProtocol
         }
     }
 
-    private func writeBankSelect(value aValue: UInt8)
+    private mutating func writeBankSelect(value aValue: UInt8)
     {
         self.prgMode = (aValue >> 6) & 1
         self.chrMode = (aValue >> 7) & 1
@@ -202,13 +197,13 @@ class Mapper_MMC3: MapperProtocol
         self.updateOffsets()
     }
 
-    private func writeBankData(value aValue: UInt8)
+    private mutating func writeBankData(value aValue: UInt8)
     {
         self.registers[Int(self.register)] = aValue
         self.updateOffsets()
     }
 
-    private func writeMirror(value aValue: UInt8)
+    private mutating func writeMirror(value aValue: UInt8)
     {
         switch aValue & 1
         {
@@ -225,22 +220,22 @@ class Mapper_MMC3: MapperProtocol
         
     }
     
-    private func writeIRQLatch(value aValue: UInt8)
+    private mutating func writeIRQLatch(value aValue: UInt8)
     {
         self.reload = aValue
     }
 
-    private func writeIRQReload(value aValue: UInt8)
+    private mutating func writeIRQReload(value aValue: UInt8)
     {
         self.counter = 0
     }
 
-    private func writeIRQDisable(value aValue: UInt8)
+    private mutating func writeIRQDisable(value aValue: UInt8)
     {
         self.irqEnable = false
     }
 
-    private func writeIRQEnable(value aValue: UInt8)
+    private mutating func writeIRQEnable(value aValue: UInt8)
     {
         self.irqEnable = true
     }
@@ -281,7 +276,7 @@ class Mapper_MMC3: MapperProtocol
         return offset
     }
 
-    private func updateOffsets()
+    private mutating func updateOffsets()
     {
         switch self.prgMode {
         case 0:
@@ -319,21 +314,22 @@ class Mapper_MMC3: MapperProtocol
         }
     }
     
-    private func handleScanline(cpu aCPU: CPUProtocol)
+    private mutating func handleScanline() -> Bool
     {
+        let shouldTriggerIRQ: Bool
+        
         if self.counter == 0
         {
             self.counter = self.reload
+            shouldTriggerIRQ = false
         }
         else
         {
             self.counter -= 1
-            
-            if self.counter == 0 && self.irqEnable
-            {
-                aCPU.triggerIRQ()
-            }
+            shouldTriggerIRQ = self.counter == 0 && self.irqEnable
         }
+        
+        return shouldTriggerIRQ
     }
 }
 

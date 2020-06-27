@@ -25,116 +25,60 @@
 
 import Foundation
 
-protocol ConsoleProtocol: class
+struct Console
 {
-    var cpu: CPU { get }
-}
-
-class Console: ConsoleProtocol
-{
-    let apu: APU
-    let ppu: PPU
-    let cpu: CPU
-    let cartridge: Cartridge
-    let controllers: [Controller]
-    let queue: DispatchQueue
+    // MARK: - Private Variables
+    private var cpu: CPU
     
+    // MARK: - Computed Properties
+    /// returns a 256x224 array of palette colors copies from the PPU's current screen buffer
+    var screenBuffer: [UInt32]
+    {
+        return self.cpu.ppu.frontBuffer
+    }
+    
+    // MARK: - Life cycle
     init(withCartridge aCartridge: Cartridge, sampleRate aSampleRate: SampleRate, audioFiltersEnabled aAudioFiltersEnabled: Bool)
     {
-        self.queue = DispatchQueue(label: "ConsoleQueue", qos: .userInteractive)
-        let apu = APU(withSampleRate: aSampleRate, filtersEnabled: aAudioFiltersEnabled)
-        let controllers: [Controller] = [Controller(), Controller()]
-        let mapper = aCartridge.mapper
-        let ppu = PPU(mapper: mapper)
-        let cpu = CPU(ppu: ppu, apu: apu, mapper: mapper, controller1: controllers[0], controller2: controllers[1])
-        self.cpu = cpu
-        self.apu = apu
-        self.ppu = ppu
-        self.cartridge = aCartridge
-        self.controllers = controllers
-        self.ppu.cpu = cpu
-        self.apu.cpu = cpu
+        self.cpu = CPU(ppu: PPU(mapper: aCartridge.mapper), apu: APU(withSampleRate: aSampleRate, filtersEnabled: aAudioFiltersEnabled), controllers: [Controller(), Controller()])
     }
     
-    func set(audioEngineDelegate aAudioEngineDelegate: AudioEngineProtocol?)
+    // MARK: - Audio
+    mutating func set(audioEngineDelegate aAudioEngineDelegate: AudioEngineProtocol?)
     {
-        self.queue.async { [weak self] in
-            self?.apu.audioEngineDelegate = aAudioEngineDelegate
-        }
+        self.cpu.apu.audioEngineDelegate = aAudioEngineDelegate
     }
     
-    func set(button aButton: ControllerButton, enabled aEnabled: Bool, forControllerAtIndex aIndex: Int)
+    // MARK: - Buttons
+    
+    /// set an individual button to on or off for fontroller 0 or 1
+    mutating func set(button aButton: ControllerButton, enabled aEnabled: Bool, forControllerAtIndex aIndex: Int)
     {
-        self.queue.async { [weak self] in
-            guard aIndex < self?.controllers.count ?? Int.max else { return }
-            self?.controllers[aIndex].set(buttonAtIndex: aButton.rawValue, enabled: aEnabled)
-        }
+        guard aIndex < self.cpu.controllers.count else { return }
+        self.cpu.controllers[aIndex].set(buttonAtIndex: aButton.rawValue, enabled: aEnabled)
     }
     
     /// set all buttons at once for a given controller
-    func set(buttonUpPressed aButtonUpPressed: Bool, buttonDownPressed aButtonDownPressed: Bool, buttonLeftPressed aButtonLeftPressed: Bool, buttonRightPressed aButtonRightPressed: Bool, buttonSelectPressed aButtonSelectPressed: Bool, buttonStartPressed aButtonStartPressed: Bool, buttonBPressed aButtonBPressed: Bool, buttonAPressed aButtonAPressed: Bool, forControllerAtIndex aIndex: Int)
+    mutating func set(buttonUpPressed aButtonUpPressed: Bool, buttonDownPressed aButtonDownPressed: Bool, buttonLeftPressed aButtonLeftPressed: Bool, buttonRightPressed aButtonRightPressed: Bool, buttonSelectPressed aButtonSelectPressed: Bool, buttonStartPressed aButtonStartPressed: Bool, buttonBPressed aButtonBPressed: Bool, buttonAPressed aButtonAPressed: Bool, forControllerAtIndex aIndex: Int)
     {
-        self.queue.async { [weak self] in
-            guard aIndex < self?.controllers.count ?? Int.max else { return }
-            self?.controllers[aIndex].set(buttons: [aButtonAPressed, aButtonBPressed, aButtonSelectPressed, aButtonStartPressed, aButtonUpPressed, aButtonDownPressed, aButtonLeftPressed, aButtonRightPressed])
-        }
+        guard aIndex < self.cpu.controllers.count else { return }
+        self.cpu.controllers[aIndex].set(buttons: [aButtonAPressed, aButtonBPressed, aButtonSelectPressed, aButtonStartPressed, aButtonUpPressed, aButtonDownPressed, aButtonLeftPressed, aButtonRightPressed])
     }
     
-    func reset(completionHandler aCompletionHandler: (() -> Void)?)
+    /// reset the console and restart the currently-loaded game
+    mutating func reset()
     {
-        self.queue.async { [weak self] in
-            
-            self?.cpu.reset()
-            self?.ppu.reset()
-            
-            DispatchQueue.main.async {
-                aCompletionHandler?()
-            }
-        }
+        self.cpu.reset()
     }
     
-    func stepSeconds(seconds aSeconds: Float64, completionHandler aCompletionHandler: (() -> Void)?)
-    {
-        self.queue.async { [weak self] in
-            
-            var cycles = Int(Float64(CPU.frequency) * aSeconds)
-            while cycles > 0
-            {
-                cycles -= self?.step() ?? cycles
-            }
-            
-            DispatchQueue.main.async {
-                aCompletionHandler?()
-            }
-        }
-    }
+    // MARK: - Timing
     
-    private func step() -> Int
+    mutating func stepSeconds(seconds aSeconds: Float64)
     {
-        let cpuCycles = self.cpu.step()
-        let ppuCycles = cpuCycles * 3
-        
-        for _ in 0 ..< ppuCycles
+        var cycles = Int(Float64(CPU.frequency) * aSeconds)
+        while cycles > 0
         {
-            self.ppu.step()
+            cycles -= self.cpu.step()
         }
-        
-        for _ in 0 ..< cpuCycles
-        {
-            self.apu.step()
-        }
-        
-        return cpuCycles
-    }
-    
-    private func stepFrame() -> Int
-    {
-        var cpuCycles = 0
-        let frame = self.ppu.frame
-        while frame == self.ppu.frame
-        {
-            cpuCycles += self.step()
-        }
-        return cpuCycles
     }
 }

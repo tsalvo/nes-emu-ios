@@ -25,30 +25,22 @@
 
 import Foundation
 
-protocol PPUProtocol: MemoryProtocol
+struct PPUStepResults
 {
-    var frame: UInt64 { get }
-    var cycle: Int { get }
-    var scanline: Int { get }
-    var frontBuffer: [UInt32] { get }
-    var flagShowBackground: Bool { get }
-    var flagShowSprites: Bool { get }
-    func step()
-    func readRegister(address aAddress: UInt16) -> UInt8
-    func writeRegister(address aAddress: UInt16, value aValue: UInt8)
+    let shouldTriggerNMIOnCPU: Bool
+    let shouldTriggerIRQOnCPU: Bool
 }
 
 /// NES Picture Processing Unit
-class PPU: PPUProtocol
+struct PPU
 {
     private(set) var cycle: Int = 340
     private(set) var frame: UInt64 = 0
-    weak var cpu: CPUProtocol?
     
     /// an optimization to prevent unnecessary Mapper object type lookups and mapper step calls during frequent PPU.step() calls
     private let mapperHasStep: Bool
     
-    private let mapper: MapperProtocol
+    var mapper: MapperProtocol
     private var paletteData: [UInt8] = [UInt8].init(repeating: 0, count: 32)
     private var nameTableData: [UInt8] = [UInt8].init(repeating: 0, count: 2048)
     private var oamData: [UInt8] = [UInt8].init(repeating: 0, count: 256)
@@ -159,6 +151,15 @@ class PPU: PPUProtocol
     // MARK: Pixel Buffer
     
     static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 256 * 224)
+    private static let paletteColors: [UInt32] = [
+        0x666666FF, 0x882A00FF, 0xA71214FF, 0xA4003BFF, 0x7E005CFF, 0x40006EFF, 0x00066CFF, 0x001D56FF,
+        0x003533FF, 0x00480BFF, 0x005200FF, 0x084F00FF, 0x4D4000FF, 0x000000FF, 0x000000FF, 0x000000FF,
+        0xADADADFF, 0xD95F15FF, 0xFF4042FF, 0xFE2775FF, 0xCC1AA0FF, 0x7B1EB7FF, 0x2031B5FF, 0x004E99FF,
+        0x006D6BFF, 0x008738FF, 0x00930CFF, 0x328F00FF, 0x8D7C00FF, 0x000000FF, 0x000000FF, 0x000000FF,
+        0xFFFEFFFF, 0xFFB064FF, 0xFF9092FF, 0xFF76C6FF, 0xFF6AF3FF, 0xCC6EFEFF, 0x7081FEFF, 0x229EEAFF,
+        0x00BEBCFF, 0x00D888FF, 0x30E45CFF, 0x82E045FF, 0xDECD48FF, 0x4F4F4FFF, 0x000000FF, 0x000000FF,
+        0xFFFEFFFF, 0xFFDFC0FF, 0xFFD2D3FF, 0xFFC8E8FF, 0xFFC2FBFF, 0xEAC4FEFF, 0xC5CCFEFF, 0xA5D8F7FF,
+        0x94E5E4FF, 0x96EFCFFF, 0xABF4BDFF, 0xCCF3B3FF, 0xF2EBB5FF, 0xB8B8B8FF, 0x000000FF, 0x000000FF]
     
     /// colors in 0xBBGGRRAA format from Palette.colors
     private(set) var frontBuffer: [UInt32] = PPU.emptyBuffer
@@ -172,7 +173,7 @@ class PPU: PPUProtocol
         self.mapperHasStep = aMapper.hasStep
     }
     
-    func read(address aAddress: UInt16) -> UInt8
+    mutating func read(address aAddress: UInt16) -> UInt8
     {
         let address = aAddress % 0x4000
         switch address {
@@ -187,7 +188,7 @@ class PPU: PPUProtocol
         }
     }
     
-    func write(address aAddress: UInt16, value aValue: UInt8)
+    mutating func write(address aAddress: UInt16, value aValue: UInt8)
     {
         let address = aAddress % 0x4000
         switch address {
@@ -210,7 +211,7 @@ class PPU: PPUProtocol
         return 0x2000 + PPU.nameTableOffsetSequence[Int(aMirrorMode.rawValue)][Int(addrRange)] + offset
     }
     
-    func reset()
+    mutating func reset()
     {
         self.cycle = 340
         self.scanline = 240
@@ -222,19 +223,19 @@ class PPU: PPUProtocol
         self.frontBuffer = PPU.emptyBuffer
     }
     
-    func readPalette(address aAddress: UInt16) -> UInt8
+    private mutating func readPalette(address aAddress: UInt16) -> UInt8 // mutating because it makes a copy of PPU otherwise
     {
         let index: UInt16 = (aAddress >= 16 && aAddress % 4 == 0) ? aAddress - 16 : aAddress
         return self.paletteData[Int(index)]
     }
 
-    private func writePalette(address aAddress: UInt16, value aValue: UInt8)
+    private mutating func writePalette(address aAddress: UInt16, value aValue: UInt8)
     {
         let index: UInt16 = (aAddress >= 16 && aAddress % 4 == 0) ? aAddress - 16 : aAddress
         self.paletteData[Int(index)] = aValue
     }
 
-    func readRegister(address aAddress: UInt16) -> UInt8
+    mutating func readRegister(address aAddress: UInt16) -> UInt8
     {
         switch aAddress
         {
@@ -248,7 +249,7 @@ class PPU: PPUProtocol
         }
     }
 
-    func writeRegister(address aAddress: UInt16, value aValue: UInt8)
+    mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)
     {
         self.register = aValue
         switch aAddress
@@ -268,13 +269,16 @@ class PPU: PPUProtocol
         case 0x2007:
             self.writeData(value: aValue)
         case 0x4014:
-            self.writeDMA(value: aValue)
+            // Write DMA (this is actually handled elsewhere when the CPU calls the PPU's writeOAMData function)
+            break
         default: break
         }
     }
+    
+    
 
     // $2000: PPUCTRL
-    private func writeControl(value aValue: UInt8)
+    private mutating func writeControl(value aValue: UInt8)
     {
         self.flagNameTable = (aValue >> 0) & 3
         self.flagIncrement = ((aValue >> 2) & 1) == 1
@@ -289,7 +293,7 @@ class PPU: PPUProtocol
     }
 
     // $2001: PPUMASK
-    private func writeMask(value aValue: UInt8)
+    private mutating func writeMask(value aValue: UInt8)
     {
         self.flagGrayscale = ((aValue >> 0) & 1) == 1
         self.flagShowLeftBackground = ((aValue >> 1) & 1) == 1
@@ -302,7 +306,7 @@ class PPU: PPUProtocol
     }
     
     // $2002: PPUSTATUS
-    private func readStatus() -> UInt8
+    private mutating func readStatus() -> UInt8
     {
         var result = self.register & 0x1F
         result |= self.flagSpriteOverflow << 5
@@ -319,26 +323,26 @@ class PPU: PPUProtocol
     }
 
     // $2003: OAMADDR
-    private func writeOAMAddress(value aValue: UInt8)
+    private mutating func writeOAMAddress(value aValue: UInt8)
     {
         self.oamAddress = aValue
     }
 
     // $2004: OAMDATA (read)
-    private func readOAMData() -> UInt8
+    private mutating func readOAMData() -> UInt8
     {
         return self.oamData[Int(self.oamAddress)]
     }
 
     // $2004: OAMDATA (write)
-    private func writeOAMData(value aValue: UInt8)
+    private mutating func writeOAMData(value aValue: UInt8)
     {
         self.oamData[Int(self.oamAddress)] = aValue
         self.oamAddress &+= 1
     }
 
     // $2005: PPUSCROLL
-    private func writeScroll(value aValue: UInt8)
+    private mutating func writeScroll(value aValue: UInt8)
     {
         if self.w == false
         {
@@ -360,7 +364,7 @@ class PPU: PPUProtocol
     }
 
     // $2006: PPUADDR
-    private func writeAddress(value aValue: UInt8)
+    private mutating func writeAddress(value aValue: UInt8)
     {
         if self.w == false {
             // t: ..FEDCBA ........ = d: ..FEDCBA
@@ -381,7 +385,7 @@ class PPU: PPUProtocol
     }
 
     // $2007: PPUDATA (read)
-    private func readData() -> UInt8
+    private mutating func readData() -> UInt8
     {
         var value = self.read(address: self.v)
         
@@ -402,33 +406,27 @@ class PPU: PPUProtocol
     }
 
     // $2007: PPUDATA (write)
-    private func writeData(value aValue: UInt8)
+    private mutating func writeData(value aValue: UInt8)
     {
         self.write(address: self.v, value: aValue)
         self.v &+= self.flagIncrement ? 32 : 1
     }
 
     // $4014: OAMDMA
-    private func writeDMA(value aValue: UInt8)
+    
+    /// called by the CPU with 256 bytes of OAM data for sprites and metadata
+    mutating func writeOAMDMA(oamDMA aOamData: [UInt8])
     {
-        var address = UInt16(aValue) << 8
-        for _ in 0 ..< 256
+        for i in 0 ..< 256
         {
-            self.oamData[Int(self.oamAddress)] = self.cpu?.read(address: address) ?? 0
+            self.oamData[Int(self.oamAddress)] = aOamData[i]
             self.oamAddress &+= 1
-            address += 1
-        }
-        
-        self.cpu?.stall += 513
-        if (self.cpu?.cycles ?? 0) % 2 == 1
-        {
-            self.cpu?.stall += 1
         }
     }
-
+    
     // NTSC Timing Helper Functions
 
-    private func incrementX()
+    private mutating func incrementX()
     {
         // increment hori(v)
         // if coarse X == 31
@@ -446,7 +444,7 @@ class PPU: PPUProtocol
         }
     }
 
-    private func incrementY()
+    private mutating func incrementY()
     {
         // increment vert(v)
         // if fine Y < 7
@@ -483,21 +481,21 @@ class PPU: PPUProtocol
         }
     }
 
-    private func copyX()
+    private mutating func copyX()
     {
         // hori(v) = hori(t)
         // v: .....F.. ...EDCBA = t: .....F.. ...EDCBA
         self.v = (self.v & 0xFBE0) | (self.t & 0x041F)
     }
 
-    private func copyY()
+    private mutating func copyY()
     {
         // vert(v) = vert(t)
         // v: .IHGF.ED CBA..... = t: .IHGF.ED CBA.....
         self.v = (self.v & 0x841F) | (self.t & 0x7BE0)
     }
 
-    private func nmiChange()
+    private mutating func nmiChange()
     {
         let nmi = self.nmiOutput && self.nmiOccurred
         if nmi && !self.nmiPrevious
@@ -509,27 +507,27 @@ class PPU: PPUProtocol
         self.nmiPrevious = nmi
     }
 
-    private func setVerticalBlank()
+    private mutating func setVerticalBlank()
     {
         swap(&self.frontBuffer, &self.backBuffer)
         self.nmiOccurred = true
         self.nmiChange()
     }
 
-    private func clearVerticalBlank()
+    private mutating func clearVerticalBlank()
     {
         self.nmiOccurred = false
         self.nmiChange()
     }
 
-    private func fetchNameTableByte()
+    private mutating func fetchNameTableByte()
     {
         let v = self.v
         let address = 0x2000 | (v & 0x0FFF)
         self.nameTableByte = self.read(address: address)
     }
 
-    private func fetchAttributeTableByte()
+    private mutating func fetchAttributeTableByte()
     {
         let v = self.v
         let address = 0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07)
@@ -537,7 +535,7 @@ class PPU: PPUProtocol
         self.attributeTableByte = ((self.read(address: address) >> shift) & 3) << 2
     }
 
-    private func fetchLowTileByte()
+    private mutating func fetchLowTileByte()
     {
         let fineY = (self.v >> 12) & 7
         let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
@@ -546,7 +544,7 @@ class PPU: PPUProtocol
         self.lowTileByte = self.read(address: address)
     }
 
-    private func fetchHighTileByte()
+    private mutating func fetchHighTileByte()
     {
         let fineY = (self.v >> 12) & 7
         let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
@@ -555,7 +553,7 @@ class PPU: PPUProtocol
         self.highTileByte = self.read(address: address + 8)
     }
 
-    private func storeTileData()
+    private mutating func storeTileData()
     {
         var data: UInt32 = 0
         for _ in 0 ..< 8
@@ -611,7 +609,7 @@ class PPU: PPUProtocol
         return (0, 0)
     }
 
-    private func renderPixel()
+    private mutating func renderPixel()
     {
         let x = self.cycle - 1
         let y = self.scanline - 8
@@ -633,7 +631,7 @@ class PPU: PPUProtocol
         
         let b = background % 4 != 0
         let s = spritePixelTuple.sprite % 4 != 0
-        var color: UInt8
+        let color: UInt8
         if !b && !s
         {
             color = 0
@@ -663,11 +661,13 @@ class PPU: PPUProtocol
             }
         }
         
-        let c = Palette.colors[Int(self.readPalette(address: UInt16(color)) % 64)]
-        self.backBuffer[(256 * (223 - y)) + x] = c
+        /// TODO: why does this line cause "outlined destroy of PPU"?
+        let index: Int = /*Int(arc4random() % 64)*/ Int(self.readPalette(address: UInt16(color)) % 64)
+        let paletteColor: UInt32 = PPU.paletteColors[index]
+        self.backBuffer[(256 * (223 - y)) + x] = paletteColor
     }
 
-    private func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
+    private mutating func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
     {
         var row = aRow
         var tile = self.oamData[(aI * 4) + 1]
@@ -730,7 +730,7 @@ class PPU: PPUProtocol
         return data
     }
 
-    private func evaluateSprites()
+    private mutating func evaluateSprites()
     {
         let h: Int = self.flagSpriteSize ? 16 : 8
         var count: Int = 0
@@ -767,18 +767,9 @@ class PPU: PPUProtocol
         self.spriteCount = count
     }
 
-    // tick updates Cycle, ScanLine and Frame counters
-    private func tick()
+    /// Updates Cycle, ScanLine and Frame counters.
+    private mutating func tick()
     {
-        if self.nmiDelay > 0
-        {
-            self.nmiDelay -= 1
-            if self.nmiDelay == 0 && self.nmiOutput && self.nmiOccurred
-            {
-                self.cpu?.triggerNMI()
-            }
-        }
-
         if self.flagShowBackground || self.flagShowSprites
         {
             if self.f == true && self.scanline == 261 && self.cycle == 339
@@ -805,10 +796,21 @@ class PPU: PPUProtocol
             }
         }
     }
-
-    /// executes a single PPU cycle
-    func step()
+    
+    /// executes a single PPU cycle, and returns a Boolean indicating whether the CPU should trigger an NMI based on this cycle
+    mutating func step() -> PPUStepResults
     {
+        var shouldTriggerNMI: Bool = false
+        
+        if self.nmiDelay > 0
+        {
+            self.nmiDelay -= 1
+            if self.nmiDelay == 0 && self.nmiOutput && self.nmiOccurred
+            {
+                shouldTriggerNMI = true
+            }
+        }
+        
         self.tick()
 
         let renderingEnabled: Bool = self.flagShowBackground || self.flagShowSprites
@@ -827,7 +829,7 @@ class PPU: PPUProtocol
             {
                 self.renderPixel()
             }
-            
+
             if renderLine && fetchCycle
             {
                 self.tileData <<= 4
@@ -846,19 +848,19 @@ class PPU: PPUProtocol
                 default: break
                 }
             }
-            
+
             if preLine && self.cycle >= 280 && self.cycle <= 304
             {
                 self.copyY()
             }
-            
+
             if renderLine
             {
                 if fetchCycle && self.cycle % 8 == 0
                 {
                     self.incrementX()
                 }
-                
+
                 if self.cycle == 256
                 {
                     self.incrementY()
@@ -891,17 +893,24 @@ class PPU: PPUProtocol
         {
             self.setVerticalBlank()
         }
-        
+
         if preLine && self.cycle == 1
         {
             self.clearVerticalBlank()
             self.flagSpriteZeroHit = 0
             self.flagSpriteOverflow = 0
         }
-        
+
+        let shouldTriggerIRQ: Bool
         if self.mapperHasStep
         {
-            self.mapper.step(ppu: self, cpu: self.cpu)
+            shouldTriggerIRQ = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites))?.shouldTriggerIRQOnCPU ?? false
         }
+        else
+        {
+            shouldTriggerIRQ = false
+        }
+        
+        return PPUStepResults(shouldTriggerNMIOnCPU: shouldTriggerNMI, shouldTriggerIRQOnCPU: shouldTriggerIRQ)
     }
 }

@@ -26,7 +26,7 @@
 import Foundation
 import os
 
-class Mapper_NROM_UNROM: MapperProtocol
+struct Mapper_NROM_UNROM: MapperProtocol
 {
     let hasStep: Bool = false
     
@@ -92,7 +92,7 @@ class Mapper_NROM_UNROM: MapperProtocol
         }
     }
     
-    func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
+    mutating func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
         switch aAddress {
         case 0x8000 ... 0xFFFF:
@@ -110,13 +110,13 @@ class Mapper_NROM_UNROM: MapperProtocol
         return self.chr[Int(aAddress)]
     }
     
-    func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
+    mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
         self.chr[Int(aAddress)] = aValue
     }
     
-    func step(ppu aPPU: PPUProtocol?, cpu aCPU: CPUProtocol?)
+    mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        
+        return nil
     }
 }
