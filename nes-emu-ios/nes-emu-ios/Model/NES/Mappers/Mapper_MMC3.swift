@@ -41,15 +41,15 @@ struct Mapper_MMC3: MapperProtocol
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
     
-    var register: UInt8 = 0
-    var registers: [UInt8] = [UInt8].init(repeating: 0, count: 8)
-    var prgMode: UInt8 = 0
-    var chrMode: UInt8 = 0
-    var prgOffsets: [Int] = [Int].init(repeating: 0, count: 4)
-    var chrOffsets: [Int] = [Int].init(repeating: 0, count: 8)
-    var reload: UInt8 = 0
-    var counter: UInt8 = 0
-    var irqEnable: Bool = false
+    private var register: UInt8 = 0
+    private var registers: [UInt8] = [UInt8].init(repeating: 0, count: 8)
+    private var prgMode: UInt8 = 0
+    private var chrMode: UInt8 = 0
+    private var prgOffsets: [Int] = [Int].init(repeating: 0, count: 4)
+    private var chrOffsets: [Int] = [Int].init(repeating: 0, count: 8)
+    private var reload: UInt8 = 0
+    private var counter: UInt8 = 0
+    private var irqEnable: Bool = false
     
     init(withCartridge aCartridge: CartridgeProtocol)
     {

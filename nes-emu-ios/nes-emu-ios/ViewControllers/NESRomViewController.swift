@@ -26,12 +26,13 @@
 import UIKit
 import GameController
 
-protocol EmulationControlProtocol
+protocol EmulatorProtocol: class
 {
+    var cartridge: Cartridge? { get set }
     func pauseEmulation()
 }
 
-class NesRomViewController: UIViewController, EmulationControlProtocol
+class NesRomViewController: UIViewController, EmulatorProtocol
 {
     // MARK: - Constants
     private static let defaultFrameQueueSize: Int = 10
@@ -55,7 +56,20 @@ class NesRomViewController: UIViewController, EmulationControlProtocol
     
     private var consoleFrameQueueSize: Int = NesRomViewController.defaultFrameQueueSize
     private var consoleFramesQueued: Int = 0
-    private var document: NesRomDocument? { return (self.navigationController as? NesRomNavigationController)?.document }
+    var cartridge: Cartridge?
+    {
+        didSet
+        {
+            guard let safeCartridge = self.cartridge else { return }
+            let sampleRate: SampleRate = SampleRate.init(rawValue: UserDefaults.standard.integer(forKey: Settings.sampleRateKey)) ?? Settings.defaultSampleRate
+            let audioFiltersEnabled: Bool = UserDefaults.standard.bool(forKey: Settings.audioFiltersEnabledKey)
+            self.consoleQueue.async { [weak self] in
+                self?.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled)
+                self?.console?.set(audioEngineDelegate: self?.audioEngine)
+                self?.console?.reset()
+            }
+        }
+    }
     private let consoleQueue: DispatchQueue = DispatchQueue(label: "ConsoleQueue", qos: .userInteractive)
     
     private var controller1: GCController?
@@ -102,17 +116,6 @@ class NesRomViewController: UIViewController, EmulationControlProtocol
 #elseif targetEnvironment(simulator)
         self.setOnScreenControlsHidden(false, animated: false)
 #endif
-        let sampleRate: SampleRate = SampleRate.init(rawValue: UserDefaults.standard.integer(forKey: Settings.sampleRateKey)) ?? Settings.defaultSampleRate
-        let audioFiltersEnabled: Bool = UserDefaults.standard.bool(forKey: Settings.audioFiltersEnabledKey)
-        self.screen.buffer = PPU.emptyBuffer
-        if let safeCartridge = self.document?.cartridge
-        {
-            self.consoleQueue.async { [weak self] in
-                self?.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled)
-                self?.console?.set(audioEngineDelegate: self?.audioEngine)
-                self?.console?.reset()
-            }
-        }
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -135,7 +138,7 @@ class NesRomViewController: UIViewController, EmulationControlProtocol
         UIApplication.shared.isIdleTimerDisabled = false
     }
     
-    // MARK: EmulationControlProtocol
+    // MARK: EmulatorProtocol
     func pauseEmulation()
     {
         self.consoleFrameQueueSize = 0
@@ -148,9 +151,7 @@ class NesRomViewController: UIViewController, EmulationControlProtocol
         if !self.isBeingDismissed
         {
             self.destroyDisplayLink()
-            self.dismiss(animated: true, completion: { [weak self] in
-                self?.document?.close(completionHandler: nil)
-            })
+            self.dismiss(animated: true, completion: nil)
         }
     }
     
@@ -389,10 +390,10 @@ class NesRomViewController: UIViewController, EmulationControlProtocol
         
         self.consoleQueue.async { [weak self] in
             self?.console?.stepSeconds(seconds: 1.0 / 60.0)
-            
+            let buffer = self?.console?.screenBuffer ?? PPU.emptyBuffer
             DispatchQueue.main.async { [weak self] in
                 self?.consoleFramesQueued -= 1
-                self?.screen.buffer = self?.console?.cpu.ppu.frontBuffer ?? PPU.emptyBuffer
+                self?.screen.buffer = buffer
             }
         }
     }

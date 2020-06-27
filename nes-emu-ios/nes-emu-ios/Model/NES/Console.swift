@@ -27,18 +27,31 @@ import Foundation
 
 struct Console
 {
-    private(set) var cpu: CPU
+    // MARK: - Private Variables
+    private var cpu: CPU
     
+    // MARK: - Computed Properties
+    /// returns a 256x224 array of palette colors copies from the PPU's current screen buffer
+    var screenBuffer: [UInt32]
+    {
+        return self.cpu.ppu.frontBuffer
+    }
+    
+    // MARK: - Life cycle
     init(withCartridge aCartridge: Cartridge, sampleRate aSampleRate: SampleRate, audioFiltersEnabled aAudioFiltersEnabled: Bool)
     {
         self.cpu = CPU(ppu: PPU(mapper: aCartridge.mapper), apu: APU(withSampleRate: aSampleRate, filtersEnabled: aAudioFiltersEnabled), controllers: [Controller(), Controller()])
     }
     
+    // MARK: - Audio
     mutating func set(audioEngineDelegate aAudioEngineDelegate: AudioEngineProtocol?)
     {
         self.cpu.apu.audioEngineDelegate = aAudioEngineDelegate
     }
     
+    // MARK: - Buttons
+    
+    /// set an individual button to on or off for fontroller 0 or 1
     mutating func set(button aButton: ControllerButton, enabled aEnabled: Bool, forControllerAtIndex aIndex: Int)
     {
         guard aIndex < self.cpu.controllers.count else { return }
@@ -52,23 +65,20 @@ struct Console
         self.cpu.controllers[aIndex].set(buttons: [aButtonAPressed, aButtonBPressed, aButtonSelectPressed, aButtonStartPressed, aButtonUpPressed, aButtonDownPressed, aButtonLeftPressed, aButtonRightPressed])
     }
     
+    /// reset the console and restart the currently-loaded game
     mutating func reset()
     {
         self.cpu.reset()
     }
+    
+    // MARK: - Timing
     
     mutating func stepSeconds(seconds aSeconds: Float64)
     {
         var cycles = Int(Float64(CPU.frequency) * aSeconds)
         while cycles > 0
         {
-            cycles -= self.step()
+            cycles -= self.cpu.step()
         }
-    }
-    
-    private mutating func step() -> Int
-    {
-        let cpuCycles = self.cpu.step()
-        return cpuCycles
     }
 }
