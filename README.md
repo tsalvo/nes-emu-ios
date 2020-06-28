@@ -4,7 +4,7 @@ An NES emulator written in Swift for iOS / iPadOS / macOS / tvOS.  The NES emula
 
 ![NesRomViewController](/screenshots/screenshot01.png?raw=true) ![UIDocumentBrowserViewController](/screenshots/screenshot02.png?raw=true)
 
-This app uses the UIDocumentBrowserViewController for easy NES ROM (.nes) file browsing using the native Files app interface.  During emulation, each PPU output frame is rendered to a UIView as a CGImage.  The app uses AVAudioEngine for sound, with buffers scheduled periodically from the APU output.  Everything is done using native iOS frameworks, and no third-party libraries.
+This app uses the UIDocumentBrowserViewController for easy NES ROM (.nes) file browsing using the native Files app interface.  During emulation, PPU output frames are converted to CIImages and rendered to a Metal Texture (MTLTexture) within a MetalKit View (MTKView).  The app uses AVAudioEngine for sound, with buffers scheduled periodically from the APU output.  Everything is done using native iOS frameworks, and no third-party libraries.
 
 
 ## Current Features
