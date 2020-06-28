@@ -24,41 +24,83 @@
 //  SOFTWARE.
 
 import UIKit
-import CoreGraphics
+import MetalKit
+import os
 
-class NESScreenView: UIView
+class NESScreenView: MTKView, MTKViewDelegate
 {
-    var img: CGImage?
-    
+    private var queue: DispatchQueue = DispatchQueue.init(label: "renderQueue", qos: .userInteractive)
+
+    private let rgbColorSpace: CGColorSpace = CGColorSpaceCreateDeviceRGB()
+    private let context: CIContext
+    private let commandQueue: MTLCommandQueue
+    static private let elementLength: Int = 4
+    static private let screenWidth: Int = 256
+    static private let screenHeight: Int = 224
+    static private let bitsPerComponent: Int = 8
+    static private let imageSize: CGSize = CGSize(width: NESScreenView.screenWidth, height: NESScreenView.screenHeight)
+
+    required init(coder: NSCoder)
+    {
+        let dev: MTLDevice = MTLCreateSystemDefaultDevice()!
+        let commandQueue = dev.makeCommandQueue()!
+        self.context = CIContext.init(mtlCommandQueue: commandQueue, options: [.cacheIntermediates: false])
+        self.commandQueue = commandQueue
+
+        super.init(coder: coder)
+        
+        self.device = dev
+        self.autoResizeDrawable = false
+        self.drawableSize = CGSize(width: NESScreenView.screenWidth, height: NESScreenView.screenHeight)
+        self.isPaused = true
+        self.enableSetNeedsDisplay = false
+        self.framebufferOnly = false
+        self.delegate = self
+        self.isOpaque = true
+        self.clearsContextBeforeDrawing = false
+    }
+
     var buffer: [UInt32] = PPU.emptyBuffer
     {
         didSet
         {
-            let bitmapCount: Int = self.buffer.count
-            let elmentLength: Int = 4
-            let render: CGColorRenderingIntent = CGColorRenderingIntent.defaultIntent
-            let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
-            let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue)
-            let providerRef: CGDataProvider? = CGDataProvider(data: NSData(bytes: &self.buffer, length: bitmapCount * elmentLength))
-            let cgimage: CGImage? = CGImage(width: 256, height: 224, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: 256 * elmentLength, space: rgbColorSpace, bitmapInfo: bitmapInfo, provider: providerRef!, decode: nil, shouldInterpolate: true, intent: render)
-            self.img = cgimage
-            self.setNeedsDisplay()
+            self.queue.async { [weak self] in
+                self?.draw()
+            }
         }
     }
     
-    override func draw(_ rect: CGRect)
+    // MARK: - MTKViewDelegate
+    
+    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize)
     {
-        super.draw(rect)
 
-        guard let context = UIGraphicsGetCurrentContext(),
-            let img = self.img
+    }
+
+    func draw(in view: MTKView)
+    {
+        guard let safeCurrentDrawable = self.currentDrawable,
+            let safeCommandBuffer = self.commandQueue.makeCommandBuffer()
         else
         {
             return
         }
         
-        context.setAllowsAntialiasing(false)
-        context.setShouldAntialias(false)
-        context.draw(img, in: self.bounds)
+        let image = CIImage(bitmapData: NSData(bytes: &self.buffer, length: NESScreenView.screenWidth * NESScreenView.screenHeight * NESScreenView.elementLength) as Data, bytesPerRow: NESScreenView.screenWidth * NESScreenView.elementLength, size: NESScreenView.imageSize, format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace)
+        let renderDestination = CIRenderDestination(width: Int(self.drawableSize.width), height: Int(self.drawableSize.height), pixelFormat: self.colorPixelFormat, commandBuffer: safeCommandBuffer) {
+            () -> MTLTexture in return safeCurrentDrawable.texture
+        }
+        
+        do
+        {
+            let _ = try self.context.startTask(toRender: image, to: renderDestination)
+        }
+        catch
+        {
+            os_log("%@", error.localizedDescription)
+        }
+        
+        safeCommandBuffer.present(safeCurrentDrawable)
+        safeCommandBuffer.commit()
     }
 }
