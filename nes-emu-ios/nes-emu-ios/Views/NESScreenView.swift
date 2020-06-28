@@ -24,49 +24,83 @@
 //  SOFTWARE.
 
 import UIKit
-import CoreGraphics
+import MetalKit
+import os
 
-class NESScreenView: UIView
+class NESScreenView: MTKView, MTKViewDelegate
 {
-    var buffer: [UInt32] = PPU.emptyBuffer
-    {
-        didSet
-        {
-            let providerRef: CGDataProvider? = CGDataProvider(data: NSData(bytes: &self.buffer, length: NESScreenView.screenWidth * NESScreenView.screenHeight * NESScreenView.elementLength))
-            let cgimage: CGImage? = CGImage(width: NESScreenView.screenWidth, height: NESScreenView.screenHeight, bitsPerComponent: NESScreenView.bitsPerComponent, bitsPerPixel: NESScreenView.bitsPerComponent * NESScreenView.elementLength, bytesPerRow: NESScreenView.screenWidth * NESScreenView.elementLength, space: self.rgbColorSpace, bitmapInfo: NESScreenView.bitmapInfo, provider: providerRef!, decode: nil, shouldInterpolate: false, intent: NESScreenView.renderIntent)
-            self.img = cgimage
-        }
-    }
-    
-    private var img: CGImage?
-    {
-        didSet
-        {
-            self.setNeedsDisplay()
-        }
-    }
-    
+    private var queue: DispatchQueue = DispatchQueue.init(label: "renderQueue", qos: .userInteractive)
+
     private let rgbColorSpace: CGColorSpace = CGColorSpaceCreateDeviceRGB()
-    static private let renderIntent: CGColorRenderingIntent = CGColorRenderingIntent.defaultIntent
-    static private let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue)
+    private let context: CIContext
+    private let commandQueue: MTLCommandQueue
     static private let elementLength: Int = 4
     static private let screenWidth: Int = 256
     static private let screenHeight: Int = 224
     static private let bitsPerComponent: Int = 8
-    
-    override func draw(_ rect: CGRect)
-    {
-        super.draw(rect)
+    static private let imageSize: CGSize = CGSize(width: NESScreenView.screenWidth, height: NESScreenView.screenHeight)
 
-        guard let context = UIGraphicsGetCurrentContext(),
-            let img = self.img
+    required init(coder: NSCoder)
+    {
+        let dev: MTLDevice = MTLCreateSystemDefaultDevice()!
+        let commandQueue = dev.makeCommandQueue()!
+        self.context = CIContext.init(mtlCommandQueue: commandQueue, options: [.cacheIntermediates: false])
+        self.commandQueue = commandQueue
+
+        super.init(coder: coder)
+        
+        self.device = dev
+        self.autoResizeDrawable = false
+        self.drawableSize = CGSize(width: NESScreenView.screenWidth, height: NESScreenView.screenHeight)
+        self.isPaused = true
+        self.enableSetNeedsDisplay = false
+        self.framebufferOnly = false
+        self.delegate = self
+        self.isOpaque = true
+        self.clearsContextBeforeDrawing = false
+    }
+
+    var buffer: [UInt32] = PPU.emptyBuffer
+    {
+        didSet
+        {
+            self.queue.async { [weak self] in
+                self?.draw()
+            }
+        }
+    }
+    
+    // MARK: - MTKViewDelegate
+    
+    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize)
+    {
+
+    }
+
+    func draw(in view: MTKView)
+    {
+        guard let safeCurrentDrawable = self.currentDrawable,
+            let safeCommandBuffer = self.commandQueue.makeCommandBuffer()
         else
         {
             return
         }
         
-        context.setAllowsAntialiasing(false)
-        context.setShouldAntialias(false)
-        context.draw(img, in: self.bounds)
+        let image = CIImage(bitmapData: NSData(bytes: &self.buffer, length: NESScreenView.screenWidth * NESScreenView.screenHeight * NESScreenView.elementLength) as Data, bytesPerRow: NESScreenView.screenWidth * NESScreenView.elementLength, size: NESScreenView.imageSize, format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace)
+        let renderDestination = CIRenderDestination(width: Int(self.drawableSize.width), height: Int(self.drawableSize.height), pixelFormat: self.colorPixelFormat, commandBuffer: safeCommandBuffer) {
+            () -> MTLTexture in return safeCurrentDrawable.texture
+        }
+        
+        do
+        {
+            let _ = try self.context.startTask(toRender: image, to: renderDestination)
+        }
+        catch
+        {
+            os_log("%@", error.localizedDescription)
+        }
+        
+        safeCommandBuffer.present(safeCurrentDrawable)
+        safeCommandBuffer.commit()
     }
 }

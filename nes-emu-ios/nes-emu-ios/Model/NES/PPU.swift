@@ -664,7 +664,7 @@ struct PPU
         /// TODO: why does this line cause "outlined destroy of PPU"?
         let index: Int = /*Int(arc4random() % 64)*/ Int(self.readPalette(address: UInt16(color)) % 64)
         let paletteColor: UInt32 = PPU.paletteColors[index]
-        self.backBuffer[(256 * (223 - y)) + x] = paletteColor
+        self.backBuffer[(256 * y) + x] = paletteColor
     }
 
     private mutating func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
