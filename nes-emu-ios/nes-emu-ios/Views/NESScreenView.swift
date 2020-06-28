@@ -28,23 +28,31 @@ import CoreGraphics
 
 class NESScreenView: UIView
 {
-    var img: CGImage?
-    
     var buffer: [UInt32] = PPU.emptyBuffer
     {
         didSet
         {
-            let bitmapCount: Int = self.buffer.count
-            let elmentLength: Int = 4
-            let render: CGColorRenderingIntent = CGColorRenderingIntent.defaultIntent
-            let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
-            let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue)
-            let providerRef: CGDataProvider? = CGDataProvider(data: NSData(bytes: &self.buffer, length: bitmapCount * elmentLength))
-            let cgimage: CGImage? = CGImage(width: 256, height: 224, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: 256 * elmentLength, space: rgbColorSpace, bitmapInfo: bitmapInfo, provider: providerRef!, decode: nil, shouldInterpolate: true, intent: render)
+            let providerRef: CGDataProvider? = CGDataProvider(data: NSData(bytes: &self.buffer, length: NESScreenView.screenWidth * NESScreenView.screenHeight * NESScreenView.elementLength))
+            let cgimage: CGImage? = CGImage(width: NESScreenView.screenWidth, height: NESScreenView.screenHeight, bitsPerComponent: NESScreenView.bitsPerComponent, bitsPerPixel: NESScreenView.bitsPerComponent * NESScreenView.elementLength, bytesPerRow: NESScreenView.screenWidth * NESScreenView.elementLength, space: self.rgbColorSpace, bitmapInfo: NESScreenView.bitmapInfo, provider: providerRef!, decode: nil, shouldInterpolate: false, intent: NESScreenView.renderIntent)
             self.img = cgimage
+        }
+    }
+    
+    private var img: CGImage?
+    {
+        didSet
+        {
             self.setNeedsDisplay()
         }
     }
+    
+    private let rgbColorSpace: CGColorSpace = CGColorSpaceCreateDeviceRGB()
+    static private let renderIntent: CGColorRenderingIntent = CGColorRenderingIntent.defaultIntent
+    static private let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue)
+    static private let elementLength: Int = 4
+    static private let screenWidth: Int = 256
+    static private let screenHeight: Int = 224
+    static private let bitsPerComponent: Int = 8
     
     override func draw(_ rect: CGRect)
     {
