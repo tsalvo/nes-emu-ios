@@ -35,7 +35,7 @@ protocol EmulatorProtocol: class
 class NesRomViewController: GCEventViewController, EmulatorProtocol
 {
     // MARK: - Constants
-    private static let defaultFrameQueueSize: Int = 10
+    private static let defaultFrameQueueSize: Int = 5
     
     // MARK: - UI Outlets
     @IBOutlet weak private var screen: NESScreenView!
@@ -78,6 +78,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     {
         didSet
         {
+            self.controller1?.playerIndex = GCControllerPlayerIndex.index1
             self.controller1BarButtonItem?.isEnabled = !(self.controller1?.extendedGamepad == nil)
 #if targetEnvironment(macCatalyst)
             self.setOnScreenControlsHidden(true, animated: false)
@@ -95,6 +96,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     {
         didSet
         {
+            self.controller2?.playerIndex = GCControllerPlayerIndex.index2
             self.controller2BarButtonItem?.isEnabled = !(self.controller2?.extendedGamepad == nil)
             if self.controller2 == nil
             {
@@ -409,7 +411,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     @objc private func handleControllerConnect(_ notification: Notification)
     {
         guard let safeController = notification.object as? GCController
-        else
+            else
         {
             return
         }
@@ -427,7 +429,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     @objc private func handleControllerDisconnect(_ notification: Notification)
     {
         guard let safeController = notification.object as? GCController
-        else
+            else
         {
             return
         }
