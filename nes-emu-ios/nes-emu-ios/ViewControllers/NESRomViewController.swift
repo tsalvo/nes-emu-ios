@@ -381,17 +381,31 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     // MARK - Display Link Frame Update
     @objc private func updateFrame()
     {
-        if let extendedPad = self.controller1?.extendedGamepad
+        if let extendedPad = self.controller1?.capture().extendedGamepad
         {
             self.consoleQueue.async { [weak self] in
                 self?.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 0)
             }
+            
+            if (extendedPad.leftThumbstickButton ?? extendedPad.leftTrigger).isPressed && (extendedPad.rightThumbstickButton ?? extendedPad.rightTrigger).isPressed
+            {
+                self.pauseEmulation()
+                self.dismissButtonPressed(nil)
+                return
+            }
         }
         
-        if let extendedPad = self.controller2?.extendedGamepad
+        if let extendedPad = self.controller2?.capture().extendedGamepad
         {
             self.consoleQueue.async { [weak self] in
                 self?.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 1)
+            }
+            
+            if (extendedPad.leftThumbstickButton ?? extendedPad.leftTrigger).isPressed && (extendedPad.rightThumbstickButton ?? extendedPad.rightTrigger).isPressed
+            {
+                self.pauseEmulation()
+                self.dismissButtonPressed(nil)
+                return
             }
         }
         
@@ -400,10 +414,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         
         self.consoleQueue.async { [weak self] in
             self?.console?.stepSeconds(seconds: 1.0 / 60.0)
-            let buffer = self?.console?.screenBuffer ?? PPU.emptyBuffer
             DispatchQueue.main.async { [weak self] in
                 self?.consoleFramesQueued -= 1
-                self?.screen.buffer = buffer
+                self?.screen.buffer = self?.console?.screenBuffer ?? PPU.emptyBuffer
             }
         }
     }
