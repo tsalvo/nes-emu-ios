@@ -78,7 +78,6 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     {
         didSet
         {
-            self.controller1?.playerIndex = GCControllerPlayerIndex.index1
             self.controller1BarButtonItem?.isEnabled = !(self.controller1?.extendedGamepad == nil)
 #if targetEnvironment(macCatalyst)
             self.setOnScreenControlsHidden(true, animated: false)
@@ -96,7 +95,6 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     {
         didSet
         {
-            self.controller2?.playerIndex = GCControllerPlayerIndex.index2
             self.controller2BarButtonItem?.isEnabled = !(self.controller2?.extendedGamepad == nil)
             if self.controller2 == nil
             {
@@ -116,6 +114,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.controllerUserInteractionEnabled = false
         self.consoleFrameQueueSize = NesRomViewController.defaultFrameQueueSize
         self.setupButtons()
+#if os(tvOS)
+        self.navigationController?.setNavigationBarHidden(true, animated: false)
+#endif
 #if targetEnvironment(macCatalyst)
         self.setOnScreenControlsHidden(true, animated: false)
 #elseif targetEnvironment(simulator)
@@ -433,6 +434,8 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         {
             return
         }
+        
+        safeController.playerIndex = .indexUnset
         
         if self.controller1 === safeController
         {
