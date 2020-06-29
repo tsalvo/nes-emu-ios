@@ -116,9 +116,6 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.controllerUserInteractionEnabled = false
         self.consoleFrameQueueSize = NesRomViewController.defaultFrameQueueSize
         self.setupButtons()
-#if os(tvOS)
-        self.navigationController?.setNavigationBarHidden(true, animated: false)
-#endif
 #if targetEnvironment(macCatalyst)
         self.setOnScreenControlsHidden(true, animated: false)
 #elseif targetEnvironment(simulator)
@@ -131,6 +128,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         super.viewWillAppear(animated)
         self.becomeFirstResponder()
         self.checkForControllers()
+#if os(tvOS)
+        self.navigationController?.setNavigationBarHidden(true, animated: true)
+#endif
         NotificationCenter.default.addObserver(self, selector: #selector(handleControllerConnect(_:)), name: NSNotification.Name.GCControllerDidConnect, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleControllerDisconnect(_:)), name: NSNotification.Name.GCControllerDidDisconnect, object: nil)
         UIApplication.shared.isIdleTimerDisabled = true
@@ -141,6 +141,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     {
         super.viewWillDisappear(animated)
         self.destroyDisplayLink()
+#if os(tvOS)
+        self.navigationController?.setNavigationBarHidden(false, animated: true)
+#endif
         self.resignFirstResponder()
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.GCControllerDidConnect, object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.GCControllerDidDisconnect, object: nil)
