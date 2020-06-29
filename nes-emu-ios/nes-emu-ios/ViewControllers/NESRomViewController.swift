@@ -35,7 +35,7 @@ protocol EmulatorProtocol: class
 class NesRomViewController: GCEventViewController, EmulatorProtocol
 {
     // MARK: - Constants
-    private static let defaultFrameQueueSize: Int = 5
+    private static let defaultFrameQueueSize: Int = 3
     
     // MARK: - UI Outlets
     @IBOutlet weak private var screen: NESScreenView!
@@ -111,6 +111,8 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     override func viewDidLoad()
     {
         super.viewDidLoad()
+        NotificationCenter.default.addObserver(self, selector: #selector(appResignedActive), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appBecameActive), name: UIApplication.didBecomeActiveNotification, object: nil)
         self.controllerUserInteractionEnabled = false
         self.consoleFrameQueueSize = NesRomViewController.defaultFrameQueueSize
         self.setupButtons()
@@ -140,8 +142,15 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         super.viewWillDisappear(animated)
         self.destroyDisplayLink()
         self.resignFirstResponder()
-        NotificationCenter.default.removeObserver(self)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.GCControllerDidConnect, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.GCControllerDidDisconnect, object: nil)
         UIApplication.shared.isIdleTimerDisabled = false
+    }
+    
+    deinit
+    {
+        NotificationCenter.default.removeObserver(self, name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIApplication.didBecomeActiveNotification, object: nil)
     }
     
     // MARK: EmulatorProtocol
@@ -460,6 +469,16 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         }
     }
     
+    @objc private func appResignedActive()
+    {
+        self.consoleQueue.suspend()
+    }
+    
+    @objc private func appBecameActive()
+    {
+        self.consoleQueue.resume()
+    }
+    
     // MARK: - Private Functions
     
     private func createDisplayLink()
@@ -482,7 +501,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     {
 #if targetEnvironment(simulator)
 #else
-        let currentControllers: [GCController] = GCController.controllers()
+        let currentControllers: [GCController] = GCController.controllers().filter({ $0.extendedGamepad != nil })
         
         if let safeController1 = self.controller1
         {
@@ -505,7 +524,13 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
             // reassign controller 1 if available
             for c in currentControllers
             {
-                if c !== self.controller2
+                if c === self.controller2
+                {
+                    self.controller1 = c
+                    self.controller2 = nil
+                    break
+                }
+                else
                 {
                     self.controller1 = c
                     break

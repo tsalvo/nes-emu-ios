@@ -78,13 +78,13 @@
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="F28-BY-33C" customClass="NESScreenView" customModule="nes_emu_tvos" customModuleProvider="target">
                                 <rect key="frame" x="494.5" y="205" width="931" height="815"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <color key="backgroundColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="F28-BY-33C" secondAttribute="height" multiplier="16:14" id="HmY-Bv-KGL"/>
                                 </constraints>
                             </view>
                         </subviews>
-                        <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" white="0.053804580479452052" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="F28-BY-33C" firstAttribute="top" relation="greaterThanOrEqual" secondItem="wu6-TO-1qx" secondAttribute="top" id="06g-J9-LmD"/>
                             <constraint firstItem="F28-BY-33C" firstAttribute="leading" secondItem="wu6-TO-1qx" secondAttribute="leading" priority="750" id="5bh-hN-edX"/>
