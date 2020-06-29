@@ -27,6 +27,8 @@ class RomListTableViewController: UITableViewController
         {
             self.romURLs.append(url)
         }
+        
+        self.romURLs.sort(by: { $0.lastPathComponent < $1.lastPathComponent })
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int

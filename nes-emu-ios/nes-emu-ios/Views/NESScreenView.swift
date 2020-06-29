@@ -58,6 +58,13 @@ class NESScreenView: MTKView, MTKViewDelegate
         self.delegate = self
         self.isOpaque = true
         self.clearsContextBeforeDrawing = false
+        NotificationCenter.default.addObserver(self, selector: #selector(appResignedActive), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appBecameActive), name: UIApplication.didBecomeActiveNotification, object: nil)
+    }
+    
+    deinit
+    {
+        NotificationCenter.default.removeObserver(self)
     }
 
     var buffer: [UInt32] = PPU.emptyBuffer
@@ -102,5 +109,15 @@ class NESScreenView: MTKView, MTKViewDelegate
         
         safeCommandBuffer.present(safeCurrentDrawable)
         safeCommandBuffer.commit()
+    }
+    
+    @objc private func appResignedActive()
+    {
+        self.queue.suspend()
+    }
+    
+    @objc private func appBecameActive()
+    {
+        self.queue.resume()
     }
 }

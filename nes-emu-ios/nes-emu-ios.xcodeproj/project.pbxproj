@@ -96,7 +96,6 @@
 		99FA3CBD24A6F1500065E539 /* SampleRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A43E9724944CFD0009DB5B /* SampleRate.swift */; };
 		99FA3CBE24A6F1500065E539 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995EEC48249DFB2300FE24F8 /* Settings.swift */; };
 		99FA3CBF24A6F16D0065E539 /* NESScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A372BE248F8EC000089773 /* NESScreenView.swift */; };
-		99FA3CC224A7A6130065E539 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99FA3CC124A7A6130065E539 /* CloudKit.framework */; };
 		99FB220A248DCC7A00D557A4 /* MapperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */; };
 		99FEEA60249DBB280072D225 /* NesRomNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */; };
 /* End PBXBuildFile section */
@@ -215,7 +214,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				99FA3CC224A7A6130065E539 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

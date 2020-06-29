@@ -35,7 +35,7 @@ protocol EmulatorProtocol: class
 class NesRomViewController: GCEventViewController, EmulatorProtocol
 {
     // MARK: - Constants
-    private static let defaultFrameQueueSize: Int = 10
+    private static let defaultFrameQueueSize: Int = 3
     
     // MARK: - UI Outlets
     @IBOutlet weak private var screen: NESScreenView!
@@ -111,9 +111,14 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     override func viewDidLoad()
     {
         super.viewDidLoad()
+        NotificationCenter.default.addObserver(self, selector: #selector(appResignedActive), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appBecameActive), name: UIApplication.didBecomeActiveNotification, object: nil)
         self.controllerUserInteractionEnabled = false
         self.consoleFrameQueueSize = NesRomViewController.defaultFrameQueueSize
         self.setupButtons()
+#if os(tvOS)
+        self.navigationController?.setNavigationBarHidden(true, animated: false)
+#endif
 #if targetEnvironment(macCatalyst)
         self.setOnScreenControlsHidden(true, animated: false)
 #elseif targetEnvironment(simulator)
@@ -137,8 +142,15 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         super.viewWillDisappear(animated)
         self.destroyDisplayLink()
         self.resignFirstResponder()
-        NotificationCenter.default.removeObserver(self)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.GCControllerDidConnect, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.GCControllerDidDisconnect, object: nil)
         UIApplication.shared.isIdleTimerDisabled = false
+    }
+    
+    deinit
+    {
+        NotificationCenter.default.removeObserver(self, name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIApplication.didBecomeActiveNotification, object: nil)
     }
     
     // MARK: EmulatorProtocol
@@ -378,17 +390,31 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     // MARK - Display Link Frame Update
     @objc private func updateFrame()
     {
-        if let extendedPad = self.controller1?.extendedGamepad
+        if let extendedPad = self.controller1?.capture().extendedGamepad
         {
             self.consoleQueue.async { [weak self] in
                 self?.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 0)
             }
+            
+            if (extendedPad.leftThumbstickButton ?? extendedPad.leftTrigger).isPressed && (extendedPad.rightThumbstickButton ?? extendedPad.rightTrigger).isPressed
+            {
+                self.pauseEmulation()
+                self.dismissButtonPressed(nil)
+                return
+            }
         }
         
-        if let extendedPad = self.controller2?.extendedGamepad
+        if let extendedPad = self.controller2?.capture().extendedGamepad
         {
             self.consoleQueue.async { [weak self] in
                 self?.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 1)
+            }
+            
+            if (extendedPad.leftThumbstickButton ?? extendedPad.leftTrigger).isPressed && (extendedPad.rightThumbstickButton ?? extendedPad.rightTrigger).isPressed
+            {
+                self.pauseEmulation()
+                self.dismissButtonPressed(nil)
+                return
             }
         }
         
@@ -397,10 +423,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         
         self.consoleQueue.async { [weak self] in
             self?.console?.stepSeconds(seconds: 1.0 / 60.0)
-            let buffer = self?.console?.screenBuffer ?? PPU.emptyBuffer
             DispatchQueue.main.async { [weak self] in
                 self?.consoleFramesQueued -= 1
-                self?.screen.buffer = buffer
+                self?.screen.buffer = self?.console?.screenBuffer ?? PPU.emptyBuffer
             }
         }
     }
@@ -409,7 +434,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     @objc private func handleControllerConnect(_ notification: Notification)
     {
         guard let safeController = notification.object as? GCController
-        else
+            else
         {
             return
         }
@@ -427,10 +452,12 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     @objc private func handleControllerDisconnect(_ notification: Notification)
     {
         guard let safeController = notification.object as? GCController
-        else
+            else
         {
             return
         }
+        
+        safeController.playerIndex = .indexUnset
         
         if self.controller1 === safeController
         {
@@ -440,6 +467,16 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         {
             self.controller2 = nil
         }
+    }
+    
+    @objc private func appResignedActive()
+    {
+        self.consoleQueue.suspend()
+    }
+    
+    @objc private func appBecameActive()
+    {
+        self.consoleQueue.resume()
     }
     
     // MARK: - Private Functions
@@ -464,7 +501,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     {
 #if targetEnvironment(simulator)
 #else
-        let currentControllers: [GCController] = GCController.controllers()
+        let currentControllers: [GCController] = GCController.controllers().filter({ $0.extendedGamepad != nil })
         
         if let safeController1 = self.controller1
         {
@@ -487,7 +524,13 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
             // reassign controller 1 if available
             for c in currentControllers
             {
-                if c !== self.controller2
+                if c === self.controller2
+                {
+                    self.controller1 = c
+                    self.controller2 = nil
+                    break
+                }
+                else
                 {
                     self.controller1 = c
                     break
