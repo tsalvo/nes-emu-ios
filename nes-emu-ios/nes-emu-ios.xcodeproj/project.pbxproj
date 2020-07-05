@@ -189,7 +189,6 @@
 		99FA3C9A24A6E7D00065E539 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		99FA3C9C24A6E7D00065E539 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99FA3CC024A7A4050065E539 /* nes-emu-tvos.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "nes-emu-tvos.entitlements"; sourceTree = "<group>"; };
-		99FA3CC124A7A6130065E539 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS13.4.sdk/System/Library/Frameworks/CloudKit.framework; sourceTree = DEVELOPER_DIR; };
 		99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperProtocol.swift; sourceTree = "<group>"; };
 		99FEEA5F249DBB280072D225 /* NesRomNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomNavigationController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -366,7 +365,6 @@
 		99E2E2032495D8C1008AFCDB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				99FA3CC124A7A6130065E539 /* CloudKit.framework */,
 				99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */,
 			);
 			name = Frameworks;
