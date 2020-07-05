@@ -63,6 +63,8 @@
 		99E2E21424966A32008AFCDB /* MirroringMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21224966A32008AFCDB /* MirroringMode.swift */; };
 		99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
 		99E2E21724966AB0008AFCDB /* MapperIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */; };
+		99F4B5C024AD6FD900DB3B36 /* Mapper_MMC5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F4B5BF24AD6FD900DB3B36 /* Mapper_MMC5.swift */; };
+		99F4B5C124AD6FD900DB3B36 /* Mapper_MMC5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F4B5BF24AD6FD900DB3B36 /* Mapper_MMC5.swift */; };
 		99FA3C9124A6E7CD0065E539 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FA3C9024A6E7CD0065E539 /* AppDelegate.swift */; };
 		99FA3C9324A6E7CD0065E539 /* RomListTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FA3C9224A6E7CD0065E539 /* RomListTableViewController.swift */; };
 		99FA3C9624A6E7CD0065E539 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99FA3C9424A6E7CD0065E539 /* Main.storyboard */; };
@@ -181,6 +183,7 @@
 		99E2E2092495D8C1008AFCDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99E2E21224966A32008AFCDB /* MirroringMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirroringMode.swift; sourceTree = "<group>"; };
 		99E2E21524966AB0008AFCDB /* MapperIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperIdentifier.swift; sourceTree = "<group>"; };
+		99F4B5BF24AD6FD900DB3B36 /* Mapper_MMC5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC5.swift; sourceTree = "<group>"; };
 		99FA3C8E24A6E7CD0065E539 /* nes-emu-tvos.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "nes-emu-tvos.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		99FA3C9024A6E7CD0065E539 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		99FA3C9224A6E7CD0065E539 /* RomListTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RomListTableViewController.swift; sourceTree = "<group>"; };
@@ -319,6 +322,7 @@
 				995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */,
 				995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */,
 				995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */,
+				99F4B5BF24AD6FD900DB3B36 /* Mapper_MMC5.swift */,
 				995C9ADA249BEC9A00429ECC /* Mapper_NROM_UNROM.swift */,
 				995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */,
 			);
@@ -566,6 +570,7 @@
 				994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */,
 				99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */,
 				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
+				99F4B5C024AD6FD900DB3B36 /* Mapper_MMC5.swift in Sources */,
 				992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */,
 				99B7C309249F33DC00B26AC6 /* Bundle+Version.swift in Sources */,
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
@@ -629,6 +634,7 @@
 				99FA3C9324A6E7CD0065E539 /* RomListTableViewController.swift in Sources */,
 				99FA3CA824A6F10B0065E539 /* UIStackView+ArrangedSubviews.swift in Sources */,
 				99FA3CB824A6F12A0065E539 /* Cartridge.swift in Sources */,
+				99F4B5C124AD6FD900DB3B36 /* Mapper_MMC5.swift in Sources */,
 				99FA3CAC24A6F1160065E539 /* Mapper_MMC1.swift in Sources */,
 				99FA3CB524A6F12A0065E539 /* CPU.swift in Sources */,
 				99FA3CB324A6F1270065E539 /* RomHeader.swift in Sources */,

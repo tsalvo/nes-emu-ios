@@ -119,6 +119,8 @@ struct Cartridge: CartridgeProtocol
             return Mapper_AxROM(withCartridge: self)
         case .MMC2:
             return Mapper_MMC2(withCartridge: self)
+        case .MMC5:
+            return Mapper_MMC5(withCartridge: self)
         default:
             return Mapper_UnsupportedPlaceholder(withCartridge: self)
         }
