@@ -78,8 +78,6 @@ struct CPU
     var ppu: PPU
     var controllers: [Controller]
     
-    private var metrics: [Instruction : Int] = [:]
-    
     init(ppu aPPU: PPU, apu aAPU: APU, controllers aControllers: [Controller])
     {
         self.apu = aAPU
@@ -698,7 +696,6 @@ struct CPU
         }
         let info: StepInfo = StepInfo(address: address, pc: self.pc, mode: mode)
         self.execute(instruction: instructioninfo.instruction, ofType: instructioninfo.instructionCategory, stepInfo: info)
-        //instructioninfo.code(info)
 
         retValue = Int(self.cycles - cycles)
         
@@ -733,10 +730,9 @@ struct CPU
     }
     
     // MARK: 6502 functions
-
+    
     private mutating func execute(instruction aInstruction: Instruction, ofType aInstructionType: InstructionCategory, stepInfo aStepInfo: StepInfo)
     {
-        // TODO: capture which instructions and categories are most frequent for most games, and check for them sooner
         switch aInstructionType
         {
         case .load:
@@ -760,45 +756,31 @@ struct CPU
         case .branch:
             switch aInstruction
             {
+                case .bne: self.bne(stepInfo: aStepInfo)
+                case .beq: self.beq(stepInfo: aStepInfo)
                 case .jsr: self.jsr(stepInfo: aStepInfo)
                 case .rti: self.rti(stepInfo: aStepInfo)
                 case .bpl: self.bpl(stepInfo: aStepInfo)
                 case .jmp: self.jmp(stepInfo: aStepInfo)
                 case .rts: self.rts(stepInfo: aStepInfo)
-                case .bne: self.bne(stepInfo: aStepInfo)
-                case .beq: self.beq(stepInfo: aStepInfo)
-                case .bmi: self.bmi(stepInfo: aStepInfo)
-                case .brk: self.brk(stepInfo: aStepInfo)
                 case .bvc: self.bvc(stepInfo: aStepInfo)
                 case .bvs: self.bvs(stepInfo: aStepInfo)
                 case .bcc: self.bcc(stepInfo: aStepInfo)
                 case .bcs: self.bcs(stepInfo: aStepInfo)
+                case .bmi: self.bmi(stepInfo: aStepInfo)
+                case .brk: self.brk(stepInfo: aStepInfo)
                 default:
                     break
             }
         case .stack:
             switch aInstruction
             {
-                case .php: self.php(stepInfo: aStepInfo)
-                case .pha: self.pha(stepInfo: aStepInfo)
                 case .pla: self.pla(stepInfo: aStepInfo)
+                case .pha: self.pha(stepInfo: aStepInfo)
+                case .php: self.php(stepInfo: aStepInfo)
                 case .plp: self.plp(stepInfo: aStepInfo)
                 case .txs: self.txs(stepInfo: aStepInfo)
                 case .tsx: self.tsx(stepInfo: aStepInfo)
-                default:
-                    break
-            }
-        case .arithmetic:
-            switch aInstruction
-            {
-                case .dec: self.dec(stepInfo: aStepInfo)
-                case .sbc: self.sbc(stepInfo: aStepInfo)
-                case .inc: self.inc(stepInfo: aStepInfo)
-                case .asl: self.asl(stepInfo: aStepInfo)
-                case .lsr: self.lsr(stepInfo: aStepInfo)
-                case .rol: self.rol(stepInfo: aStepInfo)
-                case .ror: self.ror(stepInfo: aStepInfo)
-                case .adc: self.adc(stepInfo: aStepInfo)
                 default:
                     break
             }
@@ -806,24 +788,39 @@ struct CPU
             switch aInstruction
             {
                 case .and: self.and(stepInfo: aStepInfo)
+                case .cmp: self.cmp(stepInfo: aStepInfo)
                 case .ora: self.ora(stepInfo: aStepInfo)
                 case .bit: self.bit(stepInfo: aStepInfo)
                 case .eor: self.eor(stepInfo: aStepInfo)
-                case .cpy: self.cpy(stepInfo: aStepInfo)
                 case .cpx: self.cpx(stepInfo: aStepInfo)
-                case .cmp: self.cmp(stepInfo: aStepInfo)
+                case .cpy: self.cpy(stepInfo: aStepInfo)
                 default:
                     break
             }
+        case .arithmetic:
+            switch aInstruction
+            {
+                case .lsr: self.lsr(stepInfo: aStepInfo)
+                case .adc: self.adc(stepInfo: aStepInfo)
+                case .inc: self.inc(stepInfo: aStepInfo)
+                case .rol: self.rol(stepInfo: aStepInfo)
+                case .dec: self.dec(stepInfo: aStepInfo)
+                case .sbc: self.sbc(stepInfo: aStepInfo)
+                case .asl: self.asl(stepInfo: aStepInfo)
+                case .ror: self.ror(stepInfo: aStepInfo)
+                default:
+                    break
+            }
+
         case .register:
             switch aInstruction
             {
-                case .dex: self.dex(stepInfo: aStepInfo)
-                case .dey: self.dey(stepInfo: aStepInfo)
                 case .iny: self.iny(stepInfo: aStepInfo)
                 case .inx: self.inx(stepInfo: aStepInfo)
-                case .tya: self.tya(stepInfo: aStepInfo)
+                case .dey: self.dey(stepInfo: aStepInfo)
+                case .dex: self.dex(stepInfo: aStepInfo)
                 case .tay: self.tay(stepInfo: aStepInfo)
+                case .tya: self.tya(stepInfo: aStepInfo)
                 case .tax: self.tax(stepInfo: aStepInfo)
                 case .txa: self.txa(stepInfo: aStepInfo)
                 default:
@@ -832,8 +829,8 @@ struct CPU
         case .flag:
             switch aInstruction
             {
-                case .sec: self.sec(stepInfo: aStepInfo)
                 case .clc: self.clc(stepInfo: aStepInfo)
+                case .sec: self.sec(stepInfo: aStepInfo)
                 case .cli: self.cli(stepInfo: aStepInfo)
                 case .sed: self.sed(stepInfo: aStepInfo)
                 case .sei: self.sei(stepInfo: aStepInfo)
