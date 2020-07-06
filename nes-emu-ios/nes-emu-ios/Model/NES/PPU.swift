@@ -274,8 +274,6 @@ struct PPU
         default: break
         }
     }
-    
-    
 
     // $2000: PPUCTRL
     private mutating func writeControl(value aValue: UInt8)
@@ -629,29 +627,28 @@ struct PPU
             }
         }
         
-        let b = background % 4 != 0
-        let s = spritePixelTuple.sprite % 4 != 0
+        let b: Bool = background % 4 != 0
+        let s: Bool = spritePixelTuple.sprite % 4 != 0
         let color: UInt8
-        if !b && !s
+        
+        if !b
         {
-            color = 0
+            color = s ? (spritePixelTuple.sprite | 0x10) : 0
         }
-        else if !b && s
-        {
-            color = spritePixelTuple.sprite | 0x10
-        }
-        else if b && !s
+        else if !s
         {
             color = background
         }
         else
         {
-            if self.spriteIndexes[Int(spritePixelTuple.i)] == 0 && x < 255
+            let spritePixelIndex: Int = Int(spritePixelTuple.i)
+            
+            if self.spriteIndexes[spritePixelIndex] == 0 && x < 255
             {
                 self.flagSpriteZeroHit = 1
             }
             
-            if self.spritePriorities[Int(spritePixelTuple.i)] == 0
+            if self.spritePriorities[spritePixelIndex] == 0
             {
                 color = spritePixelTuple.sprite | 0x10
             }
@@ -661,8 +658,7 @@ struct PPU
             }
         }
         
-        /// TODO: why does this line cause "outlined destroy of PPU"?
-        let index: Int = /*Int(arc4random() % 64)*/ Int(self.readPalette(address: UInt16(color)) % 64)
+        let index: Int = Int(self.readPalette(address: UInt16(color)) % 64)
         let paletteColor: UInt32 = PPU.paletteColors[index]
         self.backBuffer[(256 * y) + x] = paletteColor
     }
