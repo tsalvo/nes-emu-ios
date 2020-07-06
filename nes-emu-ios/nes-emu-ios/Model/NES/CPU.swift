@@ -612,38 +612,10 @@ struct CPU
     {
         var retValue: Int = 1
         
-        defer
-        {
-            // PPU Step
-            for _ in 0 ..< retValue * 3
-            {
-                let ppuStepResults: PPUStepResults = self.ppu.step()
-                if ppuStepResults.shouldTriggerNMIOnCPU
-                {
-                    self.triggerNMI()
-                }
-                else if ppuStepResults.shouldTriggerIRQOnCPU
-                {
-                    self.triggerIRQ()
-                }
-            }
-            
-            // APU Step
-            for _ in 0 ..< retValue
-            {
-                let dmcCurrentAddressValue: UInt8 = self.read(address: self.apu.dmcCurrentAddress)
-                let apuStepResults: APUStepResults = self.apu.step(dmcCurrentAddressValue: dmcCurrentAddressValue)
-                self.stall += apuStepResults.numCPUStallCycles
-                if apuStepResults.shouldTriggerIRQOnCPU
-                {
-                    self.triggerIRQ()
-                }
-            }
-        }
-        
         if self.stall > 0
         {
             self.stall -= 1
+            self.stepOthers(forNumCPUCycles: retValue)
             return retValue
         }
 
@@ -713,7 +685,38 @@ struct CPU
         
         retValue = Int(self.cycles - cycles)
         
+        self.stepOthers(forNumCPUCycles: retValue)
+        
         return retValue
+    }
+    
+    private mutating func stepOthers(forNumCPUCycles aNumCPUCycles: Int)
+    {
+        // PPU Step
+        for _ in 0 ..< aNumCPUCycles * 3
+        {
+            let ppuStepResults: PPUStepResults = self.ppu.step()
+            if ppuStepResults.shouldTriggerNMIOnCPU
+            {
+                self.triggerNMI()
+            }
+            else if ppuStepResults.shouldTriggerIRQOnCPU
+            {
+                self.triggerIRQ()
+            }
+        }
+        
+        // APU Step
+        for _ in 0 ..< aNumCPUCycles
+        {
+            let dmcCurrentAddressValue: UInt8 = self.read(address: self.apu.dmcCurrentAddress)
+            let apuStepResults: APUStepResults = self.apu.step(dmcCurrentAddressValue: dmcCurrentAddressValue)
+            self.stall += apuStepResults.numCPUStallCycles
+            if apuStepResults.shouldTriggerIRQOnCPU
+            {
+                self.triggerIRQ()
+            }
+        }
     }
     
     // MARK: 6502 functions
