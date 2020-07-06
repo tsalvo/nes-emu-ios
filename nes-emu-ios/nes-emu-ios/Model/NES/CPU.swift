@@ -41,11 +41,8 @@ struct StepInfo
 
 struct InstructionInfo
 {
-    /// the 6502 instruction
-    let instruction: Instruction
-    
-    /// the caregoety of the instruction.  this is only used to triage instructions during execution
-    let instructionCategory: InstructionCategory
+    /// the 6502 CPU function to call
+    let instruction: (_ cpu: inout CPU, _ stepInfo: StepInfo) -> ()
     
     /// the addressing mode of the instruction
     let mode: AddressingMode
@@ -58,16 +55,6 @@ struct InstructionInfo
     
     /// the size of the instruction in bytes
     let bytes: UInt8
-    
-    init(instruction aInstruction: Instruction, mode aMode: AddressingMode, cycles aCycles: UInt8, pageBoundaryCycles aPageBoundaryCycles: UInt8, bytes aBytes: UInt8)
-    {
-        self.instruction = aInstruction
-        self.mode = aMode
-        self.cycles = aCycles
-        self.pageBoundaryCycles = aPageBoundaryCycles
-        self.bytes = aBytes
-        self.instructionCategory = aInstruction.category
-    }
 }
 
 /// NES Central processing unit
@@ -90,266 +77,264 @@ struct CPU
     
     /// all 6502 op codes, containing all combinations of instructions and their associated addressing mode(s).  some op codes point to "illegal" instructions (such as slo, kil, anc, rla, sre, alr, rra, arr, sax, xaa, ahx, tas, shy, shx, lax, las, dcp, axs, isc) which won't do anything
     private static let instructionTable: [InstructionInfo] = [
-        InstructionInfo(instruction: .brk, mode: .implied,          cycles: 7, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .ora, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .slo, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .ora, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .asl, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .slo, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .php, mode: .implied,          cycles: 3, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .ora, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .asl, mode: .accumulator,      cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .anc, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .ora, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .asl, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .slo, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .bpl, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .ora, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .slo, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .ora, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .asl, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .slo, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .clc, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .ora, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .slo, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .ora, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .asl, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .slo, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .jsr, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .and, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .rla, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .bit, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .and, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .rol, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .rla, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .plp, mode: .implied,          cycles: 4, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .and, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .rol, mode: .accumulator,      cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .anc, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .bit, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .and, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .rol, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .rla, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .bmi, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .and, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .rla, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .and, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .rol, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .rla, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .sec, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .and, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .rla, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .and, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .rol, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .rla, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .rti, mode: .implied,          cycles: 6, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .eor, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .sre, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .eor, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .lsr, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .sre, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .pha, mode: .implied,          cycles: 3, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .eor, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .lsr, mode: .accumulator,      cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .alr, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .jmp, mode: .absolute,         cycles: 3, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .eor, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .lsr, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .sre, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .bvc, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .eor, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .sre, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .eor, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .lsr, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .sre, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .cli, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .eor, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .sre, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .eor, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .lsr, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .sre, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .rts, mode: .implied,          cycles: 6, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .adc, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .rra, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .adc, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .ror, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .rra, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .pla, mode: .implied,          cycles: 4, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .adc, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .ror, mode: .accumulator,      cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .arr, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .jmp, mode: .indirect,         cycles: 5, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .adc, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .ror, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .rra, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .bvs, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .adc, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .rra, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .adc, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .ror, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .rra, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .sei, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .adc, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .rra, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .adc, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .ror, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .rra, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .sta, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .nop, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .sax, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .sty, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .sta, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .stx, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .sax, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .dey, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .nop, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .txa, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .xaa, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .sty, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .sta, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .stx, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .sax, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .bcc, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .sta, mode: .indirectYIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .ahx, mode: .indirectYIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .sty, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .sta, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .stx, mode: .zeroPageYIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .sax, mode: .zeroPageYIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .tya, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .sta, mode: .absoluteYIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .txs, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .tas, mode: .absoluteYIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .shy, mode: .absoluteXIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .sta, mode: .absoluteXIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .shx, mode: .absoluteYIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .ahx, mode: .absoluteYIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .ldy, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .lda, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .ldx, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .lax, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .ldy, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .lda, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .ldx, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .lax, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .tay, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .lda, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .tax, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .lax, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .ldy, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .lda, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .ldx, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .lax, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .bcs, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .lda, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .lax, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 0),
-        InstructionInfo(instruction: .ldy, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .lda, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .ldx, mode: .zeroPageYIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .lax, mode: .zeroPageYIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .clv, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .lda, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .tsx, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .las, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 0),
-        InstructionInfo(instruction: .ldy, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .lda, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .ldx, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .lax, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 0),
-        InstructionInfo(instruction: .cpy, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .cmp, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .nop, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .dcp, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .cpy, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .cmp, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .dec, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .dcp, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .iny, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .cmp, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .dex, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .axs, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .cpy, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .cmp, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .dec, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .dcp, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .bne, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .cmp, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .dcp, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .cmp, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .dec, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .dcp, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .cld, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .cmp, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .dcp, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .cmp, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .dec, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .dcp, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .cpx, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .sbc, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .nop, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .isc, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .cpx, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .sbc, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .inc, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .isc, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .inx, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .sbc, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .sbc, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .cpx, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .sbc, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .inc, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .isc, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .beq, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .sbc, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
-        InstructionInfo(instruction: .kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .isc, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .sbc, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .inc, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
-        InstructionInfo(instruction: .isc, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .sed, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .sbc, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
-        InstructionInfo(instruction: .isc, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
-        InstructionInfo(instruction: .nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .sbc, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
-        InstructionInfo(instruction: .inc, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
-        InstructionInfo(instruction: .isc, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.brk, mode: .implied,          cycles: 7, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.ora, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.slo, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.ora, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.asl, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.slo, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.php, mode: .implied,          cycles: 3, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.ora, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.asl, mode: .accumulator,      cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.anc, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.ora, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.asl, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.slo, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.bpl, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.ora, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.slo, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.ora, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.asl, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.slo, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.clc, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.ora, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.slo, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.ora, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.asl, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.slo, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.jsr, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.and, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.rla, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.bit, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.and, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.rol, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.rla, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.plp, mode: .implied,          cycles: 4, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.and, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.rol, mode: .accumulator,      cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.anc, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.bit, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.and, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.rol, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.rla, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.bmi, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.and, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.rla, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.and, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.rol, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.rla, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.sec, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.and, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.rla, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.and, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.rol, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.rla, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.rti, mode: .implied,          cycles: 6, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.eor, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.sre, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.eor, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.lsr, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.sre, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.pha, mode: .implied,          cycles: 3, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.eor, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.lsr, mode: .accumulator,      cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.alr, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.jmp, mode: .absolute,         cycles: 3, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.eor, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.lsr, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.sre, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.bvc, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.eor, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.sre, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.eor, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.lsr, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.sre, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.cli, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.eor, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.sre, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.eor, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.lsr, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.sre, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.rts, mode: .implied,          cycles: 6, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.adc, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.rra, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.adc, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.ror, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.rra, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.pla, mode: .implied,          cycles: 4, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.adc, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.ror, mode: .accumulator,      cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.arr, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.jmp, mode: .indirect,         cycles: 5, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.adc, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.ror, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.rra, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.bvs, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.adc, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.rra, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.adc, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.ror, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.rra, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.sei, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.adc, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.rra, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.adc, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.ror, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.rra, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.sta, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.nop, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.sax, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.sty, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.sta, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.stx, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.sax, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.dey, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.nop, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.txa, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.xaa, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.sty, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.sta, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.stx, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.sax, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.bcc, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.sta, mode: .indirectYIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.ahx, mode: .indirectYIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.sty, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.sta, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.stx, mode: .zeroPageYIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.sax, mode: .zeroPageYIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.tya, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.sta, mode: .absoluteYIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.txs, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.tas, mode: .absoluteYIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.shy, mode: .absoluteXIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.sta, mode: .absoluteXIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.shx, mode: .absoluteYIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.ahx, mode: .absoluteYIndexed, cycles: 5, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.ldy, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.lda, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.ldx, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.lax, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.ldy, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.lda, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.ldx, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.lax, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.tay, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.lda, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.tax, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.lax, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.ldy, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.lda, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.ldx, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.lax, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.bcs, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.lda, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.lax, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 0),
+        InstructionInfo(instruction: CPU.ldy, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.lda, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.ldx, mode: .zeroPageYIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.lax, mode: .zeroPageYIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.clv, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.lda, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.tsx, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.las, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 0),
+        InstructionInfo(instruction: CPU.ldy, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.lda, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.ldx, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.lax, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 0),
+        InstructionInfo(instruction: CPU.cpy, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.cmp, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.nop, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.dcp, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.cpy, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.cmp, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.dec, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.dcp, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.iny, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.cmp, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.dex, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.axs, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.cpy, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.cmp, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.dec, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.dcp, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.bne, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.cmp, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.dcp, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.cmp, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.dec, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.dcp, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.cld, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.cmp, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.dcp, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.cmp, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.dec, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.dcp, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.cpx, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.sbc, mode: .xIndexedIndirect, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.nop, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.isc, mode: .xIndexedIndirect, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.cpx, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.sbc, mode: .zeropage,         cycles: 3, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.inc, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.isc, mode: .zeropage,         cycles: 5, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.inx, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.sbc, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.sbc, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.cpx, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.sbc, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.inc, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.isc, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.beq, mode: .relative,         cycles: 2, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.sbc, mode: .indirectYIndexed, cycles: 5, pageBoundaryCycles: 1, bytes: 2),
+        InstructionInfo(instruction: CPU.kil, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.isc, mode: .indirectYIndexed, cycles: 8, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.sbc, mode: .zeroPageXIndexed, cycles: 4, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.inc, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 2),
+        InstructionInfo(instruction: CPU.isc, mode: .zeroPageXIndexed, cycles: 6, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.sed, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.sbc, mode: .absoluteYIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.nop, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1),
+        InstructionInfo(instruction: CPU.isc, mode: .absoluteYIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
+        InstructionInfo(instruction: CPU.nop, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.sbc, mode: .absoluteXIndexed, cycles: 4, pageBoundaryCycles: 1, bytes: 3),
+        InstructionInfo(instruction: CPU.inc, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 3),
+        InstructionInfo(instruction: CPU.isc, mode: .absoluteXIndexed, cycles: 7, pageBoundaryCycles: 0, bytes: 0),
     ]
 
-
-    
     /// number of cycles
     private(set) var cycles: UInt64 = 0
     
@@ -606,7 +591,7 @@ struct CPU
     private mutating func nmi()
     {
         self.push16(value: self.pc)
-        self.php(stepInfo: StepInfo(address: 0, pc: 0, mode: .implied))
+        CPU.php(cpu: &self, stepInfo: StepInfo(address: 0, pc: 0, mode: .implied))
         self.pc = self.read16(address: 0xFFFA)
         self.i = true
         self.cycles &+= 7
@@ -616,7 +601,7 @@ struct CPU
     private mutating func irq()
     {
         self.push16(value: self.pc)
-        self.php(stepInfo: StepInfo(address: 0, pc: 0, mode: .implied)) // placeholder StepInfo value (unused)
+        CPU.php(cpu: &self, stepInfo: StepInfo(address: 0, pc: 0, mode: .implied)) // placeholder StepInfo value (unused)
         self.pc = self.read16(address: 0xFFFE)
         self.i = true
         self.cycles &+= 7
@@ -626,6 +611,35 @@ struct CPU
     mutating func step() -> Int
     {
         var retValue: Int = 1
+        
+        defer
+        {
+            // PPU Step
+            for _ in 0 ..< retValue * 3
+            {
+                let ppuStepResults: PPUStepResults = self.ppu.step()
+                if ppuStepResults.shouldTriggerNMIOnCPU
+                {
+                    self.triggerNMI()
+                }
+                else if ppuStepResults.shouldTriggerIRQOnCPU
+                {
+                    self.triggerIRQ()
+                }
+            }
+            
+            // APU Step
+            for _ in 0 ..< retValue
+            {
+                let dmcCurrentAddressValue: UInt8 = self.read(address: self.apu.dmcCurrentAddress)
+                let apuStepResults: APUStepResults = self.apu.step(dmcCurrentAddressValue: dmcCurrentAddressValue)
+                self.stall += apuStepResults.numCPUStallCycles
+                if apuStepResults.shouldTriggerIRQOnCPU
+                {
+                    self.triggerIRQ()
+                }
+            }
+        }
         
         if self.stall > 0
         {
@@ -695,747 +709,503 @@ struct CPU
             self.cycles &+= UInt64(instructioninfo.pageBoundaryCycles)
         }
         let info: StepInfo = StepInfo(address: address, pc: self.pc, mode: mode)
-        self.execute(instruction: instructioninfo.instruction, ofType: instructioninfo.instructionCategory, stepInfo: info)
-
+        instructioninfo.instruction(&self, info)
+        
         retValue = Int(self.cycles - cycles)
-        
-        // PPU Step
-        for _ in 0 ..< retValue * 3
-        {
-            let ppuStepResults: PPUStepResults = self.ppu.step()
-            if ppuStepResults.shouldTriggerNMIOnCPU
-            {
-                self.triggerNMI()
-            }
-            else if ppuStepResults.shouldTriggerIRQOnCPU
-            {
-                self.triggerIRQ()
-            }
-        }
-        
-        // APU Step
-        for _ in 0 ..< retValue
-        {
-            let dmcCurrentAddressValue: UInt8 = self.read(address: self.apu.dmcCurrentAddress)
-            let apuStepResults: APUStepResults = self.apu.step(dmcCurrentAddressValue: dmcCurrentAddressValue)
-            self.stall += apuStepResults.numCPUStallCycles
-            if apuStepResults.shouldTriggerIRQOnCPU
-            {
-                self.triggerIRQ()
-            }
-        }
-        
         
         return retValue
     }
     
     // MARK: 6502 functions
     
-    private mutating func execute(instruction aInstruction: Instruction, ofType aInstructionType: InstructionCategory, stepInfo aStepInfo: StepInfo)
-    {
-        switch aInstructionType
-        {
-        case .load:
-            switch aInstruction
-            {
-                case .lda: self.lda(stepInfo: aStepInfo)
-                case .ldy: self.ldy(stepInfo: aStepInfo)
-                case .ldx: self.ldx(stepInfo: aStepInfo)
-                default:
-                    break
-            }
-        case .store:
-            switch aInstruction
-            {
-                case .sta: self.sta(stepInfo: aStepInfo)
-                case .stx: self.stx(stepInfo: aStepInfo)
-                case .sty: self.sty(stepInfo: aStepInfo)
-                default:
-                    break
-            }
-        case .branch:
-            switch aInstruction
-            {
-                case .bne: self.bne(stepInfo: aStepInfo)
-                case .beq: self.beq(stepInfo: aStepInfo)
-                case .jsr: self.jsr(stepInfo: aStepInfo)
-                case .rti: self.rti(stepInfo: aStepInfo)
-                case .bpl: self.bpl(stepInfo: aStepInfo)
-                case .jmp: self.jmp(stepInfo: aStepInfo)
-                case .rts: self.rts(stepInfo: aStepInfo)
-                case .bvc: self.bvc(stepInfo: aStepInfo)
-                case .bvs: self.bvs(stepInfo: aStepInfo)
-                case .bcc: self.bcc(stepInfo: aStepInfo)
-                case .bcs: self.bcs(stepInfo: aStepInfo)
-                case .bmi: self.bmi(stepInfo: aStepInfo)
-                case .brk: self.brk(stepInfo: aStepInfo)
-                default:
-                    break
-            }
-        case .stack:
-            switch aInstruction
-            {
-                case .pla: self.pla(stepInfo: aStepInfo)
-                case .pha: self.pha(stepInfo: aStepInfo)
-                case .php: self.php(stepInfo: aStepInfo)
-                case .plp: self.plp(stepInfo: aStepInfo)
-                case .txs: self.txs(stepInfo: aStepInfo)
-                case .tsx: self.tsx(stepInfo: aStepInfo)
-                default:
-                    break
-            }
-        case .comparison:
-            switch aInstruction
-            {
-                case .and: self.and(stepInfo: aStepInfo)
-                case .cmp: self.cmp(stepInfo: aStepInfo)
-                case .ora: self.ora(stepInfo: aStepInfo)
-                case .bit: self.bit(stepInfo: aStepInfo)
-                case .eor: self.eor(stepInfo: aStepInfo)
-                case .cpx: self.cpx(stepInfo: aStepInfo)
-                case .cpy: self.cpy(stepInfo: aStepInfo)
-                default:
-                    break
-            }
-        case .arithmetic:
-            switch aInstruction
-            {
-                case .lsr: self.lsr(stepInfo: aStepInfo)
-                case .adc: self.adc(stepInfo: aStepInfo)
-                case .inc: self.inc(stepInfo: aStepInfo)
-                case .rol: self.rol(stepInfo: aStepInfo)
-                case .dec: self.dec(stepInfo: aStepInfo)
-                case .sbc: self.sbc(stepInfo: aStepInfo)
-                case .asl: self.asl(stepInfo: aStepInfo)
-                case .ror: self.ror(stepInfo: aStepInfo)
-                default:
-                    break
-            }
-
-        case .register:
-            switch aInstruction
-            {
-                case .iny: self.iny(stepInfo: aStepInfo)
-                case .inx: self.inx(stepInfo: aStepInfo)
-                case .dey: self.dey(stepInfo: aStepInfo)
-                case .dex: self.dex(stepInfo: aStepInfo)
-                case .tay: self.tay(stepInfo: aStepInfo)
-                case .tya: self.tya(stepInfo: aStepInfo)
-                case .tax: self.tax(stepInfo: aStepInfo)
-                case .txa: self.txa(stepInfo: aStepInfo)
-                default:
-                    break
-            }
-        case .flag:
-            switch aInstruction
-            {
-                case .clc: self.clc(stepInfo: aStepInfo)
-                case .sec: self.sec(stepInfo: aStepInfo)
-                case .cli: self.cli(stepInfo: aStepInfo)
-                case .sed: self.sed(stepInfo: aStepInfo)
-                case .sei: self.sei(stepInfo: aStepInfo)
-                case .clv: self.clv(stepInfo: aStepInfo)
-                case .cld: self.cld(stepInfo: aStepInfo)
-                default:
-                    break
-            }
-        case .illegal:
-            break
-        }
-    }
-    
     /// ADC - Add with Carry
-    private mutating func adc(stepInfo aStepInfo: StepInfo)
+    private static func adc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        let a: UInt8 = self.a
-        let b: UInt8 = self.read(address: aStepInfo.address)
-        let c: UInt8 = self.c ? 1 : 0
-        self.a = a &+ b &+ c
-        self.setZN(value: self.a)
-        if Int(a) + Int(b) + Int(c) > 0xFF
-        {
-            self.c = true
-        }
-        else
-        {
-            self.c = false
-        }
-        
-        if ((a ^ b) & 0x80) == 0 && ((a ^ self.a) & 0x80) != 0
-        {
-            self.v = true
-        }
-        else
-        {
-            self.v = false
-        }
+        let a: UInt8 = aCPU.a
+        let b: UInt8 = aCPU.read(address: aStepInfo.address)
+        let c: UInt8 = aCPU.c ? 1 : 0
+        aCPU.a = a &+ b &+ c
+        aCPU.setZN(value: aCPU.a)
+        aCPU.c = Int(a) + Int(b) + Int(c) > 0xFF
+        aCPU.v = ((a ^ b) & 0x80) == 0 && ((a ^ aCPU.a) & 0x80) != 0
     }
 
     /// AND - Logical AND
-    private mutating func and(stepInfo aStepInfo: StepInfo)
+    private static func and(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.a = self.a & self.read(address: aStepInfo.address)
-        self.setZN(value: self.a)
+        aCPU.a = aCPU.a & aCPU.read(address: aStepInfo.address)
+        aCPU.setZN(value: aCPU.a)
     }
 
     /// ASL - Arithmetic Shift Left
-    private mutating func asl(stepInfo aStepInfo: StepInfo)
+    private static func asl(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
         if aStepInfo.mode == .accumulator
         {
-            self.c = ((self.a >> 7) & 1) == 1
-            self.a <<= 1
-            self.setZN(value: self.a)
+            aCPU.c = ((aCPU.a >> 7) & 1) == 1
+            aCPU.a <<= 1
+            aCPU.setZN(value: aCPU.a)
         }
         else
         {
-            var value = self.read(address: aStepInfo.address)
-            self.c = ((value >> 7) & 1) == 1
+            var value = aCPU.read(address: aStepInfo.address)
+            aCPU.c = ((value >> 7) & 1) == 1
             value <<= 1
-            self.write(address: aStepInfo.address, value: value)
-            self.setZN(value: value)
+            aCPU.write(address: aStepInfo.address, value: value)
+            aCPU.setZN(value: value)
         }
     }
 
     /// BCC - Branch if Carry Clear
-    private mutating func bcc(stepInfo aStepInfo: StepInfo)
+    private static func bcc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        if self.c == false
+        if aCPU.c == false
         {
-            self.pc = aStepInfo.address
-            self.addBranchCycles(stepInfo: aStepInfo)
+            aCPU.pc = aStepInfo.address
+            aCPU.addBranchCycles(stepInfo: aStepInfo)
         }
     }
 
     /// BCS - Branch if Carry Set
-    private mutating func bcs(stepInfo aStepInfo: StepInfo)
+    private static func bcs(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        if self.c == true
+        if aCPU.c == true
         {
-            self.pc = aStepInfo.address
-            self.addBranchCycles(stepInfo: aStepInfo)
+            aCPU.pc = aStepInfo.address
+            aCPU.addBranchCycles(stepInfo: aStepInfo)
         }
     }
 
     /// BEQ - Branch if Equal
-    private mutating func beq(stepInfo aStepInfo: StepInfo)
+    private static func beq(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        if self.z == true
+        if aCPU.z == true
         {
-            self.pc = aStepInfo.address
-            self.addBranchCycles(stepInfo: aStepInfo)
+            aCPU.pc = aStepInfo.address
+            aCPU.addBranchCycles(stepInfo: aStepInfo)
         }
     }
 
     /// BIT - Bit Test
-    private mutating func bit(stepInfo aStepInfo: StepInfo)
+    private static func bit(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        let value = self.read(address: aStepInfo.address)
-        self.v = ((value >> 6) & 1) == 1
-        self.setZ(value: value & self.a)
-        self.setN(value: value)
+        let value = aCPU.read(address: aStepInfo.address)
+        aCPU.v = ((value >> 6) & 1) == 1
+        aCPU.setZ(value: value & aCPU.a)
+        aCPU.setN(value: value)
     }
 
     /// BMI - Branch if Minus
-    private mutating func bmi(stepInfo aStepInfo: StepInfo)
+    private static func bmi(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        if self.n == true
+        if aCPU.n == true
         {
-            self.pc = aStepInfo.address
-            self.addBranchCycles(stepInfo: aStepInfo)
+            aCPU.pc = aStepInfo.address
+            aCPU.addBranchCycles(stepInfo: aStepInfo)
         }
     }
 
     /// BNE - Branch if Not Equal
-    private mutating func bne(stepInfo aStepInfo: StepInfo)
+    private static func bne(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        if self.z == false
+        if aCPU.z == false
         {
-            self.pc = aStepInfo.address
-            self.addBranchCycles(stepInfo: aStepInfo)
+            aCPU.pc = aStepInfo.address
+            aCPU.addBranchCycles(stepInfo: aStepInfo)
         }
     }
 
     /// BPL - Branch if Positive
-    private mutating func bpl(stepInfo aStepInfo: StepInfo)
+    private static func bpl(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        if self.n == false
+        if aCPU.n == false
         {
-            self.pc = aStepInfo.address
-            self.addBranchCycles(stepInfo: aStepInfo)
+            aCPU.pc = aStepInfo.address
+            aCPU.addBranchCycles(stepInfo: aStepInfo)
         }
     }
     
     /// BRK - Force Interrupt
-    private mutating func brk(stepInfo aStepInfo: StepInfo)
+    private static func brk(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.push16(value: self.pc)
-        self.php(stepInfo: aStepInfo)
-        self.sei(stepInfo: aStepInfo)
-        self.pc = self.read16(address: 0xFFFE)
+        aCPU.push16(value: aCPU.pc)
+        CPU.php(cpu: &aCPU, stepInfo: aStepInfo)
+        CPU.sei(cpu: &aCPU, stepInfo: aStepInfo)
+        aCPU.pc = aCPU.read16(address: 0xFFFE)
     }
     
     /// BVC - Branch if Overflow Clear
-    private mutating func bvc(stepInfo aStepInfo: StepInfo)
+    private static func bvc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        if self.v == false
+        if aCPU.v == false
         {
-            self.pc = aStepInfo.address
-            self.addBranchCycles(stepInfo: aStepInfo)
+            aCPU.pc = aStepInfo.address
+            aCPU.addBranchCycles(stepInfo: aStepInfo)
         }
     }
 
     /// BVS - Branch if Overflow Set
-    private mutating func bvs(stepInfo aStepInfo: StepInfo)
+    private static func bvs(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        if self.v == true
+        if aCPU.v == true
         {
-            self.pc = aStepInfo.address
-            self.addBranchCycles(stepInfo: aStepInfo)
+            aCPU.pc = aStepInfo.address
+            aCPU.addBranchCycles(stepInfo: aStepInfo)
         }
     }
 
     /// CLC - Clear Carry Flag
-    private mutating func clc(stepInfo aStepInfo: StepInfo)
+    private static func clc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.c = false
+        aCPU.c = false
     }
 
     /// CLD - Clear Decimal Mode
-    private mutating func cld(stepInfo aStepInfo: StepInfo)
+    private static func cld(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.d = false
+        aCPU.d = false
     }
 
     /// CLI - Clear Interrupt Disable
-    private mutating func cli(stepInfo aStepInfo: StepInfo)
+    private static func cli(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.i = false
+        aCPU.i = false
     }
 
     /// CLV - Clear Overflow Flag
-    private mutating func clv(stepInfo aStepInfo: StepInfo)
+    private static func clv(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.v = false
+        aCPU.v = false
     }
 
     /// CMP - Compare
-    private mutating func cmp(stepInfo aStepInfo: StepInfo)
+    private static func cmp(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        let value = self.read(address: aStepInfo.address)
-        self.compare(valueA: self.a, valueB: value)
+        let value = aCPU.read(address: aStepInfo.address)
+        aCPU.compare(valueA: aCPU.a, valueB: value)
     }
 
     /// CPX - Compare X Register
-    private mutating func cpx(stepInfo aStepInfo: StepInfo)
+    private static func cpx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        let value = self.read(address: aStepInfo.address)
-        self.compare(valueA: self.x, valueB: value)
+        let value = aCPU.read(address: aStepInfo.address)
+        aCPU.compare(valueA: aCPU.x, valueB: value)
     }
 
     /// CPY - Compare Y Register
-    private mutating func cpy(stepInfo aStepInfo: StepInfo)
+    private static func cpy(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        let value = self.read(address: aStepInfo.address)
-        self.compare(valueA: self.y, valueB: value)
+        let value = aCPU.read(address: aStepInfo.address)
+        aCPU.compare(valueA: aCPU.y, valueB: value)
     }
 
     /// DEC - Decrement Memory
-    private mutating func dec(stepInfo aStepInfo: StepInfo)
+    private static func dec(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        let value = self.read(address: aStepInfo.address) &- 1
-        self.write(address: aStepInfo.address, value: value)
-        self.setZN(value: value)
+        let value = aCPU.read(address: aStepInfo.address) &- 1
+        aCPU.write(address: aStepInfo.address, value: value)
+        aCPU.setZN(value: value)
     }
 
     /// DEX - Decrement X Register
-    private mutating func dex(stepInfo aStepInfo: StepInfo)
+    private static func dex(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.x &-= 1 // decrement and wrap if needed
-        self.setZN(value: self.x)
+        aCPU.x &-= 1 // decrement and wrap if needed
+        aCPU.setZN(value: aCPU.x)
     }
 
     /// DEY - Decrement Y Register
-    private mutating func dey(stepInfo aStepInfo: StepInfo)
+    private static func dey(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.y &-= 1 // decrement and wrap if needed
-        self.setZN(value: self.y)
+        aCPU.y &-= 1 // decrement and wrap if needed
+        aCPU.setZN(value: aCPU.y)
     }
 
     /// EOR - Exclusive OR
-    private mutating func eor(stepInfo aStepInfo: StepInfo)
+    private static func eor(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.a = self.a ^ self.read(address: aStepInfo.address)
-        self.setZN(value: self.a)
+        aCPU.a = aCPU.a ^ aCPU.read(address: aStepInfo.address)
+        aCPU.setZN(value: aCPU.a)
     }
 
     /// INC - Increment Memory
-    private mutating func inc(stepInfo aStepInfo: StepInfo)
+    private static func inc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        let value: UInt8 = self.read(address: aStepInfo.address) &+ 1 // wrap if needed
-        self.write(address: aStepInfo.address, value: value)
-        self.setZN(value: value)
+        let value: UInt8 = aCPU.read(address: aStepInfo.address) &+ 1 // wrap if needed
+        aCPU.write(address: aStepInfo.address, value: value)
+        aCPU.setZN(value: value)
     }
 
     /// INX - Increment X Register
-    private mutating func inx(stepInfo aStepInfo: StepInfo)
+    private static func inx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.x &+= 1 // increment and wrap if needed
-        self.setZN(value: self.x)
+        aCPU.x &+= 1 // increment and wrap if needed
+        aCPU.setZN(value: aCPU.x)
     }
 
     /// INY - Increment Y Register
-    private mutating func iny(stepInfo aStepInfo: StepInfo)
+    private static func iny(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
-        self.y &+= 1 // increment and wrap if needed
-        self.setZN(value: self.y)
+        aCPU.y &+= 1 // increment and wrap if needed
+        aCPU.setZN(value: aCPU.y)
     }
 
     /// JMP - Jump
-    private mutating func jmp(stepInfo aStepInfo: StepInfo)
+    private static func jmp(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.pc = aStepInfo.address
+        aCPU.pc = aStepInfo.address
     }
 
     /// JSR - Jump to Subroutine
-    private mutating func jsr(stepInfo aStepInfo: StepInfo)
+    private static func jsr(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.push16(value: self.pc - 1)
-        self.pc = aStepInfo.address
+        aCPU.push16(value: aCPU.pc - 1)
+        aCPU.pc = aStepInfo.address
     }
 
     /// LDA - Load Accumulator
-    private mutating func lda(stepInfo aStepInfo: StepInfo)
+    private static func lda(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.a = self.read(address: aStepInfo.address)
-        self.setZN(value: self.a)
+        aCPU.a = aCPU.read(address: aStepInfo.address)
+        aCPU.setZN(value: aCPU.a)
     }
 
     /// LDX - Load X Register
-    private mutating func ldx(stepInfo aStepInfo: StepInfo)
+    private static func ldx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.x = self.read(address: aStepInfo.address)
-        self.setZN(value: self.x)
+        aCPU.x = aCPU.read(address: aStepInfo.address)
+        aCPU.setZN(value: aCPU.x)
     }
 
     /// LDY - Load Y Register
-    private mutating func ldy(stepInfo aStepInfo: StepInfo)
+    private static func ldy(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.y = self.read(address: aStepInfo.address)
-        self.setZN(value: self.y)
+        aCPU.y = aCPU.read(address: aStepInfo.address)
+        aCPU.setZN(value: aCPU.y)
     }
 
     /// LSR - Logical Shift Right
-    private mutating func lsr(stepInfo aStepInfo: StepInfo)
+    private static func lsr(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
         if aStepInfo.mode == .accumulator
         {
-            self.c = (self.a & 1) == 1
-            self.a >>= 1
-            self.setZN(value: self.a)
+            aCPU.c = (aCPU.a & 1) == 1
+            aCPU.a >>= 1
+            aCPU.setZN(value: aCPU.a)
         }
         else
         {
-            var value = self.read(address: aStepInfo.address)
-            self.c = (value & 1) == 1
+            var value = aCPU.read(address: aStepInfo.address)
+            aCPU.c = (value & 1) == 1
             value >>= 1
-            self.write(address: aStepInfo.address, value: value)
-            self.setZN(value: value)
+            aCPU.write(address: aStepInfo.address, value: value)
+            aCPU.setZN(value: value)
         }
     }
 
     /// NOP - No Operation
-    private func nop(stepInfo aStepInfo: StepInfo)
+    private static func nop(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
         // do nothing
     }
 
     /// ORA - Logical Inclusive OR
-    private mutating func ora(stepInfo aStepInfo: StepInfo)
+    private static func ora(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.a = self.a | self.read(address: aStepInfo.address)
-        self.setZN(value: self.a)
+        aCPU.a = aCPU.a | aCPU.read(address: aStepInfo.address)
+        aCPU.setZN(value: aCPU.a)
     }
 
     /// PHA - Push Accumulator
-    private mutating func pha(stepInfo aStepInfo: StepInfo)
+    private static func pha(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.push(value: self.a)
+        aCPU.push(value: aCPU.a)
     }
 
     /// PHP - Push Processor Status
-    private mutating func php(stepInfo aStepInfo: StepInfo)
+    private static func php(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.push(value: self.flags() | 0x10)
+        aCPU.push(value: aCPU.flags() | 0x10)
     }
 
     /// PLA - Pull Accumulator
-    private mutating func pla(stepInfo aStepInfo: StepInfo)
+    private static func pla(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.a = self.pull()
-        self.setZN(value: self.a)
+        aCPU.a = aCPU.pull()
+        aCPU.setZN(value: aCPU.a)
     }
 
     /// PLP - Pull Processor Status
-    private mutating func plp(stepInfo aStepInfo: StepInfo)
+    private static func plp(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.set(flags: (self.pull() & 0xEF) | 0x20)
+        aCPU.set(flags: (aCPU.pull() & 0xEF) | 0x20)
     }
 
     /// ROL - Rotate Left
-    private mutating func rol(stepInfo aStepInfo: StepInfo)
+    private static func rol(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
         if aStepInfo.mode == .accumulator
         {
-            let c: UInt8 = self.c ? 1 : 0
-            self.c = ((self.a >> 7) & 1) == 1
-            self.a = (self.a << 1) | c
-            self.setZN(value: self.a)
+            let c: UInt8 = aCPU.c ? 1 : 0
+            aCPU.c = ((aCPU.a >> 7) & 1) == 1
+            aCPU.a = (aCPU.a << 1) | c
+            aCPU.setZN(value: aCPU.a)
         }
         else
         {
-            let c: UInt8 = self.c ? 1 : 0
-            var value = self.read(address: aStepInfo.address)
-            self.c = ((value >> 7) & 1) == 1
+            let c: UInt8 = aCPU.c ? 1 : 0
+            var value = aCPU.read(address: aStepInfo.address)
+            aCPU.c = ((value >> 7) & 1) == 1
             value = (value << 1) | c
-            self.write(address: aStepInfo.address, value: value)
-            self.setZN(value: value)
+            aCPU.write(address: aStepInfo.address, value: value)
+            aCPU.setZN(value: value)
         }
     }
 
     /// ROR - Rotate Right
-    private mutating func ror(stepInfo aStepInfo: StepInfo)
+    private static func ror(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
         if aStepInfo.mode == .accumulator
         {
-            let c: UInt8 = self.c ? 1 : 0
-            self.c = (self.a & 1) == 1
-            self.a = (self.a >> 1) | (c << 7)
-            self.setZN(value: self.a)
+            let c: UInt8 = aCPU.c ? 1 : 0
+            aCPU.c = (aCPU.a & 1) == 1
+            aCPU.a = (aCPU.a >> 1) | (c << 7)
+            aCPU.setZN(value: aCPU.a)
         }
         else
         {
-            let c: UInt8 = self.c ? 1 : 0
-            var value = self.read(address: aStepInfo.address)
-            self.c = (value & 1) == 1
+            let c: UInt8 = aCPU.c ? 1 : 0
+            var value = aCPU.read(address: aStepInfo.address)
+            aCPU.c = (value & 1) == 1
             value = (value >> 1) | (c << 7)
-            self.write(address: aStepInfo.address, value: value)
-            self.setZN(value: value)
+            aCPU.write(address: aStepInfo.address, value: value)
+            aCPU.setZN(value: value)
         }
     }
 
     /// RTI - Return from Interrupt
-    private mutating func rti(stepInfo aStepInfo: StepInfo)
+    private static func rti(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.set(flags: (self.pull() & 0xEF) | 0x20)
-        self.pc = self.pull16()
+        aCPU.set(flags: (aCPU.pull() & 0xEF) | 0x20)
+        aCPU.pc = aCPU.pull16()
     }
 
     /// RTS - Return from Subroutine
-    private mutating func rts(stepInfo aStepInfo: StepInfo)
+    private static func rts(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.pc = self.pull16() &+ 1
+        aCPU.pc = aCPU.pull16() &+ 1
     }
 
     /// SBC - Subtract with Carry
-    private mutating func sbc(stepInfo aStepInfo: StepInfo)
+    private static func sbc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        let a: UInt8 = self.a
-        let b: UInt8 = self.read(address: aStepInfo.address)
-        let c: UInt8 = self.c ? 1 : 0
-        self.a = a &- b &- (1 - c)
-        self.setZN(value: self.a)
-        if Int(a) - Int(b) - Int(1 - c) >= 0
-        {
-            self.c = true
-        }
-        else
-        {
-            self.c = false
-        }
-        
-        if ((a ^ b) & 0x80) != 0 && ((a ^ self.a) & 0x80) != 0
-        {
-            self.v = true
-        }
-        else
-        {
-            self.v = false
-        }
+        let a: UInt8 = aCPU.a
+        let b: UInt8 = aCPU.read(address: aStepInfo.address)
+        let c: UInt8 = aCPU.c ? 1 : 0
+        aCPU.a = a &- b &- (1 - c)
+        aCPU.setZN(value: aCPU.a)
+        aCPU.c = Int(a) - Int(b) - Int(1 - c) >= 0
+        aCPU.v = ((a ^ b) & 0x80) != 0 && ((a ^ aCPU.a) & 0x80) != 0
     }
 
     /// SEC - Set Carry Flag
-    private mutating func sec(stepInfo aStepInfo: StepInfo)
+    private static func sec(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.c = true
+        aCPU.c = true
     }
 
     /// SED - Set Decimal Flag
-    private mutating func sed(stepInfo aStepInfo: StepInfo)
+    private static func sed(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.d = true
+        aCPU.d = true
     }
 
     /// SEI - Set Interrupt Disable
-    private mutating func sei(stepInfo aStepInfo: StepInfo)
+    private static func sei(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.i = true
+        aCPU.i = true
     }
 
     /// STA - Store Accumulator
-    private mutating func sta(stepInfo aStepInfo: StepInfo)
+    private static func sta(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.write(address: aStepInfo.address, value: self.a)
+        aCPU.write(address: aStepInfo.address, value: aCPU.a)
     }
 
     /// STX - Store X Register
-    private mutating func stx(stepInfo aStepInfo: StepInfo)
+    private static func stx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.write(address: aStepInfo.address, value: self.x)
+        aCPU.write(address: aStepInfo.address, value: aCPU.x)
     }
 
     /// STY - Store Y Register
-    private mutating func sty(stepInfo aStepInfo: StepInfo)
+    private static func sty(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.write(address: aStepInfo.address, value: self.y)
+        aCPU.write(address: aStepInfo.address, value: aCPU.y)
     }
 
     /// TAX - Transfer Accumulator to X
-    private mutating func tax(stepInfo aStepInfo: StepInfo)
+    private static func tax(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.x = self.a
-        self.setZN(value: self.x)
+        aCPU.x = aCPU.a
+        aCPU.setZN(value: aCPU.x)
     }
 
     /// TAY - Transfer Accumulator to Y
-    private mutating func tay(stepInfo aStepInfo: StepInfo)
+    private static func tay(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.y = self.a
-        self.setZN(value: self.y)
+        aCPU.y = aCPU.a
+        aCPU.setZN(value: aCPU.y)
     }
 
     /// TSX - Transfer Stack Pointer to X
-    private mutating func tsx(stepInfo aStepInfo: StepInfo)
+    private static func tsx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.x = self.sp
-        self.setZN(value: self.x)
+        aCPU.x = aCPU.sp
+        aCPU.setZN(value: aCPU.x)
     }
 
     /// TXA - Transfer X to Accumulator
-    private mutating func txa(stepInfo aStepInfo: StepInfo)
+    private static func txa(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.a = self.x
-        self.setZN(value: self.a)
+        aCPU.a = aCPU.x
+        aCPU.setZN(value: aCPU.a)
     }
 
     /// TXS - Transfer X to Stack Pointer
-    private mutating func txs(stepInfo aStepInfo: StepInfo)
+    private static func txs(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.sp = self.x
+        aCPU.sp = aCPU.x
     }
 
     /// TYA - Transfer Y to Accumulator
-    private mutating func tya(stepInfo aStepInfo: StepInfo)
+    private static func tya(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        self.a = self.y
-        self.setZN(value: self.a)
+        aCPU.a = aCPU.y
+        aCPU.setZN(value: aCPU.a)
     }
     
     // MARK: Illegal Instructions
 
-    private func ahx(stepInfo aStepInfo: StepInfo) {}
-    private func alr(stepInfo aStepInfo: StepInfo) {}
-    private func anc(stepInfo aStepInfo: StepInfo) {}
-    private func arr(stepInfo aStepInfo: StepInfo) {}
-    private func axs(stepInfo aStepInfo: StepInfo) {}
-    private func dcp(stepInfo aStepInfo: StepInfo) {}
-    private func isc(stepInfo aStepInfo: StepInfo) {}
-    private func kil(stepInfo aStepInfo: StepInfo) {}
-    private func las(stepInfo aStepInfo: StepInfo) {}
-    private func lax(stepInfo aStepInfo: StepInfo) {}
-    private func rla(stepInfo aStepInfo: StepInfo) {}
-    private func rra(stepInfo aStepInfo: StepInfo) {}
-    private func sax(stepInfo aStepInfo: StepInfo) {}
-    private func shx(stepInfo aStepInfo: StepInfo) {}
-    private func shy(stepInfo aStepInfo: StepInfo) {}
-    private func slo(stepInfo aStepInfo: StepInfo) {}
-    private func sre(stepInfo aStepInfo: StepInfo) {}
-    private func tas(stepInfo aStepInfo: StepInfo) {}
-    private func xaa(stepInfo aStepInfo: StepInfo) {}
-}
-
-enum Instruction
-{
-    case brk, ora, asl, php, bpl, clc, jsr, and, bit, rol, plp, bmi, sec, rti, eor, lsr, pha, jmp, bvc, cli, rts, adc, ror, pla, bvs, sei, sta, sty, stx, dey, txa, bcc, tya, txs, ldy, lda, ldx, tay, tax, bcs, clv, tsx, cpy, cmp, dec, iny, dex, bne, cld, cpx, sbc, inc, inx, nop, beq, sed, kil, slo, anc, rla, sre, alr, rra, arr, sax, xaa, ahx, tas, shy, shx, lax, las, dcp, axs, isc
-    
-    var category: InstructionCategory
-    {
-        switch self
-        {
-        case .brk: return .branch
-        case .ora: return .comparison
-        case .asl: return .arithmetic
-        case .php: return .stack
-        case .bpl: return .branch
-        case .clc: return .flag
-        case .jsr: return .branch
-        case .and: return .comparison
-        case .bit: return .comparison
-        case .rol: return .arithmetic
-        case .plp: return .stack
-        case .bmi: return .branch
-        case .sec: return .flag
-        case .rti: return .branch
-        case .eor: return .comparison
-        case .lsr: return .arithmetic
-        case .pha: return .stack
-        case .jmp: return .branch
-        case .bvc: return .branch
-        case .cli: return .flag
-        case .rts: return .branch
-        case .adc: return .arithmetic
-        case .ror: return .arithmetic
-        case .pla: return .stack
-        case .bvs: return .branch
-        case .sei: return .flag
-        case .sta: return .store
-        case .sty: return .store
-        case .stx: return .store
-        case .dey: return .register
-        case .txa: return .register
-        case .bcc: return .branch
-        case .tya: return .register
-        case .txs: return .stack
-        case .ldy: return .load
-        case .lda: return .load
-        case .ldx: return .load
-        case .tay: return .register
-        case .tax: return .register
-        case .bcs: return .branch
-        case .clv: return .flag
-        case .tsx: return .stack
-        case .cpy: return .comparison
-        case .cmp: return .comparison
-        case .dec: return .arithmetic
-        case .iny: return .register
-        case .dex: return .register
-        case .bne: return .branch
-        case .cld: return .flag
-        case .cpx: return .comparison
-        case .sbc: return .arithmetic
-        case .inc: return .arithmetic
-        case .inx: return .register
-        case .beq: return .branch
-        case .sed: return .flag
-        default: return .illegal
-        }
-    }
-}
-
-enum InstructionCategory
-{
-    case branch, load, store, stack, arithmetic, comparison, flag, register, illegal
+    private static func ahx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func alr(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func anc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func arr(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func axs(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func dcp(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func isc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func kil(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func las(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func lax(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func rla(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func rra(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func sax(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func shx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func shy(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func slo(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func sre(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func tas(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
+    private static func xaa(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo) {}
 }
 
 enum AddressingMode: UInt8
