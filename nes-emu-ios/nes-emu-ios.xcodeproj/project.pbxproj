@@ -22,8 +22,8 @@
 		99488F4E248985F300942A1E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99488F4C248985F300942A1E /* LaunchScreen.storyboard */; };
 		99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */; };
 		994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994C12112496F10600DD2FE1 /* SceneDelegate.swift */; };
-		9953246224B5A86D000E9DE7 /* Mapper_ColorDreams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9953246124B5A86D000E9DE7 /* Mapper_ColorDreams.swift */; };
-		9953246324B5A86D000E9DE7 /* Mapper_ColorDreams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9953246124B5A86D000E9DE7 /* Mapper_ColorDreams.swift */; };
+		9953246224B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9953246124B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift */; };
+		9953246324B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9953246124B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift */; };
 		995C9ADB249BEC9A00429ECC /* Mapper_NROM_UNROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADA249BEC9A00429ECC /* Mapper_NROM_UNROM.swift */; };
 		995C9ADD249BECCA00429ECC /* Mapper_MMC1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */; };
 		995C9ADF249BECE000429ECC /* Mapper_CNROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADE249BECE000429ECC /* Mapper_CNROM.swift */; };
@@ -144,7 +144,7 @@
 		99488F4F248985F300942A1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UInt8+ByteUtils.swift"; sourceTree = "<group>"; };
 		994C12112496F10600DD2FE1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		9953246124B5A86D000E9DE7 /* Mapper_ColorDreams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_ColorDreams.swift; sourceTree = "<group>"; };
+		9953246124B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_ColorDreams_GxROM.swift; sourceTree = "<group>"; };
 		995C9ADA249BEC9A00429ECC /* Mapper_NROM_UNROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_NROM_UNROM.swift; sourceTree = "<group>"; };
 		995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC1.swift; sourceTree = "<group>"; };
 		995C9ADE249BECE000429ECC /* Mapper_CNROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_CNROM.swift; sourceTree = "<group>"; };
@@ -322,7 +322,7 @@
 				995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */,
 				995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */,
 				995C9ADA249BEC9A00429ECC /* Mapper_NROM_UNROM.swift */,
-				9953246124B5A86D000E9DE7 /* Mapper_ColorDreams.swift */,
+				9953246124B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift */,
 				995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */,
 			);
 			path = Mappers;
@@ -574,7 +574,7 @@
 				99488F40248985F100942A1E /* AppDelegate.swift in Sources */,
 				99B1EDAD249EB0A800BC66F3 /* SettingsMoreInfoCell.swift in Sources */,
 				99B1EDB7249EB2DF00BC66F3 /* Collection+SafeIndex.swift in Sources */,
-				9953246224B5A86D000E9DE7 /* Mapper_ColorDreams.swift in Sources */,
+				9953246224B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */,
 				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
 				995C9ADD249BECCA00429ECC /* Mapper_MMC1.swift in Sources */,
 				99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */,
@@ -615,7 +615,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9953246324B5A86D000E9DE7 /* Mapper_ColorDreams.swift in Sources */,
+				9953246324B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */,
 				99FA3CAA24A6F1120065E539 /* Mapper_AxROM.swift in Sources */,
 				99FA3CB724A6F12A0065E539 /* PPU.swift in Sources */,
 				99FA3CAD24A6F1180065E539 /* Mapper_MMC2.swift in Sources */,

@@ -94,7 +94,7 @@ enum MapperIdentifier: UInt8
     _063 = 63,
     RAMBO1 = 64,
     Ire_H3001 = 65,
-    _74161_32 = 66,
+    GxROM = 66,
     _067 = 67,
     _068 = 68,
     Sunsoft_5 = 69,
@@ -183,7 +183,16 @@ enum MapperIdentifier: UInt8
     {
         switch self
         {
-        case .NROM, .UxROM, .MMC1, .CNROM, .MMC3, .AxROM, .MMC2, .ColorDreams: return true
+        case .NROM,
+             .UxROM,
+             .MMC1,
+             .CNROM,
+             .MMC3,
+             .AxROM,
+             .MMC2,
+             .ColorDreams,
+             .GxROM:
+            return true
         default: return false
         }
     }
