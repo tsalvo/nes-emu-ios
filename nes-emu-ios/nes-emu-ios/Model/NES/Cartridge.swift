@@ -119,8 +119,8 @@ struct Cartridge: CartridgeProtocol
             return Mapper_AxROM(withCartridge: self)
         case .MMC2:
             return Mapper_MMC2(withCartridge: self)
-        case .ColorDreams:
-            return Mapper_ColorDreams(withCartridge: self)
+        case .ColorDreams, .GxROM:
+            return Mapper_ColorDreams_GxROM(withCartridge: self)
         case .MMC5:
             return Mapper_MMC5(withCartridge: self)
         default:
