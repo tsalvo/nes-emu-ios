@@ -123,6 +123,8 @@ struct Cartridge: CartridgeProtocol
             return Mapper_ColorDreams_GxROM(withCartridge: self)
         case .MMC5:
             return Mapper_MMC5(withCartridge: self)
+        case .Namcot118_TengenMimic1:
+            return Mapper_Namcot118_TengenMimic1(withCartridge: self)
         default:
             return Mapper_UnsupportedPlaceholder(withCartridge: self)
         }
