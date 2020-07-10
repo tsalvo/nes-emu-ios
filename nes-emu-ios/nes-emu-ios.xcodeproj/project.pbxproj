@@ -55,6 +55,8 @@
 		99B7C307249F009100B26AC6 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 99B7C306249F009100B26AC6 /* Settings.bundle */; };
 		99B7C309249F33DC00B26AC6 /* Bundle+Version.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B7C308249F33DC00B26AC6 /* Bundle+Version.swift */; };
 		99B7C30B249F33EF00B26AC6 /* Date+Year.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B7C30A249F33EF00B26AC6 /* Date+Year.swift */; };
+		99BD700D24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BD700C24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift */; };
+		99BD700E24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BD700C24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift */; };
 		99C7F1732494096000E4C04D /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1722494096000E4C04D /* Filter.swift */; };
 		99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1742494221800E4C04D /* AudioEngine.swift */; };
 		99E2E2052495D8C1008AFCDB /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */; };
@@ -176,6 +178,7 @@
 		99B7C306249F009100B26AC6 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		99B7C308249F33DC00B26AC6 /* Bundle+Version.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+Version.swift"; sourceTree = "<group>"; };
 		99B7C30A249F33EF00B26AC6 /* Date+Year.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Date+Year.swift"; sourceTree = "<group>"; };
+		99BD700C24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_Namcot118_TengenMimic1.swift; sourceTree = "<group>"; };
 		99C7F1722494096000E4C04D /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		99C7F1742494221800E4C04D /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
 		99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "nes-thumbnail-provider.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -323,6 +326,7 @@
 				995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */,
 				995C9ADA249BEC9A00429ECC /* Mapper_NROM_UNROM.swift */,
 				9953246124B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift */,
+				99BD700C24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift */,
 				995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */,
 			);
 			path = Mappers;
@@ -583,6 +587,7 @@
 				99B1EDA2249EB07900BC66F3 /* SettingsInfoViewController.swift in Sources */,
 				995EEC49249DFB2300FE24F8 /* Settings.swift in Sources */,
 				995C9AEA249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift in Sources */,
+				99BD700D24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */,
 				99FEEA60249DBB280072D225 /* NesRomNavigationController.swift in Sources */,
 				99B1EDB2249EB0A800BC66F3 /* SettingsIconTextInfoCell.swift in Sources */,
 				991B28CC248B470C00A6A6DD /* Console.swift in Sources */,
@@ -629,6 +634,7 @@
 				99FA3CAB24A6F1140065E539 /* Mapper_CNROM.swift in Sources */,
 				99FA3CBD24A6F1500065E539 /* SampleRate.swift in Sources */,
 				99FA3CA624A6F1050065E539 /* Bundle+Version.swift in Sources */,
+				99BD700E24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */,
 				99FA3CB424A6F12A0065E539 /* Console.swift in Sources */,
 				99FA3C9324A6E7CD0065E539 /* RomListTableViewController.swift in Sources */,
 				99FA3CA824A6F10B0065E539 /* UIStackView+ArrangedSubviews.swift in Sources */,
