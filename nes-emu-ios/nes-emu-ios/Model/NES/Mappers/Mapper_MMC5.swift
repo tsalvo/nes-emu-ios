@@ -9,9 +9,25 @@
 import Foundation
 import os
 
+/// https://wiki.nesdev.com/w/index.php/MMC5
+
 struct Mapper_MMC5: MapperProtocol
 {
-    /// https://wiki.nesdev.com/w/index.php/MMC5
+    enum NameTableMode: UInt8
+    {
+        case
+        /// On-board VRAM page 0
+        onboardVRAMPage0 = 0,
+        
+        /// On-board VRAM page 1
+        onboardVRAMPage1 = 1,
+        
+        /// Internal Expansion RAM, only if the Extended RAM mode allows it ($5104 is 00/01); otherwise, the nametable will read as all zeros
+        internalExpansionRAM = 2,
+        
+        /// Fill-mode data
+        fillModeData = 3
+    }
     
     let hasStep: Bool = true
     var mirroringMode: MirroringMode
@@ -27,6 +43,24 @@ struct Mapper_MMC5: MapperProtocol
     
     /// 0 - 3
     private var chrMode: UInt8 = 3
+    
+    /// 0 - 3
+    private var extendedRamMode: UInt8 = 0
+    
+    /// the tile number to use when the NameTableMode is fillmodeData.  controlled by register 0x5106
+    private var fillModeTile: UInt8 = 0
+    
+    /// 0 - 3: attribute bits to use when the NameTableMode is fillmodeData.  controller by register 0x5107
+    private var fillModeColor: UInt8 = 0
+    
+    /// NameTable modes for PPU $2000-$23FF, $2400-$27FF, $2800-$2BFF, and $2C00-$2FFF
+    private var nameTableModes: [NameTableMode] = [NameTableMode].init(repeating: NameTableMode.onboardVRAMPage0, count: 4)
+    
+    private var verticalSplitScreenSide: Bool = false
+    private var verticalSplitScreenMode: Bool = false
+    
+    /// 0 - 31
+    private var verticalSplitStartStopTile: UInt8 = 0
     
     /// 0 - 15 - select an 8KB range of SRAM within the 128KB total SRAM
     private var sramBank: UInt8 = 0
@@ -222,7 +256,8 @@ struct Mapper_MMC5: MapperProtocol
             /// 1 - Use as extended attribute data (can also be used as extended nametable)
             /// 2 - Use as ordinary RAM
             /// 3 - Use as ordinary RAM, write protected
-            os_log("Extended RAM Mode: %@", aValue.binaryString)
+            self.extendedRamMode = aValue & 0x03
+            os_log("Extended RAM Mode: %@, (%d)", aValue.binaryString, self.extendedRamMode)
         case 0x5105:
             /*
              7  bit  0
@@ -234,10 +269,20 @@ struct Mapper_MMC5: MapperProtocol
              ||++------ Select nametable at PPU $2800-$2BFF
              ++-------- Select nametable at PPU $2C00-$2FFF
              */
-            os_log("NameTable Mapping: %@", aValue.binaryString)
+            /// Nametable values:
+            /// 0 - On-board VRAM page 0
+            /// 1 - On-board VRAM page 1
+            /// 2 - Internal Expansion RAM, only if the Extended RAM mode allows it ($5104 is 00/01); otherwise, the nametable will read as all zeros,
+            /// 3 - Fill-mode data
+            self.nameTableModes[0] = NameTableMode.init(rawValue: aValue & 0x03) ?? NameTableMode.onboardVRAMPage0
+            self.nameTableModes[1] = NameTableMode.init(rawValue: (aValue >> 2) & 0x03) ?? NameTableMode.onboardVRAMPage0
+            self.nameTableModes[2] = NameTableMode.init(rawValue: (aValue >> 4) & 0x03) ?? NameTableMode.onboardVRAMPage0
+            self.nameTableModes[3] = NameTableMode.init(rawValue: (aValue >> 6) & 0x03) ?? NameTableMode.onboardVRAMPage0
+            os_log("NameTable Mapping (0x%04X): %@, 0x2000-23FF = %@, 0x2400-27FF = %@, 0x2800-2BFF = %@, 0x2C00-2FFF = %@", aAddress, aValue.binaryString, String(describing: self.nameTableModes[0]),  String(describing: self.nameTableModes[1]), String(describing: self.nameTableModes[2]), String(describing: self.nameTableModes[3]))
         case 0x5106:
             /// All eight bits specify the tile number to use for fill-mode nametable
-            os_log("Fill-Mode Tile: %@", aValue.binaryString)
+            self.fillModeTile = aValue
+            os_log("Fill-Mode Tile (0x%04X): %@", aAddress, aValue.binaryString)
         case 0x5107:
             /*
              7  bit  0
@@ -246,11 +291,36 @@ struct Mapper_MMC5: MapperProtocol
                     ||
                     ++- Specify attribute bits to use for fill-mode nametable
              */
-            os_log("Fill-Mode Color: %@", aValue.binaryString)
+            self.fillModeColor = aValue & 0x03
+            os_log("Fill-Mode Color (0x%04X): %@ (%d)", aAddress, aValue.binaryString, self.fillModeColor)
         case 0x5113 ... 0x5117:
-            os_log("PRG Bank Switch: %@", aValue.binaryString)
-        case 0x5120 ... 0x5130:
-            os_log("CHR Bank Switch: %@", aValue.binaryString)
+            os_log("PRG Bank Switch (0x%04X): %@", aAddress, aValue.binaryString)
+        case 0x5120 ... 0x512B:
+            os_log("CHR Bank Switch (0x%04X): %@", aAddress, aValue.binaryString)
+        case 0x5130:
+            /*
+             7  bit  0
+             ---- ----
+             xxxx xxBB
+                    ||
+                    ++- Upper bits for subsequent CHR bank writes
+             */
+            os_log("Upper CHR Bank bits (0x%04X): %@", aAddress, aValue.binaryString)
+        case 0x5200:
+            /*
+             7  bit  0
+             ---- ----
+             ESxW WWWW
+             || | ||||
+             || +-++++- Specify vertical split start/stop tile
+             |+-------- Specify vertical split screen side (0:left; 1:right)
+             +--------- Enable vertical split mode
+             */
+            
+            self.verticalSplitScreenSide = (aValue >> 6) & 1 == 1
+            self.verticalSplitScreenMode = (aValue >> 7) & 1 == 1
+            self.verticalSplitStartStopTile = aValue & 0x1F
+            os_log("Vertical Split Mode (0x%04X): %@", aAddress, aValue.binaryString)
         default:
             os_log("unhandled Mapper_MMC5 CPU write at address: 0x%04X", aAddress)
             break
@@ -351,26 +421,12 @@ struct Mapper_MMC5: MapperProtocol
     
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        if aMapperStepInput.ppuCycle != 280 // TODO: this *should* be 260
-        {
-            return MapperStepResults(shouldTriggerIRQOnCPU: false)
-        }
+        //os_log("Mapper_MMC5 step: PPU Cycle = %d, Scanline = %d", aMapperStepInput.ppuCycle, aMapperStepInput.ppuScanline)
         
-        if aMapperStepInput.ppuScanline > 239 && aMapperStepInput.ppuScanline < 261
-        {
-            self.inFrameFlag = true
-            return MapperStepResults(shouldTriggerIRQOnCPU: false)
-        }
-        
-        if !aMapperStepInput.ppuShowBackground && !aMapperStepInput.ppuShowSprites
-        {
-            return MapperStepResults(shouldTriggerIRQOnCPU: false)
-        }
-        
-        self.pendingIRQFlag = true
-        let shouldTriggerIRQ = self.handleScanline()
-        
-        return MapperStepResults(shouldTriggerIRQOnCPU: shouldTriggerIRQ)
+        self.pendingIRQFlag = aMapperStepInput.ppuCycle == 0
+        self.inFrameFlag = aMapperStepInput.ppuScanline < 240
+    
+        return MapperStepResults(shouldTriggerIRQOnCPU: false)
     }
     
     private func handleScanline() -> Bool
