@@ -24,6 +24,7 @@
 //  SOFTWARE.
 
 import Foundation
+import os
 
 struct PPUStepResults
 {
@@ -317,6 +318,7 @@ struct PPU
         self.nmiChange()
         // w:                   = 0
         self.w = false
+        os_log("PPU Read Status (0x2002): scanline = %d, cycle = %d -> 0x%02X", self.scanline, self.cycle, result)
         return result
     }
 
@@ -507,6 +509,7 @@ struct PPU
 
     private mutating func setVerticalBlank()
     {
+        os_log("PPU Set Vertical Blank")
         swap(&self.frontBuffer, &self.backBuffer)
         self.nmiOccurred = true
         self.nmiChange()
@@ -514,6 +517,7 @@ struct PPU
 
     private mutating func clearVerticalBlank()
     {
+        os_log("PPU Clear Vertical Blank")
         self.nmiOccurred = false
         self.nmiChange()
     }
@@ -885,16 +889,19 @@ struct PPU
         }
 
         // vblank logic
-        if self.scanline == 241 && self.cycle == 1
+        if self.cycle == 1
         {
-            self.setVerticalBlank()
-        }
-
-        if preLine && self.cycle == 1
-        {
-            self.clearVerticalBlank()
-            self.flagSpriteZeroHit = 0
-            self.flagSpriteOverflow = 0
+            if self.scanline == 241
+            {
+                shouldTriggerNMI = true // new
+                self.setVerticalBlank()
+            }
+            else if preLine
+            {
+                self.clearVerticalBlank()
+                self.flagSpriteZeroHit = 0
+                self.flagSpriteOverflow = 0
+            }
         }
 
         let shouldTriggerIRQ: Bool

@@ -65,15 +65,9 @@ struct Mapper_NROM_UNROM: MapperProtocol
             self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
         }
         
-        if aCartridge.prgBlocks.count == 1
-        {
-            // mirror first PRG block if necessary
-            self.prg.append(contentsOf: aCartridge.prgBlocks[0])
-        }
-        
         self.prgBanks = self.prg.count / 0x4000
         self.prgBank1 = 0
-        self.prgBank2 = self.prgBanks - 1
+        self.prgBank2 = max(0, self.prgBanks - 1)
     }
     
     func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
@@ -81,9 +75,15 @@ struct Mapper_NROM_UNROM: MapperProtocol
         switch aAddress
         {
         case 0x8000 ..< 0xC000: // PRG Block 0
-            return self.prg[self.prgBank1 * 0x4000 + Int(aAddress - 0x8000)]
+            let index = self.prgBank1 * 0x4000 + Int(aAddress - 0x8000)
+            let result: UInt8 = self.prg[index]
+            os_log("NROM - CPU Read 0x%04X - PRG bank 0 at %d -> 0x%02X", aAddress, index, result)
+            return result
         case 0xC000 ... 0xFFFF: // PRG Block 1 (or mirror of PRG block 0 if only one PRG exists)
-            return self.prg[self.prgBank2 * 0x4000 + Int(aAddress - 0xC000)]
+            let index = self.prgBank2 * 0x4000 + Int(aAddress - 0xC000)
+            let result: UInt8 = self.prg[index]
+            os_log("NROM - CPU Read 0x%04X - PRG bank 1 at %d -> 0x%02X", aAddress, index, result)
+            return result
         case 0x6000 ..< 0x8000:
             return self.sram[Int(aAddress - 0x6000)]
         default:
@@ -96,6 +96,7 @@ struct Mapper_NROM_UNROM: MapperProtocol
     {
         switch aAddress {
         case 0x8000 ... 0xFFFF:
+            os_log("NROM - CPU Write 0x%04X - 0x%02X", aAddress, aValue)
             self.prgBank1 = Int(aValue) % self.prgBanks
         case 0x6000 ..< 0x8000: // write to SRAM save
             self.sram[Int(aAddress - 0x6000)] = aValue
@@ -105,9 +106,12 @@ struct Mapper_NROM_UNROM: MapperProtocol
         }
     }
     
-    func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
+    mutating func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
     {
-        return self.chr[Int(aAddress)]
+        let index: Int = Int(aAddress)
+        let result: UInt8 = self.chr[index]
+        os_log("NROM - PPU Read 0x%04X - CHR bank 0 at %d -> 0x%02X", aAddress, index, result)
+        return result
     }
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF

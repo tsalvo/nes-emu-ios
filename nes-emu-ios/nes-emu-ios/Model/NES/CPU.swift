@@ -398,7 +398,7 @@ struct CPU
     // MARK: Flag Operations
     
     /// returns a UInt8 with flag bits arranged as c,z,i,d,b,u,v,n
-    private func flags() -> UInt8
+    private mutating func flags() -> UInt8
     {
         let flagByte: UInt8 = UInt8.init(fromLittleEndianBitArray: [self.c, self.z, self.i, self.d, self.b, self.u, self.v, self.n])
         return flagByte
@@ -724,6 +724,7 @@ struct CPU
     /// ADC - Add with Carry
     private static func adc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         let a: UInt8 = aCPU.a
         let b: UInt8 = aCPU.read(address: aStepInfo.address)
         let c: UInt8 = aCPU.c ? 1 : 0
@@ -736,6 +737,7 @@ struct CPU
     /// AND - Logical AND
     private static func and(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.a = aCPU.a & aCPU.read(address: aStepInfo.address)
         aCPU.setZN(value: aCPU.a)
     }
@@ -743,6 +745,7 @@ struct CPU
     /// ASL - Arithmetic Shift Left
     private static func asl(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aStepInfo.mode == .accumulator
         {
             aCPU.c = ((aCPU.a >> 7) & 1) == 1
@@ -762,6 +765,7 @@ struct CPU
     /// BCC - Branch if Carry Clear
     private static func bcc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aCPU.c == false
         {
             aCPU.pc = aStepInfo.address
@@ -772,6 +776,7 @@ struct CPU
     /// BCS - Branch if Carry Set
     private static func bcs(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aCPU.c == true
         {
             aCPU.pc = aStepInfo.address
@@ -782,6 +787,7 @@ struct CPU
     /// BEQ - Branch if Equal
     private static func beq(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aCPU.z == true
         {
             aCPU.pc = aStepInfo.address
@@ -792,6 +798,7 @@ struct CPU
     /// BIT - Bit Test
     private static func bit(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         let value = aCPU.read(address: aStepInfo.address)
         aCPU.v = ((value >> 6) & 1) == 1
         aCPU.setZ(value: value & aCPU.a)
@@ -801,6 +808,7 @@ struct CPU
     /// BMI - Branch if Minus
     private static func bmi(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aCPU.n == true
         {
             aCPU.pc = aStepInfo.address
@@ -811,6 +819,7 @@ struct CPU
     /// BNE - Branch if Not Equal
     private static func bne(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aCPU.z == false
         {
             aCPU.pc = aStepInfo.address
@@ -821,6 +830,7 @@ struct CPU
     /// BPL - Branch if Positive
     private static func bpl(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aCPU.n == false
         {
             aCPU.pc = aStepInfo.address
@@ -831,6 +841,7 @@ struct CPU
     /// BRK - Force Interrupt
     private static func brk(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.push16(value: aCPU.pc)
         CPU.php(cpu: &aCPU, stepInfo: aStepInfo)
         CPU.sei(cpu: &aCPU, stepInfo: aStepInfo)
@@ -840,6 +851,7 @@ struct CPU
     /// BVC - Branch if Overflow Clear
     private static func bvc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aCPU.v == false
         {
             aCPU.pc = aStepInfo.address
@@ -850,6 +862,7 @@ struct CPU
     /// BVS - Branch if Overflow Set
     private static func bvs(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aCPU.v == true
         {
             aCPU.pc = aStepInfo.address
@@ -860,30 +873,35 @@ struct CPU
     /// CLC - Clear Carry Flag
     private static func clc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.c = false
     }
 
     /// CLD - Clear Decimal Mode
     private static func cld(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.d = false
     }
 
     /// CLI - Clear Interrupt Disable
     private static func cli(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.i = false
     }
 
     /// CLV - Clear Overflow Flag
     private static func clv(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.v = false
     }
 
     /// CMP - Compare
     private static func cmp(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         let value = aCPU.read(address: aStepInfo.address)
         aCPU.compare(valueA: aCPU.a, valueB: value)
     }
@@ -891,6 +909,7 @@ struct CPU
     /// CPX - Compare X Register
     private static func cpx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         let value = aCPU.read(address: aStepInfo.address)
         aCPU.compare(valueA: aCPU.x, valueB: value)
     }
@@ -898,6 +917,7 @@ struct CPU
     /// CPY - Compare Y Register
     private static func cpy(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         let value = aCPU.read(address: aStepInfo.address)
         aCPU.compare(valueA: aCPU.y, valueB: value)
     }
@@ -905,6 +925,7 @@ struct CPU
     /// DEC - Decrement Memory
     private static func dec(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         let value = aCPU.read(address: aStepInfo.address) &- 1
         aCPU.write(address: aStepInfo.address, value: value)
         aCPU.setZN(value: value)
@@ -913,6 +934,7 @@ struct CPU
     /// DEX - Decrement X Register
     private static func dex(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.x &-= 1 // decrement and wrap if needed
         aCPU.setZN(value: aCPU.x)
     }
@@ -920,6 +942,7 @@ struct CPU
     /// DEY - Decrement Y Register
     private static func dey(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.y &-= 1 // decrement and wrap if needed
         aCPU.setZN(value: aCPU.y)
     }
@@ -927,6 +950,7 @@ struct CPU
     /// EOR - Exclusive OR
     private static func eor(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.a = aCPU.a ^ aCPU.read(address: aStepInfo.address)
         aCPU.setZN(value: aCPU.a)
     }
@@ -934,6 +958,7 @@ struct CPU
     /// INC - Increment Memory
     private static func inc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         let value: UInt8 = aCPU.read(address: aStepInfo.address) &+ 1 // wrap if needed
         aCPU.write(address: aStepInfo.address, value: value)
         aCPU.setZN(value: value)
@@ -942,6 +967,7 @@ struct CPU
     /// INX - Increment X Register
     private static func inx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.x &+= 1 // increment and wrap if needed
         aCPU.setZN(value: aCPU.x)
     }
@@ -949,6 +975,7 @@ struct CPU
     /// INY - Increment Y Register
     private static func iny(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.y &+= 1 // increment and wrap if needed
         aCPU.setZN(value: aCPU.y)
     }
@@ -956,12 +983,14 @@ struct CPU
     /// JMP - Jump
     private static func jmp(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.pc = aStepInfo.address
     }
 
     /// JSR - Jump to Subroutine
     private static func jsr(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.push16(value: aCPU.pc - 1)
         aCPU.pc = aStepInfo.address
     }
@@ -969,6 +998,7 @@ struct CPU
     /// LDA - Load Accumulator
     private static func lda(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.a = aCPU.read(address: aStepInfo.address)
         aCPU.setZN(value: aCPU.a)
     }
@@ -976,6 +1006,7 @@ struct CPU
     /// LDX - Load X Register
     private static func ldx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.x = aCPU.read(address: aStepInfo.address)
         aCPU.setZN(value: aCPU.x)
     }
@@ -983,6 +1014,7 @@ struct CPU
     /// LDY - Load Y Register
     private static func ldy(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.y = aCPU.read(address: aStepInfo.address)
         aCPU.setZN(value: aCPU.y)
     }
@@ -990,6 +1022,7 @@ struct CPU
     /// LSR - Logical Shift Right
     private static func lsr(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aStepInfo.mode == .accumulator
         {
             aCPU.c = (aCPU.a & 1) == 1
@@ -1009,12 +1042,14 @@ struct CPU
     /// NOP - No Operation
     private static func nop(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         // do nothing
     }
 
     /// ORA - Logical Inclusive OR
     private static func ora(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.a = aCPU.a | aCPU.read(address: aStepInfo.address)
         aCPU.setZN(value: aCPU.a)
     }
@@ -1022,18 +1057,21 @@ struct CPU
     /// PHA - Push Accumulator
     private static func pha(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.push(value: aCPU.a)
     }
 
     /// PHP - Push Processor Status
     private static func php(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.push(value: aCPU.flags() | 0x10)
     }
 
     /// PLA - Pull Accumulator
     private static func pla(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.a = aCPU.pull()
         aCPU.setZN(value: aCPU.a)
     }
@@ -1041,12 +1079,14 @@ struct CPU
     /// PLP - Pull Processor Status
     private static func plp(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.set(flags: (aCPU.pull() & 0xEF) | 0x20)
     }
 
     /// ROL - Rotate Left
     private static func rol(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aStepInfo.mode == .accumulator
         {
             let c: UInt8 = aCPU.c ? 1 : 0
@@ -1068,6 +1108,7 @@ struct CPU
     /// ROR - Rotate Right
     private static func ror(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         if aStepInfo.mode == .accumulator
         {
             let c: UInt8 = aCPU.c ? 1 : 0
@@ -1089,6 +1130,7 @@ struct CPU
     /// RTI - Return from Interrupt
     private static func rti(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.set(flags: (aCPU.pull() & 0xEF) | 0x20)
         aCPU.pc = aCPU.pull16()
     }
@@ -1096,12 +1138,14 @@ struct CPU
     /// RTS - Return from Subroutine
     private static func rts(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.pc = aCPU.pull16() &+ 1
     }
 
     /// SBC - Subtract with Carry
     private static func sbc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         let a: UInt8 = aCPU.a
         let b: UInt8 = aCPU.read(address: aStepInfo.address)
         let c: UInt8 = aCPU.c ? 1 : 0
@@ -1114,42 +1158,49 @@ struct CPU
     /// SEC - Set Carry Flag
     private static func sec(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.c = true
     }
 
     /// SED - Set Decimal Flag
     private static func sed(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.d = true
     }
 
     /// SEI - Set Interrupt Disable
     private static func sei(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.i = true
     }
 
     /// STA - Store Accumulator
     private static func sta(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.write(address: aStepInfo.address, value: aCPU.a)
     }
 
     /// STX - Store X Register
     private static func stx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.write(address: aStepInfo.address, value: aCPU.x)
     }
 
     /// STY - Store Y Register
     private static func sty(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.write(address: aStepInfo.address, value: aCPU.y)
     }
 
     /// TAX - Transfer Accumulator to X
     private static func tax(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.x = aCPU.a
         aCPU.setZN(value: aCPU.x)
     }
@@ -1157,6 +1208,7 @@ struct CPU
     /// TAY - Transfer Accumulator to Y
     private static func tay(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.y = aCPU.a
         aCPU.setZN(value: aCPU.y)
     }
@@ -1164,6 +1216,7 @@ struct CPU
     /// TSX - Transfer Stack Pointer to X
     private static func tsx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.x = aCPU.sp
         aCPU.setZN(value: aCPU.x)
     }
@@ -1171,6 +1224,7 @@ struct CPU
     /// TXA - Transfer X to Accumulator
     private static func txa(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.a = aCPU.x
         aCPU.setZN(value: aCPU.a)
     }
@@ -1178,12 +1232,14 @@ struct CPU
     /// TXS - Transfer X to Stack Pointer
     private static func txs(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.sp = aCPU.x
     }
 
     /// TYA - Transfer Y to Accumulator
     private static func tya(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
+        os_log("%@: ADDR: 0x%04X, PC: 0x%04X, %@", #function, aStepInfo.address, aStepInfo.pc, String(describing: aStepInfo.mode))
         aCPU.a = aCPU.y
         aCPU.setZN(value: aCPU.a)
     }
