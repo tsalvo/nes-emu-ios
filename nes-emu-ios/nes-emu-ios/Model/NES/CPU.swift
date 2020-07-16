@@ -65,11 +65,21 @@ struct CPU
     var ppu: PPU
     var controllers: [Controller]
     
-    init(ppu aPPU: PPU, apu aAPU: APU, controllers aControllers: [Controller])
+    init(ppu aPPU: PPU, apu aAPU: APU, controllers aControllers: [Controller], state aState: CPUState? = nil)
     {
         self.apu = aAPU
         self.ppu = aPPU
         self.controllers = aControllers
+        if let safeCPUState: CPUState = aState
+        {
+            self.ram = safeCPUState.ram
+            self.a = safeCPUState.a
+            self.x = safeCPUState.x
+            self.y = safeCPUState.y
+            self.cycles = safeCPUState.cycles
+            self.stall = safeCPUState.stall
+            self.set(flags: safeCPUState.flags)
+        }
     }
     
     /// 2KB RAM
@@ -1216,7 +1226,7 @@ enum AddressingMode: UInt8
     case absolute, absoluteXIndexed, absoluteYIndexed, accumulator, immediate, implied, xIndexedIndirect, indirect, indirectYIndexed, relative, zeropage, zeroPageXIndexed, zeroPageYIndexed
 }
 
-enum Interrupt
+enum Interrupt: UInt8
 {
     case none, nmi, irq
 }

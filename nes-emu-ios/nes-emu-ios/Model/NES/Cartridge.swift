@@ -37,8 +37,8 @@ struct Cartridge: CartridgeProtocol
     init(fromData aData: Data)
     {
         let header = RomHeader(fromData: aData.prefix(RomHeader.sizeInBytes))
-        self.data = aData
         self.header = header
+        self.hashValue = aData.hashValue
         
         guard header.isValid
             else
@@ -48,6 +48,7 @@ struct Cartridge: CartridgeProtocol
             self.prgBlocks = []
             self.trainerData = Data()
             self.isValid = false
+            
             return
         }
         
@@ -128,8 +129,8 @@ struct Cartridge: CartridgeProtocol
         }
     }
     
+    let hashValue: Int
     let header: RomHeader
-    let data: Data
     let trainerData: Data
     let prgBlocks: [[UInt8]]
     var chrBlocks: [[UInt8]]
