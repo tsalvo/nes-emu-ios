@@ -113,9 +113,13 @@ class AudioEngine: AudioEngineProtocol
         switch type
         {
         case .began:
-            self.stop()
+            self.queue.async { [weak self] in
+                self?.stop()
+            }
         case .ended:
-            self.stop()
+            self.queue.async { [weak self] in
+                self?.stop()
+            }
         @unknown default:
             break
         }
