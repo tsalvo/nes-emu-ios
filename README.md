@@ -29,6 +29,7 @@ The following mappers have been implemented:
 -  MMC2 (9)
 -  ColorDreams (11)
 -  GxROM (66)
+-  Namcot 118 / Tengen Mimic 1 (206)
 
 This accounts for a good portion of the NES library, but there are still some big gaps remaining for popular mapper support.
 
