@@ -43,6 +43,20 @@ class AudioEngine: AudioEngineProtocol
     private var currentAudioFormat: AVAudioFormat?
     private var lastSampleRate: SampleRate?
     
+    // MARK: - Life Cycle
+    
+    init()
+    {
+        NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption(_:)), name: AVAudioSession.interruptionNotification, object: nil)
+    }
+    
+    deinit
+    {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    // MARK: - AudioEngineProtocol
+    
     func schedule(buffer aBuffer: [Float32], withSampleRate aSampleRate: SampleRate)
     {
         self.queue.async { [weak self] in
@@ -83,6 +97,35 @@ class AudioEngine: AudioEngineProtocol
             }
         }
     }
+    
+    // MARK: - Notifications
+    
+    @objc private func handleInterruption(_ notification: Notification)
+    {
+        guard let userInfo = notification.userInfo,
+            let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSession.InterruptionType(rawValue: typeValue)
+        else
+        {
+            return
+        }
+        
+        switch type
+        {
+        case .began:
+            self.queue.async { [weak self] in
+                self?.stop()
+            }
+        case .ended:
+            self.queue.async { [weak self] in
+                self?.stop()
+            }
+        @unknown default:
+            break
+        }
+    }
+    
+    // MARK: - Private Functions
     
     private func play()
     {
