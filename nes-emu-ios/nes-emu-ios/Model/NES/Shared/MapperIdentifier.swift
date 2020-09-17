@@ -299,7 +299,8 @@ enum MapperIdentifier: UInt8
              .ColorDreams,
              .GxROM,
              .Namcot118_TengenMimic1,
-             .MMC5:
+             .MMC5,
+             .NTDEC_2722:
             return true
         default: return false
         }

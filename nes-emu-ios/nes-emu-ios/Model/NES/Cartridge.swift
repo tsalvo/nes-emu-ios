@@ -125,6 +125,8 @@ struct Cartridge: CartridgeProtocol
             return Mapper_MMC5(withCartridge: self)
         case .Namcot118_TengenMimic1:
             return Mapper_Namcot118_TengenMimic1(withCartridge: self)
+        case .NTDEC_2722:
+            return Mapper_NTDEC2722(withCartridge: self)
         default:
             return Mapper_UnsupportedPlaceholder(withCartridge: self)
         }
