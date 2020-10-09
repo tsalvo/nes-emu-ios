@@ -40,7 +40,7 @@ struct Mapper_MMC1: MapperProtocol
     
     /// a variant of the MMC1 where instead of CHR Banks, extra PRG banks are included
     private let isSxROM: Bool
-    private var isSxROMHighPRGRangeSelected: Bool = false
+    private var isSxROMHighPRGRangeSelected: Bool
     
     /// this is normally the size of the total PRG blocks, but in the case of switchable 256KB PRG bank sets for SxROM boards, it is the end offset for the current PRG bankset relative to whether the high 256KB selection is active or not
     private var switched256KbPrgBankSetEnd: Int
@@ -48,20 +48,18 @@ struct Mapper_MMC1: MapperProtocol
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
     
-    private var shiftRegister: UInt8 = 0x10
-    private var control: UInt8 = 0
-    private var prgMode: UInt8 = 0
-    private var chrMode: UInt8 = 0
-    private var prgBank: UInt8 = 0
-    private var chrBank0: UInt8 = 0
-    private var chrBank1: UInt8 = 0
-    private var prgOffsets: [Int] = [Int].init(repeating: 0, count: 2)
-    private var chrOffsets: [Int] = [Int].init(repeating: 0, count: 2)
+    private var shiftRegister: UInt8
+    private var control: UInt8
+    private var prgMode: UInt8
+    private var chrMode: UInt8
+    private var prgBank: UInt8
+    private var chrBank0: UInt8
+    private var chrBank1: UInt8
+    private var prgOffsets: [Int]
+    private var chrOffsets: [Int]
     
-    init(withCartridge aCartridge: CartridgeProtocol)
+    init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        self.mirroringMode = aCartridge.header.mirroringMode
-        
         for p in aCartridge.prgBlocks
         {
             self.prg.append(contentsOf: p)
@@ -72,17 +70,68 @@ struct Mapper_MMC1: MapperProtocol
             self.chr.append(contentsOf: c)
         }
         
-        let isSxROM = aCartridge.prgBlocks.count > 16
-        self.switched256KbPrgBankSetEnd = isSxROM ? self.prg.count / 2 : self.prg.count
-        self.isSxROM = isSxROM
-        
         if self.chr.count == 0
         {
             // use a block for CHR RAM if no block exists
             self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
         }
         
-        self.prgOffsets[1] = self.prgBankOffset(index: -1)
+        let isSxROM = aCartridge.prgBlocks.count > 16
+        self.switched256KbPrgBankSetEnd = isSxROM ? self.prg.count / 2 : self.prg.count
+        
+        self.isSxROM = isSxROM
+        
+        if let safeState = aState
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.shiftRegister = safeState.uint8s[safe: 0] ?? 0x10
+            self.control = safeState.uint8s[safe: 1] ?? 0
+            self.prgMode = safeState.uint8s[safe: 2] ?? 0
+            self.chrMode = safeState.uint8s[safe: 3] ?? 0
+            self.prgBank = safeState.uint8s[safe: 4] ?? 0
+            self.chrBank0 = safeState.uint8s[safe: 5] ?? 0
+            self.chrBank1 = safeState.uint8s[safe: 6] ?? 0
+            self.prgOffsets = [safeState.ints[safe: 0] ?? 0, safeState.ints[safe: 1] ?? 0]
+            self.chrOffsets = [safeState.ints[safe: 2] ?? 0, safeState.ints[safe: 3] ?? 0]
+            self.isSxROMHighPRGRangeSelected = safeState.bools[safe: 0] ?? false
+        }
+        else
+        {
+            self.mirroringMode = aCartridge.header.mirroringMode
+            self.shiftRegister = 0x10
+            self.control = 0
+            self.prgMode = 0
+            self.chrMode = 0
+            self.prgBank = 0
+            self.chrBank0 = 0
+            self.chrBank1 = 0
+            self.prgOffsets = [0, 0]
+            self.chrOffsets = [0, 0]
+            self.isSxROMHighPRGRangeSelected = false
+            self.prgOffsets[1] = self.prgBankOffset(index: -1)
+        }
+    }
+    
+    var mapperState: MapperState
+    {
+        get
+        {
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [self.isSxROMHighPRGRangeSelected], uint8s: [self.shiftRegister, self.control, self.prgMode, self.chrMode, self.prgBank, self.chrBank0, self.chrBank1])
+        }
+        set
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.shiftRegister = newValue.uint8s[safe: 0] ?? 0x10
+            self.control = newValue.uint8s[safe: 1] ?? 0
+            self.prgMode = newValue.uint8s[safe: 2] ?? 0
+            self.chrMode = newValue.uint8s[safe: 3] ?? 0
+            self.prgBank = newValue.uint8s[safe: 4] ?? 0
+            self.chrBank0 = newValue.uint8s[safe: 5] ?? 0
+            self.chrBank1 = newValue.uint8s[safe: 6] ?? 0
+            self.prgOffsets = [newValue.ints[safe: 0] ?? 0, newValue.ints[safe: 1] ?? 0]
+            self.chrOffsets = [newValue.ints[safe: 2] ?? 0, newValue.ints[safe: 3] ?? 0]
+            self.isSxROMHighPRGRangeSelected = newValue.bools[safe: 0] ?? false
+        }
     }
     
     func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?

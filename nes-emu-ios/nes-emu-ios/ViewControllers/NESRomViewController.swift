@@ -53,6 +53,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     // MARK: - Private Variables
     private weak var dismissBarButtonItem: UIBarButtonItem?
     private weak var resetBarButtonItem: UIBarButtonItem?
+    private weak var saveStateBarButtonItem: UIBarButtonItem?
     private weak var controller1BarButtonItem: UIBarButtonItem?
     private weak var controller2BarButtonItem: UIBarButtonItem?
     
@@ -183,6 +184,18 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
             self?.console?.reset()
             DispatchQueue.main.async {
                 self?.screen.buffer = PPU.emptyBuffer
+            }
+        }
+    }
+    
+    @objc private func saveStateButtonPressed(_ sender: AnyObject?)
+    {
+        self.consoleQueue.async { [weak self] in
+            if let s = self?.console?.consoleState
+            {
+                DispatchQueue.main.async {
+                    // TODO: persist the contents of s (ConsoleState)
+                }
             }
         }
     }
@@ -619,6 +632,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
 #endif
             
         let resetButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "power", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(resetButtonPressed(_:)))
+        let saveStateButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "bookmark", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(saveStateButtonPressed(_:)))
         let controller1Button: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gamecontroller", withConfiguration: symbolConfig), style: .plain, target: self, action: nil)
         let controller2Button: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gamecontroller", withConfiguration: symbolConfig), style: .plain, target: self, action: nil)
         let closeButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(dismissButtonPressed(_:)))
@@ -626,11 +640,12 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         controller2Button.isEnabled = false
         
         self.resetBarButtonItem = resetButton
+        self.saveStateBarButtonItem = saveStateButton
         self.controller1BarButtonItem = controller1Button
         self.controller2BarButtonItem = controller2Button
         self.dismissBarButtonItem = closeButton
            
-        self.navigationItem.setLeftBarButtonItems([resetButton, controller1Button, controller2Button], animated: false)
+        self.navigationItem.setLeftBarButtonItems([resetButton, saveStateButton, controller1Button, controller2Button], animated: false)
         
 #if targetEnvironment(macCatalyst)
 #else

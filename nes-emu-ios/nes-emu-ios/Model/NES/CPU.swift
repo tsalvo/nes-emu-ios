@@ -76,10 +76,16 @@ struct CPU
             self.a = safeCPUState.a
             self.x = safeCPUState.x
             self.y = safeCPUState.y
+            self.pc = safeCPUState.pc
             self.cycles = safeCPUState.cycles
             self.stall = safeCPUState.stall
             self.set(flags: safeCPUState.flags)
         }
+    }
+    
+    var cpuState: CPUState
+    {
+        return CPUState.init(ram: self.ram, a: self.a, x: self.x, y: self.y, pc: self.pc, cycles: self.cycles, flags: self.flags(), interrupt: self.interrupt.rawValue, stall: self.stall)
     }
     
     /// 2KB RAM

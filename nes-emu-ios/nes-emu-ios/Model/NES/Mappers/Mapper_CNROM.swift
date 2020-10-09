@@ -41,14 +41,26 @@ struct Mapper_CNROM: MapperProtocol
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
     
-    private var chrBank: Int = 0
+    private var chrBank: Int
     
-    private var prgBank1: Int = 0
-    private var prgBank2: Int
+    private var prgBank1: Int
     
-    init(withCartridge aCartridge: CartridgeProtocol)
+    private let prgBank2: Int /// locked to last bank
+    
+    init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        self.mirroringMode = aCartridge.header.mirroringMode
+        if let safeState = aState
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.chrBank = safeState.ints[safe: 0] ?? 0
+            self.prgBank1 = safeState.ints[safe: 1] ?? 0
+        }
+        else
+        {
+            self.mirroringMode = aCartridge.header.mirroringMode
+            self.chrBank = 0
+            self.prgBank1 = 0
+        }
         
         for p in aCartridge.prgBlocks
         {
@@ -67,6 +79,20 @@ struct Mapper_CNROM: MapperProtocol
         }
         
         self.prgBank2 = aCartridge.prgBlocks.count - 1
+    }
+    
+    var mapperState: MapperState
+    {
+        get
+        {
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBank, self.prgBank1], bools: [], uint8s: [])
+        }
+        set
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.chrBank = newValue.ints[safe: 0] ?? 0
+            self.prgBank1 = newValue.ints[safe: 1] ?? 0
+        }
     }
     
     func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF

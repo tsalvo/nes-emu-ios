@@ -41,12 +41,22 @@ struct Mapper_NROM_UNROM: MapperProtocol
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
     
-    private var prgBanks: Int
-    private var prgBank1: Int
-    private var prgBank2: Int
+    private let prgBanks: Int /// number of PRG banks
+    private var prgBank1: Int /// switchable PRG bank
+    private let prgBank2: Int /// locked to last PRG block
     
-    init(withCartridge aCartridge: CartridgeProtocol)
+    init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
+        if let safeState = aState
+        {
+            self.prgBank1 = safeState.ints[safe: 0] ?? 0
+        }
+        else
+        {
+            
+            self.prgBank1 = 0
+        }
+        
         self.mirroringMode = aCartridge.header.mirroringMode
         
         for p in aCartridge.prgBlocks
@@ -74,6 +84,18 @@ struct Mapper_NROM_UNROM: MapperProtocol
         self.prgBanks = self.prg.count / 0x4000
         self.prgBank1 = 0
         self.prgBank2 = self.prgBanks - 1
+    }
+    
+    var mapperState: MapperState
+    {
+        get
+        {
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank1], bools: [], uint8s: [])
+        }
+        set
+        {
+            self.prgBank1 = newValue.ints[safe: 0] ?? 0
+        }
     }
     
     func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
