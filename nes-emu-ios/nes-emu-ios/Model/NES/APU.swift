@@ -28,7 +28,7 @@ import Foundation
 struct APUStepResults
 {
     let shouldTriggerIRQOnCPU: Bool
-    let numCPUStallCycles: Int
+    let numCPUStallCycles: UInt64
 }
 
 /// NES Audio Processing Unit
@@ -87,7 +87,7 @@ struct APU
         let cycle1 = self.cycle
         self.cycle += 1
         let cycle2 = self.cycle
-        let numCPUStallCycles: Int = self.stepTimer(dmcCurrentAddressValue: aDmcCurrentAddressValue)
+        let numCPUStallCycles: UInt64 = self.stepTimer(dmcCurrentAddressValue: aDmcCurrentAddressValue)
         let f1 = Int(Double(cycle1) / APU.frameCounterRate)
         let f2 = Int(Double(cycle2) / APU.frameCounterRate)
         if f1 != f2
@@ -180,9 +180,9 @@ struct APU
         return shouldFireIRQ
     }
 
-    mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
+    mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> UInt64
     {
-        let numCPUStallCycles: Int
+        let numCPUStallCycles: UInt64
         if self.cycle % 2 == 0
         {
             self.pulse1.stepTimer()
@@ -811,14 +811,14 @@ struct APU
             self.currentLength = self.sampleLength
         }
 
-        mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
+        mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> UInt64
         {
             if !self.enabled
             {
                 return 0
             }
             
-            let numCPUStallCycles: Int = self.stepReader(dmcCurrentAddressValue: aDmcCurrentAddressValue)
+            let numCPUStallCycles: UInt64 = self.stepReader(dmcCurrentAddressValue: aDmcCurrentAddressValue)
             
             if self.tickValue == 0
             {
@@ -833,9 +833,9 @@ struct APU
             return numCPUStallCycles
         }
 
-        mutating func stepReader(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
+        mutating func stepReader(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> UInt64
         {
-            let numCPUStallCycles: Int
+            let numCPUStallCycles: UInt64
             if self.currentLength > 0 && self.bitCount == 0
             {
                 numCPUStallCycles = 4

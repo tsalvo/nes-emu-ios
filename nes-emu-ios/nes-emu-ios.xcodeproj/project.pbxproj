@@ -32,6 +32,8 @@
 		995C9AE3249BED0B00429ECC /* Mapper_MMC2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */; };
 		995C9AE5249BED4000429ECC /* Mapper_MMC3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */; };
 		995C9AEA249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */; };
+		995D06C3253157D7008AD907 /* CoreDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 995D06C1253157D7008AD907 /* CoreDataModel.xcdatamodeld */; };
+		995D06C4253157D7008AD907 /* CoreDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 995D06C1253157D7008AD907 /* CoreDataModel.xcdatamodeld */; };
 		995EEC49249DFB2300FE24F8 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995EEC48249DFB2300FE24F8 /* Settings.swift */; };
 		9989466724BFFC3E00E9A31E /* SaveState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9989466624BFFC3E00E9A31E /* SaveState.swift */; };
 		9989466824BFFC3E00E9A31E /* SaveState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9989466624BFFC3E00E9A31E /* SaveState.swift */; };
@@ -160,6 +162,7 @@
 		995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC2.swift; sourceTree = "<group>"; };
 		995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC3.swift; sourceTree = "<group>"; };
 		995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mapper_UnsupportedPlaceholder.swift; sourceTree = "<group>"; };
+		995D06C2253157D7008AD907 /* CoreDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = CoreDataModel.xcdatamodel; sourceTree = "<group>"; };
 		995EEC48249DFB2300FE24F8 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		9989466624BFFC3E00E9A31E /* SaveState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveState.swift; sourceTree = "<group>"; };
 		999AA95B248F668000DA77AA /* NesRomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomViewController.swift; sourceTree = "<group>"; };
@@ -305,6 +308,7 @@
 		99488F562489AFC500942A1E /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				995D06C02531579F008AD907 /* CoreData */,
 				991B28C2248A229500A6A6DD /* NES */,
 				99488F45248985F100942A1E /* NesRomDocument.swift */,
 				99C7F1742494221800E4C04D /* AudioEngine.swift */,
@@ -350,6 +354,14 @@
 				99FB2209248DCC7A00D557A4 /* MapperProtocol.swift */,
 			);
 			path = Protocols;
+			sourceTree = "<group>";
+		};
+		995D06C02531579F008AD907 /* CoreData */ = {
+			isa = PBXGroup;
+			children = (
+				995D06C1253157D7008AD907 /* CoreDataModel.xcdatamodeld */,
+			);
+			path = CoreData;
 			sourceTree = "<group>";
 		};
 		99A372E62490D6FA00089773 /* ViewControllers */ = {
@@ -587,6 +599,7 @@
 				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
 				992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */,
 				99B7C309249F33DC00B26AC6 /* Bundle+Version.swift in Sources */,
+				995D06C3253157D7008AD907 /* CoreDataModel.xcdatamodeld in Sources */,
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
 				99488F40248985F100942A1E /* AppDelegate.swift in Sources */,
 				99B1EDAD249EB0A800BC66F3 /* SettingsMoreInfoCell.swift in Sources */,
@@ -649,6 +662,7 @@
 				99FA3CAB24A6F1140065E539 /* Mapper_CNROM.swift in Sources */,
 				99FA3CBD24A6F1500065E539 /* SampleRate.swift in Sources */,
 				99FA3CA624A6F1050065E539 /* Bundle+Version.swift in Sources */,
+				995D06C4253157D7008AD907 /* CoreDataModel.xcdatamodeld in Sources */,
 				99BD700E24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */,
 				99FA3CB424A6F12A0065E539 /* Console.swift in Sources */,
 				99FA3C9324A6E7CD0065E539 /* RomListTableViewController.swift in Sources */,
@@ -1003,6 +1017,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		995D06C1253157D7008AD907 /* CoreDataModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				995D06C2253157D7008AD907 /* CoreDataModel.xcdatamodel */,
+			);
+			currentVersion = 995D06C2253157D7008AD907 /* CoreDataModel.xcdatamodel */;
+			path = CoreDataModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 99488F34248985F100942A1E /* Project object */;
 }

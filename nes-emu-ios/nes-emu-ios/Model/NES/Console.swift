@@ -29,6 +29,7 @@ struct Console
 {
     // MARK: - Private Variables
     private var cpu: CPU
+    private var md5: String /// game MD5 hash
     
     // MARK: - Computed Properties
     /// returns a 256x224 array of palette colors copies from the PPU's current screen buffer
@@ -40,17 +41,13 @@ struct Console
     /// returns a ConsoleState struct containing the current state of the CPU, PPU, APU, and Mapper
     var consoleState: ConsoleState
     {
-        let c = self.cpu.cpuState
-        let p = self.cpu.ppu.ppuState
-        let a = self.cpu.apu.apuState
-        let m = self.cpu.ppu.mapper.mapperState
-        
-        return ConsoleState(cpuState: c, apuState: a, ppuState: p, mapperState: m)
+        ConsoleState(date: Date(), md5: self.md5, cpuState: self.cpu.cpuState, apuState: self.cpu.apu.apuState, ppuState: self.cpu.ppu.ppuState, mapperState: self.cpu.ppu.mapper.mapperState)
     }
     
     // MARK: - Life cycle
     init(withCartridge aCartridge: Cartridge, sampleRate aSampleRate: SampleRate, audioFiltersEnabled aAudioFiltersEnabled: Bool, state aState: ConsoleState? = nil)
     {
+        self.md5 = aCartridge.md5
         self.cpu = CPU(ppu: PPU(mapper: aCartridge.mapper(withState: aState?.mapperState), state: aState?.ppuState), apu: APU(withSampleRate: aSampleRate, filtersEnabled: aAudioFiltersEnabled, state: aState?.apuState), controllers: [Controller(), Controller()], state: aState?.cpuState)
     }
     

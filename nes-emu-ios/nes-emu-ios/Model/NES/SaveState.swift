@@ -10,6 +10,8 @@ import Foundation
 
 struct ConsoleState
 {
+    let date: Date
+    let md5: String
     let cpuState: CPUState
     let apuState: APUState
     let ppuState: PPUState
@@ -26,7 +28,7 @@ struct CPUState
     let cycles: UInt64
     let flags: UInt8
     let interrupt: UInt8
-    let stall: Int
+    let stall: UInt64
 }
 
 struct APUState
@@ -36,7 +38,8 @@ struct APUState
 
 struct PPUState
 {
-    let cycle: Int
+    let cycle: UInt16
+    let scanline: UInt16
     let frame: UInt64
     let paletteData: [UInt8]
     let nameTableData: [UInt8]
@@ -75,7 +78,7 @@ struct PPUState
     let tileData: UInt64
     
     // MARK: Sprite temporary variables
-    let spriteCount: Int
+    let spriteCount: UInt8
     let spritePatterns: [UInt32]
     let spritePositions: [UInt8]
     let spritePriorities: [UInt8]
@@ -140,8 +143,6 @@ struct PPUState
     
     /// colors in 0xBBGGRRAA format from Palette.colors
     let frontBuffer: [UInt32]
-    
-    let scanline: Int
 }
 
 struct MapperState
