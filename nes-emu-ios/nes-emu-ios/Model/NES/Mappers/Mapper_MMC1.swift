@@ -123,7 +123,7 @@ struct Mapper_MMC1: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [self.isSxROMHighPRGRangeSelected], uint8s: [self.shiftRegister, self.control, self.prgMode, self.chrMode, self.prgBank, self.chrBank0, self.chrBank1], chr: self.chr)
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.chrOffsets[0], self.chrOffsets[1]], bools: [self.isSxROMHighPRGRangeSelected], uint8s: [self.shiftRegister, self.control, self.prgMode, self.chrMode, self.prgBank, self.chrBank0, self.chrBank1], chr: self.chr)
         }
         set
         {
