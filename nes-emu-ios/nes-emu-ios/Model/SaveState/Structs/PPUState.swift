@@ -1,40 +1,12 @@
 //
-//  SaveState.swift
+//  PPUState.swift
 //  nes-emu-ios
 //
-//  Created by Tom Salvo on 7/15/20.
+//  Created by Tom Salvo on 10/10/20.
 //  Copyright © 2020 Tom Salvo. All rights reserved.
 //
 
 import Foundation
-
-struct ConsoleState
-{
-    let date: Date
-    let md5: String
-    let cpuState: CPUState
-    let apuState: APUState
-    let ppuState: PPUState
-    let mapperState: MapperState
-}
-
-struct CPUState
-{
-    let ram: [UInt8]
-    let a: UInt8
-    let x: UInt8
-    let y: UInt8
-    let pc: UInt16
-    let cycles: UInt64
-    let flags: UInt8
-    let interrupt: UInt8
-    let stall: UInt64
-}
-
-struct APUState
-{
-    
-}
 
 struct PPUState
 {
@@ -143,12 +115,4 @@ struct PPUState
     
     /// colors in 0xBBGGRRAA format from Palette.colors
     let frontBuffer: [UInt32]
-}
-
-struct MapperState
-{
-    let mirroringMode: UInt8
-    let ints: [Int]
-    let bools: [Bool]
-    let uint8s: [UInt8]
 }

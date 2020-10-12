@@ -65,9 +65,16 @@ struct Mapper_MMC1: MapperProtocol
             self.prg.append(contentsOf: p)
         }
         
-        for c in aCartridge.chrBlocks
+        if let safeState = aState
         {
-            self.chr.append(contentsOf: c)
+            self.chr = safeState.chr
+        }
+        else
+        {
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
         }
         
         if self.chr.count == 0
@@ -116,7 +123,7 @@ struct Mapper_MMC1: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [self.isSxROMHighPRGRangeSelected], uint8s: [self.shiftRegister, self.control, self.prgMode, self.chrMode, self.prgBank, self.chrBank0, self.chrBank1])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [self.isSxROMHighPRGRangeSelected], uint8s: [self.shiftRegister, self.control, self.prgMode, self.chrMode, self.prgBank, self.chrBank0, self.chrBank1], chr: self.chr)
         }
         set
         {
@@ -131,6 +138,7 @@ struct Mapper_MMC1: MapperProtocol
             self.prgOffsets = [newValue.ints[safe: 0] ?? 0, newValue.ints[safe: 1] ?? 0]
             self.chrOffsets = [newValue.ints[safe: 2] ?? 0, newValue.ints[safe: 3] ?? 0]
             self.isSxROMHighPRGRangeSelected = newValue.bools[safe: 0] ?? false
+            self.chr = newValue.chr
         }
     }
     

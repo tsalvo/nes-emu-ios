@@ -55,9 +55,16 @@ struct Mapper_Namcot118_TengenMimic1: MapperProtocol
             self.prg.append(contentsOf: p)
         }
 
-        for c in aCartridge.chrBlocks
+        if let safeState = aState
         {
-            self.chr.append(contentsOf: c)
+            self.chr = safeState.chr
+        }
+        else
+        {
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
         }
 
         if self.chr.count == 0
@@ -98,7 +105,7 @@ struct Mapper_Namcot118_TengenMimic1: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]], bools: [], uint8s: [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]], bools: [], uint8s: [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode], chr: self.chr)
         }
         set
         {
@@ -118,6 +125,7 @@ struct Mapper_Namcot118_TengenMimic1: MapperProtocol
             self.registers = [newValue.uint8s[1], newValue.uint8s[2], newValue.uint8s[3], newValue.uint8s[4], newValue.uint8s[5], newValue.uint8s[6], newValue.uint8s[7], newValue.uint8s[8]]
             self.prgMode = newValue.uint8s[9]
             self.chrMode = newValue.uint8s[10]
+            self.chr = newValue.chr
         }
     }
     

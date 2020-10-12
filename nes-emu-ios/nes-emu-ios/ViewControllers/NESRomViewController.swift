@@ -25,6 +25,7 @@
 
 import UIKit
 import GameController
+import CoreData
 
 protocol EmulatorProtocol: class
 {
@@ -32,7 +33,7 @@ protocol EmulatorProtocol: class
     func pauseEmulation()
 }
 
-class NesRomViewController: GCEventViewController, EmulatorProtocol
+class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSaveStateSelectionDelegate
 {
     // MARK: - Constants
     private static let defaultFrameQueueSize: Int = 3
@@ -164,6 +165,33 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.destroyDisplayLink()
     }
     
+    // MARK: - ConsoleSaveStateSelectionDelegate
+    
+    func consoleStateSelected(consoleState aConsoleState: ConsoleState)
+    {
+        self.consoleQueue.async { [weak self] in
+            self?.console?.load(state: aConsoleState)
+            self?.console?.set(audioEngineDelegate: self?.audioEngine)
+        }
+    }
+    
+    func saveCurrentStateSelected()
+    {
+        self.consoleQueue.async { [weak self] in
+            guard let safeState = self?.console?.consoleState else { return }
+            DispatchQueue.main.async {
+                do
+                {
+                    try CoreDataController.save(consoleState: safeState)
+                }
+                catch
+                {
+                    print("error")
+                }
+            }
+        }
+    }
+    
     // MARK: - Button Actions
     @objc private func dismissButtonPressed(_ sender: AnyObject?)
     {
@@ -194,7 +222,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
             if let s = self?.console?.consoleState
             {
                 DispatchQueue.main.async {
-                    // TODO: persist the contents of s (ConsoleState)
+                    self?.performSegue(withIdentifier: "showSaveStates", sender: s.md5)
                 }
             }
         }
@@ -495,6 +523,18 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.consoleQueue.resume()
     }
     
+    // MARK: - Navigation
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+        if let safeSaveStateVC = segue.destination as? SaveStateTableViewController,
+           let md5 = sender as? String
+        {
+            safeSaveStateVC.md5 = md5
+            safeSaveStateVC.consoleSaveStateSelectionDelegate = self
+        }
+    }
+    
     // MARK: - Private Functions
     
     private func createDisplayLink()
@@ -652,4 +692,69 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.navigationItem.setRightBarButtonItems([closeButton], animated: false)
 #endif
     }
+    
+    func printSaveStateInfo()
+    {
+        guard let md5: String = self.cartridge?.md5,
+              let managedContext = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext
+        else
+        {
+            return
+        }
+
+        let fetchRequest_CPU = NSFetchRequest<NSManagedObject>(entityName: "CPUState_CD")
+        let fetchRequest_Mapper = NSFetchRequest<NSManagedObject>(entityName: "MapperState_CD")
+        let fetchRequest_PPU = NSFetchRequest<NSManagedObject>(entityName: "PPUState_CD")
+        let fetchRequest_Console = NSFetchRequest<NSManagedObject>(entityName: "ConsoleState_CD")
+        fetchRequest_Console.predicate =  NSPredicate(format: "md5 == %@", md5)
+
+        do
+        {
+            let cpuStates: [CPUState] = try managedContext.fetch(fetchRequest_CPU).map({ $0.cpuStateStruct })
+            let mapperStates: [MapperState] = try managedContext.fetch(fetchRequest_Mapper).map({ $0.mapperStateStruct })
+            let ppuStates: [PPUState] = try managedContext.fetch(fetchRequest_PPU).map({ $0.ppuStateStruct })
+            let consoleStates: [ConsoleState] = try managedContext.fetch(fetchRequest_Console).compactMap({ $0.consoleStateStruct })
+            
+            print("CPU States: \(cpuStates.count)")
+            print("Mapper States: \(mapperStates.count)")
+            print("PPU States: \(ppuStates.count)")
+            print("Console States: \(consoleStates.count)")
+        }
+        catch let error as NSError
+        {
+            print("Could not fetch. \(error), \(error.userInfo)")
+        }
+    }
+    
+//    private func save(consoleState aConsoleState: ConsoleState)
+//    {
+//        guard let md5: String = self.cartridge?.md5,
+//            let managedContext = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext,
+//            let cpuStateEntity = NSEntityDescription.entity(forEntityName: "CPUState_CD", in: managedContext),
+//            let mapperStateEntity = NSEntityDescription.entity(forEntityName: "MapperState_CD", in: managedContext),
+//            let ppuStateEntity = NSEntityDescription.entity(forEntityName: "PPUState_CD", in: managedContext),
+//            let consoleStateEntity = NSEntityDescription.entity(forEntityName: "ConsoleState_CD", in: managedContext)
+//        else
+//        {
+//            return
+//        }
+//
+//        let cpuState = NSManagedObject(entity: cpuStateEntity, insertInto: managedContext)
+//        cpuState.cpuStateStruct = aConsoleState.cpuState
+//
+//        let mapperState = NSManagedObject(entity: mapperStateEntity, insertInto: managedContext)
+//        mapperState.mapperStateStruct = aConsoleState.mapperState
+//
+//        let ppuState = NSManagedObject(entity: ppuStateEntity, insertInto: managedContext)
+//        ppuState.ppuStateStruct = aConsoleState.ppuState
+//
+//        let consoleState = NSManagedObject(entity: consoleStateEntity, insertInto: managedContext)
+//        consoleState.setValuesForKeys(["date": Date(), "md5": md5, "cpuState": cpuState, "mapperState": mapperState, "ppuState": ppuState])
+//        // 4
+//        do {
+//            try managedContext.save()
+//        } catch let error as NSError {
+//            print("Could not save. \(error), \(error.userInfo)")
+//        }
+//    }
 }

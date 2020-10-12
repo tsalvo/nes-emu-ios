@@ -45,10 +45,11 @@ struct Mapper_UnsupportedPlaceholder: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [], uint8s: [])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [], uint8s: [], chr: [])
         }
         set
         {
+            
         }
     }
     

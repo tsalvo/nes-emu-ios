@@ -58,9 +58,16 @@ struct Mapper_MMC3: MapperProtocol
             self.prg.append(contentsOf: p)
         }
 
-        for c in aCartridge.chrBlocks
+        if let safeState = aState
         {
-            self.chr.append(contentsOf: c)
+            self.chr = safeState.chr
+        }
+        else
+        {
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
         }
 
         if self.chr.count == 0
@@ -109,7 +116,7 @@ struct Mapper_MMC3: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]], bools: [self.irqEnable], uint8s: [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode, self.reload, self.counter])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]], bools: [self.irqEnable], uint8s: [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode, self.reload, self.counter], chr: self.chr)
         }
         set
         {
@@ -132,6 +139,7 @@ struct Mapper_MMC3: MapperProtocol
             self.chrMode = newValue.uint8s[10]
             self.reload = newValue.uint8s[11]
             self.counter = newValue.uint8s[12]
+            self.chr = newValue.chr
         }
     }
     

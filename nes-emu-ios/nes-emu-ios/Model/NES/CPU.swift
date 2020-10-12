@@ -77,6 +77,7 @@ struct CPU
             self.x = safeCPUState.x
             self.y = safeCPUState.y
             self.pc = safeCPUState.pc
+            self.sp = safeCPUState.sp
             self.cycles = safeCPUState.cycles
             self.stall = safeCPUState.stall
             self.set(flags: safeCPUState.flags)
@@ -85,7 +86,7 @@ struct CPU
     
     var cpuState: CPUState
     {
-        return CPUState.init(ram: self.ram, a: self.a, x: self.x, y: self.y, pc: self.pc, cycles: self.cycles, flags: self.flags(), interrupt: self.interrupt.rawValue, stall: self.stall)
+        return CPUState.init(ram: self.ram, a: self.a, x: self.x, y: self.y, pc: self.pc, sp: self.sp, cycles: self.cycles, flags: self.flags(), interrupt: self.interrupt.rawValue, stall: self.stall)
     }
     
     /// 2KB RAM

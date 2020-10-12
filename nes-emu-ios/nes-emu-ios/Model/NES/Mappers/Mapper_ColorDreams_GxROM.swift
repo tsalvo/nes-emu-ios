@@ -51,22 +51,22 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
             self.prg.append(contentsOf: p)
         }
         
-        for c in aCartridge.chrBlocks
-        {
-            self.chr.append(contentsOf: c)
-        }
-        
         self.mirroringMode = aCartridge.header.mirroringMode
         
         if let safeState = aState
         {
             self.prgBank = safeState.ints[safe: 0] ?? 0
             self.chrBank = safeState.ints[safe: 1] ?? 0
+            self.chr = safeState.chr
         }
         else
         {
             self.chrBank = 0
             self.prgBank = max(0, self.prg.count - 0x8000) / 0x8000
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
         }
     }
     
@@ -74,12 +74,13 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank, self.chrBank], bools: [], uint8s: [])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank, self.chrBank], bools: [], uint8s: [], chr: self.chr)
         }
         set
         {
             self.prgBank = newValue.ints[safe: 0] ?? 0
             self.chrBank = newValue.ints[safe: 1] ?? 0
+            self.chr = newValue.chr
         }
     }
     

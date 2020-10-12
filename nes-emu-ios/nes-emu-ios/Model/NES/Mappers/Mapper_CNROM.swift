@@ -54,22 +54,23 @@ struct Mapper_CNROM: MapperProtocol
             self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
             self.chrBank = safeState.ints[safe: 0] ?? 0
             self.prgBank1 = safeState.ints[safe: 1] ?? 0
+            self.chr = safeState.chr
         }
         else
         {
             self.mirroringMode = aCartridge.header.mirroringMode
             self.chrBank = 0
             self.prgBank1 = 0
+            
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
         }
         
         for p in aCartridge.prgBlocks
         {
             self.prg.append(contentsOf: p)
-        }
-        
-        for c in aCartridge.chrBlocks
-        {
-            self.chr.append(contentsOf: c)
         }
         
         if self.chr.count == 0
@@ -85,13 +86,14 @@ struct Mapper_CNROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBank, self.prgBank1], bools: [], uint8s: [])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBank, self.prgBank1], bools: [], uint8s: [], chr: self.chr)
         }
         set
         {
             self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
             self.chrBank = newValue.ints[safe: 0] ?? 0
             self.prgBank1 = newValue.ints[safe: 1] ?? 0
+            self.chr = newValue.chr
         }
     }
     

@@ -58,6 +58,8 @@ struct Mapper_MMC2: MapperProtocol
             self.chrBanks1 = [safeState.ints[safe: 2] ?? 0, safeState.ints[safe: 3] ?? 0]
             self.chrBanks2 = [safeState.ints[safe: 4] ?? 1, safeState.ints[safe: 5] ?? 0]
             self.prgBank1 = safeState.ints[safe: 6] ?? 0
+            
+            self.chr = safeState.chr
         }
         else
         {
@@ -67,6 +69,11 @@ struct Mapper_MMC2: MapperProtocol
             self.chrBanks1 = [0, 0]
             self.chrBanks2 = [1, 0]
             self.prgBank1 = 0
+            
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
         }
         
         for p in aCartridge.prgBlocks
@@ -76,10 +83,7 @@ struct Mapper_MMC2: MapperProtocol
         
         self.prgBank2 = max((aCartridge.prgBlocks.count * 16384) - (3 * 8192), 0)
         
-        for c in aCartridge.chrBlocks
-        {
-            self.chr.append(contentsOf: c)
-        }
+        
         
         if self.chr.count == 0
         {
@@ -92,7 +96,7 @@ struct Mapper_MMC2: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrLatch1, self.chrLatch2, self.chrBanks1[0], self.chrBanks1[1], self.chrBanks2[0], self.chrBanks2[1], self.prgBank1], bools: [], uint8s: [])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrLatch1, self.chrLatch2, self.chrBanks1[0], self.chrBanks1[1], self.chrBanks2[0], self.chrBanks2[1], self.prgBank1], bools: [], uint8s: [], chr: self.chr)
         }
         set
         {
@@ -102,6 +106,7 @@ struct Mapper_MMC2: MapperProtocol
             self.chrBanks1 = [newValue.ints[safe: 2] ?? 0, newValue.ints[safe: 3] ?? 0]
             self.chrBanks2 = [newValue.ints[safe: 4] ?? 1, newValue.ints[safe: 5] ?? 0]
             self.prgBank1 = newValue.ints[safe: 6] ?? 0
+            self.chr = newValue.chr
         }
     }
     
