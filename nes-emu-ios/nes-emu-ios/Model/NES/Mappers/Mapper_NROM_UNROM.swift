@@ -50,11 +50,15 @@ struct Mapper_NROM_UNROM: MapperProtocol
         if let safeState = aState
         {
             self.prgBank1 = safeState.ints[safe: 0] ?? 0
+            self.chr = safeState.chr
         }
         else
         {
-            
             self.prgBank1 = 0
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
         }
         
         self.mirroringMode = aCartridge.header.mirroringMode
@@ -62,11 +66,6 @@ struct Mapper_NROM_UNROM: MapperProtocol
         for p in aCartridge.prgBlocks
         {
             self.prg.append(contentsOf: p)
-        }
-        
-        for c in aCartridge.chrBlocks
-        {
-            self.chr.append(contentsOf: c)
         }
         
         if self.chr.count == 0
@@ -82,7 +81,6 @@ struct Mapper_NROM_UNROM: MapperProtocol
         }
         
         self.prgBanks = self.prg.count / 0x4000
-        self.prgBank1 = 0
         self.prgBank2 = self.prgBanks - 1
     }
     
@@ -90,11 +88,12 @@ struct Mapper_NROM_UNROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank1], bools: [], uint8s: [])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank1], bools: [], uint8s: [], chr: self.chr)
         }
         set
         {
             self.prgBank1 = newValue.ints[safe: 0] ?? 0
+            self.chr = newValue.chr
         }
     }
     

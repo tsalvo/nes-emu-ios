@@ -25,14 +25,16 @@
 
 import UIKit
 import GameController
+import CoreData
 
 protocol EmulatorProtocol: class
 {
     var cartridge: Cartridge? { get set }
     func pauseEmulation()
+    func resumeEmulation()
 }
 
-class NesRomViewController: GCEventViewController, EmulatorProtocol
+class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSaveStateSelectionDelegate
 {
     // MARK: - Constants
     private static let defaultFrameQueueSize: Int = 3
@@ -66,10 +68,15 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
             guard let safeCartridge = self.cartridge else { return }
             let sampleRate: SampleRate = SampleRate.init(rawValue: UserDefaults.standard.integer(forKey: Settings.sampleRateKey)) ?? Settings.defaultSampleRate
             let audioFiltersEnabled: Bool = UserDefaults.standard.bool(forKey: Settings.audioFiltersEnabledKey)
+            let autoLoadSave: Bool = UserDefaults.standard.bool(forKey: Settings.loadLastSaveKey)
+            let mostRecentState: ConsoleState? = autoLoadSave ? CoreDataController.mostRecentConsoleState(forMD5: safeCartridge.md5) : nil
             self.consoleQueue.async { [weak self] in
-                self?.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled)
+                self?.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled, state: mostRecentState)
                 self?.console?.set(audioEngineDelegate: self?.audioEngine)
-                self?.console?.reset()
+                if mostRecentState == nil
+                {
+                    self?.console?.reset()
+                }
             }
         }
     }
@@ -164,17 +171,78 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.destroyDisplayLink()
     }
     
+    func resumeEmulation()
+    {
+        self.consoleFrameQueueSize = NesRomViewController.defaultFrameQueueSize
+        self.createDisplayLink()
+    }
+    
+    // MARK: - ConsoleSaveStateSelectionDelegate
+    func consoleStateSelected(consoleState aConsoleState: ConsoleState)
+    {
+        self.consoleQueue.async { [weak self] in
+            self?.console?.load(state: aConsoleState)
+            self?.console?.set(audioEngineDelegate: self?.audioEngine)
+        }
+    }
+    
+    func saveCurrentStateSelected()
+    {
+        self.consoleQueue.async { [weak self] in
+            guard let safeState = self?.console?.consoleState(isAutoSave: false) else { return }
+            DispatchQueue.main.async {
+                do
+                {
+                    try CoreDataController.save(consoleState: safeState)
+                }
+                catch
+                {
+                    print("error")
+                }
+            }
+        }
+    }
+    
     // MARK: - Button Actions
     @objc private func dismissButtonPressed(_ sender: AnyObject?)
     {
-        if !self.isBeingDismissed
+        func dismissNesRomVC()
         {
-            self.destroyDisplayLink()
+            if !self.isBeingDismissed
+            {
+                self.destroyDisplayLink()
 #if os(tvOS)
-            self.navigationController?.popViewController(animated: true)
+                self.navigationController?.popViewController(animated: true)
 #else
-            self.dismiss(animated: true, completion: nil)
+                self.dismiss(animated: true, completion: nil)
 #endif
+            }
+        }
+        
+        let autoSave: Bool = UserDefaults.standard.bool(forKey: Settings.autoSaveKey)
+        if autoSave
+        {
+            self.consoleQueue.async { [weak self] in
+                let consoleState = self?.console?.consoleState(isAutoSave: true)
+                DispatchQueue.main.async {
+                    if let safeConsoleState = consoleState
+                    {
+                        do
+                        {
+                            try CoreDataController.save(consoleState: safeConsoleState)
+                        }
+                        catch
+                        {
+                            print(error)
+                        }
+                    }
+                    dismissNesRomVC()
+                }
+            }
+        }
+        else
+        {
+            dismissNesRomVC()
         }
     }
     
@@ -190,14 +258,8 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     
     @objc private func saveStateButtonPressed(_ sender: AnyObject?)
     {
-        self.consoleQueue.async { [weak self] in
-            if let s = self?.console?.consoleState
-            {
-                DispatchQueue.main.async {
-                    // TODO: persist the contents of s (ConsoleState)
-                }
-            }
-        }
+        guard let md5 = self.cartridge?.md5 else { return }
+        self.performSegue(withIdentifier: "showSaveStates", sender: md5)
     }
     
     @IBAction private func startButtonPressed(_ sender: AnyObject?)
@@ -495,6 +557,18 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.consoleQueue.resume()
     }
     
+    // MARK: - Navigation
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+        if let safeSaveStateVC = segue.destination as? ConsoleStateTableViewController,
+           let md5 = sender as? String
+        {
+            safeSaveStateVC.md5 = md5
+            safeSaveStateVC.consoleSaveStateSelectionDelegate = self
+        }
+    }
+    
     // MARK: - Private Functions
     
     private func createDisplayLink()
@@ -503,7 +577,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.displayLink = CADisplayLink(target: self, selector: #selector(updateFrame))
         self.displayLink?.preferredFramesPerSecond = 60
         self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.default)
-        self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.tracking)
+//        self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.tracking)
     }
     
     private func destroyDisplayLink()

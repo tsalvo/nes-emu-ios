@@ -38,7 +38,7 @@ struct Cartridge: CartridgeProtocol
     {
         let header = RomHeader(fromData: aData.prefix(RomHeader.sizeInBytes))
         self.header = header
-        self.hashValue = aData.hashValue
+        self.md5 = aData.md5
         
         guard header.isValid
             else
@@ -131,41 +131,7 @@ struct Cartridge: CartridgeProtocol
         }
     }
     
-//    var mapper: MapperProtocol
-//    {
-//        guard let safeMapperIdentifier: MapperIdentifier = self.header.mapperIdentifier,
-//            safeMapperIdentifier.isSupported
-//        else
-//        {
-//            return Mapper_UnsupportedPlaceholder(withCartridge: self)
-//        }
-//        
-//        switch self.header.mapperIdentifier
-//        {
-//        case .NROM, .UxROM:
-//            return Mapper_NROM_UNROM(withCartridge: self)
-//        case .MMC1:
-//            return Mapper_MMC1(withCartridge: self)
-//        case .CNROM:
-//            return Mapper_CNROM(withCartridge: self)
-//        case .MMC3:
-//            return Mapper_MMC3(withCartridge: self)
-//        case .AxROM:
-//            return Mapper_AxROM(withCartridge: self)
-//        case .MMC2:
-//            return Mapper_MMC2(withCartridge: self)
-//        case .ColorDreams, .GxROM:
-//            return Mapper_ColorDreams_GxROM(withCartridge: self)
-//        case .Namcot118_TengenMimic1:
-//            return Mapper_Namcot118_TengenMimic1(withCartridge: self)
-//        case .NTDEC_2722:
-//            return Mapper_NTDEC2722(withCartridge: self)
-//        default:
-//            return Mapper_UnsupportedPlaceholder(withCartridge: self)
-//        }
-//    }
-    
-    let hashValue: Int
+    let md5: String
     let header: RomHeader
     let trainerData: Data
     let prgBlocks: [[UInt8]]

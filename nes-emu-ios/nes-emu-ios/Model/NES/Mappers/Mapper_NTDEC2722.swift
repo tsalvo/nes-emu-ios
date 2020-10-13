@@ -34,22 +34,24 @@ struct Mapper_NTDEC2722: MapperProtocol
             self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
             self.prgBank = safeState.ints[safe: 0] ?? 0
             self.cycles = safeState.ints[safe: 1] ?? 0
+            
+            self.chr = safeState.chr
         }
         else
         {
             self.mirroringMode = aCartridge.header.mirroringMode
             self.prgBank = 0
             self.cycles = 0
+            
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
         }
         
         for p in aCartridge.prgBlocks
         {
             self.prg.append(contentsOf: p)
-        }
-        
-        for c in aCartridge.chrBlocks
-        {
-            self.chr.append(contentsOf: c)
         }
         
         if self.chr.count == 0
@@ -63,13 +65,14 @@ struct Mapper_NTDEC2722: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank, self.cycles], bools: [], uint8s: [])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank, self.cycles], bools: [], uint8s: [], chr: self.chr)
         }
         set
         {
             self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
             self.prgBank = newValue.ints[safe: 0] ?? 0
             self.cycles = newValue.ints[safe: 1] ?? 0
+            self.chr = newValue.chr
         }
     }
     

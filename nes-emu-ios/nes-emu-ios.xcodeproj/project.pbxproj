@@ -32,9 +32,55 @@
 		995C9AE3249BED0B00429ECC /* Mapper_MMC2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */; };
 		995C9AE5249BED4000429ECC /* Mapper_MMC3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */; };
 		995C9AEA249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */; };
+		995D073325327E4C008AD907 /* Data+ValueConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D073225327E4C008AD907 /* Data+ValueConversion.swift */; };
+		995D073425327E4C008AD907 /* Data+ValueConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D073225327E4C008AD907 /* Data+ValueConversion.swift */; };
+		995D07642532BD54008AD907 /* CPUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D07632532BD54008AD907 /* CPUState.swift */; };
+		995D07652532BD54008AD907 /* CPUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D07632532BD54008AD907 /* CPUState.swift */; };
+		995D076D2532BD5F008AD907 /* PPUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D076C2532BD5F008AD907 /* PPUState.swift */; };
+		995D076E2532BD5F008AD907 /* PPUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D076C2532BD5F008AD907 /* PPUState.swift */; };
+		995D07732532BD6B008AD907 /* APUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D07722532BD6B008AD907 /* APUState.swift */; };
+		995D07742532BD6B008AD907 /* APUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D07722532BD6B008AD907 /* APUState.swift */; };
+		995D07792532BDA0008AD907 /* ConsoleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D07782532BDA0008AD907 /* ConsoleState.swift */; };
+		995D077A2532BDA0008AD907 /* ConsoleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D07782532BDA0008AD907 /* ConsoleState.swift */; };
+		995D077F2532BDAD008AD907 /* MapperState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D077E2532BDAD008AD907 /* MapperState.swift */; };
+		995D07802532BDAD008AD907 /* MapperState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D077E2532BDAD008AD907 /* MapperState.swift */; };
+		995D07F72533759D008AD907 /* CoreDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 995D06C1253157D7008AD907 /* CoreDataModel.xcdatamodeld */; };
+		995D07FB2533759D008AD907 /* CoreDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 995D06C1253157D7008AD907 /* CoreDataModel.xcdatamodeld */; };
+		995D0803253376DA008AD907 /* NSManagedObject+CPUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D0802253376DA008AD907 /* NSManagedObject+CPUState.swift */; };
+		995D0804253376DA008AD907 /* NSManagedObject+CPUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D0802253376DA008AD907 /* NSManagedObject+CPUState.swift */; };
+		995D080925337C74008AD907 /* NSManagedObject+MapperState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D080825337C74008AD907 /* NSManagedObject+MapperState.swift */; };
+		995D080A25337C74008AD907 /* NSManagedObject+MapperState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D080825337C74008AD907 /* NSManagedObject+MapperState.swift */; };
+		995D080F25338007008AD907 /* NSManagedObject+PPUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D080E25338007008AD907 /* NSManagedObject+PPUState.swift */; };
+		995D081025338007008AD907 /* NSManagedObject+PPUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D080E25338007008AD907 /* NSManagedObject+PPUState.swift */; };
+		995D081525338860008AD907 /* NSManagedObject+ConsoleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D081425338860008AD907 /* NSManagedObject+ConsoleState.swift */; };
+		995D081625338860008AD907 /* NSManagedObject+ConsoleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D081425338860008AD907 /* NSManagedObject+ConsoleState.swift */; };
+		995D0827253390BE008AD907 /* ConsoleStateTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D0826253390BE008AD907 /* ConsoleStateTableViewController.swift */; };
+		995D0828253390BE008AD907 /* ConsoleStateTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D0826253390BE008AD907 /* ConsoleStateTableViewController.swift */; };
+		995D082D2533A076008AD907 /* CoreDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D082C2533A076008AD907 /* CoreDataController.swift */; };
+		995D082E2533A076008AD907 /* CoreDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D082C2533A076008AD907 /* CoreDataController.swift */; };
+		995D08342533A7FE008AD907 /* ConsoleStateCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D08322533A7FE008AD907 /* ConsoleStateCell.swift */; };
+		995D08362533A7FF008AD907 /* ConsoleStateCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 995D08332533A7FE008AD907 /* ConsoleStateCell.xib */; };
+		995D08422533C84D008AD907 /* NSManagedObject+APUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D08412533C84D008AD907 /* NSManagedObject+APUState.swift */; };
+		995D08432533C84D008AD907 /* NSManagedObject+APUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D08412533C84D008AD907 /* NSManagedObject+APUState.swift */; };
 		995EEC49249DFB2300FE24F8 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995EEC48249DFB2300FE24F8 /* Settings.swift */; };
-		9989466724BFFC3E00E9A31E /* SaveState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9989466624BFFC3E00E9A31E /* SaveState.swift */; };
-		9989466824BFFC3E00E9A31E /* SaveState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9989466624BFFC3E00E9A31E /* SaveState.swift */; };
+		996F42D2253410C9001A31D2 /* NSManagedObject+PulseState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42D1253410C9001A31D2 /* NSManagedObject+PulseState.swift */; };
+		996F42D3253410C9001A31D2 /* NSManagedObject+PulseState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42D1253410C9001A31D2 /* NSManagedObject+PulseState.swift */; };
+		996F42D82534111E001A31D2 /* PulseState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42D72534111E001A31D2 /* PulseState.swift */; };
+		996F42D92534111E001A31D2 /* PulseState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42D72534111E001A31D2 /* PulseState.swift */; };
+		996F42DE2534112D001A31D2 /* TriangleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42DD2534112D001A31D2 /* TriangleState.swift */; };
+		996F42DF2534112D001A31D2 /* TriangleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42DD2534112D001A31D2 /* TriangleState.swift */; };
+		996F42E425341139001A31D2 /* NoiseState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42E325341139001A31D2 /* NoiseState.swift */; };
+		996F42E525341139001A31D2 /* NoiseState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42E325341139001A31D2 /* NoiseState.swift */; };
+		996F42EA25341156001A31D2 /* DMCState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42E925341156001A31D2 /* DMCState.swift */; };
+		996F42EB25341156001A31D2 /* DMCState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42E925341156001A31D2 /* DMCState.swift */; };
+		996F42F025341CCF001A31D2 /* NSManagedObject+TriangleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42EF25341CCF001A31D2 /* NSManagedObject+TriangleState.swift */; };
+		996F42F125341CCF001A31D2 /* NSManagedObject+TriangleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42EF25341CCF001A31D2 /* NSManagedObject+TriangleState.swift */; };
+		996F42F6253428D9001A31D2 /* NSManagedObject+NoiseState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42F5253428D9001A31D2 /* NSManagedObject+NoiseState.swift */; };
+		996F42F7253428D9001A31D2 /* NSManagedObject+NoiseState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42F5253428D9001A31D2 /* NSManagedObject+NoiseState.swift */; };
+		996F42FC253429F5001A31D2 /* NSManagedObject+DMCState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42FB253429F5001A31D2 /* NSManagedObject+DMCState.swift */; };
+		996F42FD253429F5001A31D2 /* NSManagedObject+DMCState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42FB253429F5001A31D2 /* NSManagedObject+DMCState.swift */; };
+		996F430F25343312001A31D2 /* AddConsoleStateCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F430D25343312001A31D2 /* AddConsoleStateCell.swift */; };
+		996F431025343312001A31D2 /* AddConsoleStateCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 996F430E25343312001A31D2 /* AddConsoleStateCell.xib */; };
 		999AA95C248F668000DA77AA /* NesRomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999AA95B248F668000DA77AA /* NesRomViewController.swift */; };
 		999EF98724988D8B007149C9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 999EF98624988D8B007149C9 /* Localizable.strings */; };
 		99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A372BE248F8EC000089773 /* NESScreenView.swift */; };
@@ -160,8 +206,33 @@
 		995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC2.swift; sourceTree = "<group>"; };
 		995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC3.swift; sourceTree = "<group>"; };
 		995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mapper_UnsupportedPlaceholder.swift; sourceTree = "<group>"; };
+		995D06C2253157D7008AD907 /* CoreDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = CoreDataModel.xcdatamodel; sourceTree = "<group>"; };
+		995D073225327E4C008AD907 /* Data+ValueConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+ValueConversion.swift"; sourceTree = "<group>"; };
+		995D07632532BD54008AD907 /* CPUState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUState.swift; sourceTree = "<group>"; };
+		995D076C2532BD5F008AD907 /* PPUState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPUState.swift; sourceTree = "<group>"; };
+		995D07722532BD6B008AD907 /* APUState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APUState.swift; sourceTree = "<group>"; };
+		995D07782532BDA0008AD907 /* ConsoleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleState.swift; sourceTree = "<group>"; };
+		995D077E2532BDAD008AD907 /* MapperState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapperState.swift; sourceTree = "<group>"; };
+		995D0802253376DA008AD907 /* NSManagedObject+CPUState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+CPUState.swift"; sourceTree = "<group>"; };
+		995D080825337C74008AD907 /* NSManagedObject+MapperState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+MapperState.swift"; sourceTree = "<group>"; };
+		995D080E25338007008AD907 /* NSManagedObject+PPUState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+PPUState.swift"; sourceTree = "<group>"; };
+		995D081425338860008AD907 /* NSManagedObject+ConsoleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+ConsoleState.swift"; sourceTree = "<group>"; };
+		995D0826253390BE008AD907 /* ConsoleStateTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleStateTableViewController.swift; sourceTree = "<group>"; };
+		995D082C2533A076008AD907 /* CoreDataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataController.swift; sourceTree = "<group>"; };
+		995D08322533A7FE008AD907 /* ConsoleStateCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleStateCell.swift; sourceTree = "<group>"; };
+		995D08332533A7FE008AD907 /* ConsoleStateCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ConsoleStateCell.xib; sourceTree = "<group>"; };
+		995D08412533C84D008AD907 /* NSManagedObject+APUState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+APUState.swift"; sourceTree = "<group>"; };
 		995EEC48249DFB2300FE24F8 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
-		9989466624BFFC3E00E9A31E /* SaveState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveState.swift; sourceTree = "<group>"; };
+		996F42D1253410C9001A31D2 /* NSManagedObject+PulseState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+PulseState.swift"; sourceTree = "<group>"; };
+		996F42D72534111E001A31D2 /* PulseState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseState.swift; sourceTree = "<group>"; };
+		996F42DD2534112D001A31D2 /* TriangleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriangleState.swift; sourceTree = "<group>"; };
+		996F42E325341139001A31D2 /* NoiseState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoiseState.swift; sourceTree = "<group>"; };
+		996F42E925341156001A31D2 /* DMCState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMCState.swift; sourceTree = "<group>"; };
+		996F42EF25341CCF001A31D2 /* NSManagedObject+TriangleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+TriangleState.swift"; sourceTree = "<group>"; };
+		996F42F5253428D9001A31D2 /* NSManagedObject+NoiseState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+NoiseState.swift"; sourceTree = "<group>"; };
+		996F42FB253429F5001A31D2 /* NSManagedObject+DMCState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+DMCState.swift"; sourceTree = "<group>"; };
+		996F430D25343312001A31D2 /* AddConsoleStateCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddConsoleStateCell.swift; sourceTree = "<group>"; };
+		996F430E25343312001A31D2 /* AddConsoleStateCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AddConsoleStateCell.xib; sourceTree = "<group>"; };
 		999AA95B248F668000DA77AA /* NesRomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomViewController.swift; sourceTree = "<group>"; };
 		999EF98624988D8B007149C9 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		99A372BE248F8EC000089773 /* NESScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESScreenView.swift; sourceTree = "<group>"; };
@@ -247,7 +318,6 @@
 				991B28C02489F66300A6A6DD /* Cartridge.swift */,
 				991B28CD248B746A00A6A6DD /* Controller.swift */,
 				99C7F1722494096000E4C04D /* Filter.swift */,
-				9989466624BFFC3E00E9A31E /* SaveState.swift */,
 			);
 			path = NES;
 			sourceTree = "<group>";
@@ -305,6 +375,7 @@
 		99488F562489AFC500942A1E /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				995D07622532BD2C008AD907 /* SaveState */,
 				991B28C2248A229500A6A6DD /* NES */,
 				99488F45248985F100942A1E /* NesRomDocument.swift */,
 				99C7F1742494221800E4C04D /* AudioEngine.swift */,
@@ -323,6 +394,7 @@
 				99B7C308249F33DC00B26AC6 /* Bundle+Version.swift */,
 				99B7C30A249F33EF00B26AC6 /* Date+Year.swift */,
 				99301E7825302D4200CC2DBD /* Data+MD5.swift */,
+				995D073225327E4C008AD907 /* Data+ValueConversion.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -352,6 +424,57 @@
 			path = Protocols;
 			sourceTree = "<group>";
 		};
+		995D06C02531579F008AD907 /* CoreData */ = {
+			isa = PBXGroup;
+			children = (
+				995D06C1253157D7008AD907 /* CoreDataModel.xcdatamodeld */,
+				995D082C2533A076008AD907 /* CoreDataController.swift */,
+			);
+			path = CoreData;
+			sourceTree = "<group>";
+		};
+		995D06FB25316FC4008AD907 /* Bridge */ = {
+			isa = PBXGroup;
+			children = (
+				995D0802253376DA008AD907 /* NSManagedObject+CPUState.swift */,
+				996F42D1253410C9001A31D2 /* NSManagedObject+PulseState.swift */,
+				996F42EF25341CCF001A31D2 /* NSManagedObject+TriangleState.swift */,
+				996F42F5253428D9001A31D2 /* NSManagedObject+NoiseState.swift */,
+				996F42FB253429F5001A31D2 /* NSManagedObject+DMCState.swift */,
+				995D080825337C74008AD907 /* NSManagedObject+MapperState.swift */,
+				995D080E25338007008AD907 /* NSManagedObject+PPUState.swift */,
+				995D08412533C84D008AD907 /* NSManagedObject+APUState.swift */,
+				995D081425338860008AD907 /* NSManagedObject+ConsoleState.swift */,
+			);
+			path = Bridge;
+			sourceTree = "<group>";
+		};
+		995D07622532BD2C008AD907 /* SaveState */ = {
+			isa = PBXGroup;
+			children = (
+				995D06C02531579F008AD907 /* CoreData */,
+				995D07872532BE0A008AD907 /* Structs */,
+				995D06FB25316FC4008AD907 /* Bridge */,
+			);
+			path = SaveState;
+			sourceTree = "<group>";
+		};
+		995D07872532BE0A008AD907 /* Structs */ = {
+			isa = PBXGroup;
+			children = (
+				995D07632532BD54008AD907 /* CPUState.swift */,
+				996F42D72534111E001A31D2 /* PulseState.swift */,
+				996F42DD2534112D001A31D2 /* TriangleState.swift */,
+				996F42E325341139001A31D2 /* NoiseState.swift */,
+				996F42E925341156001A31D2 /* DMCState.swift */,
+				995D076C2532BD5F008AD907 /* PPUState.swift */,
+				995D07722532BD6B008AD907 /* APUState.swift */,
+				995D07782532BDA0008AD907 /* ConsoleState.swift */,
+				995D077E2532BDAD008AD907 /* MapperState.swift */,
+			);
+			path = Structs;
+			sourceTree = "<group>";
+		};
 		99A372E62490D6FA00089773 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
@@ -361,6 +484,7 @@
 				99B1ED9B249E91C600BC66F3 /* SettingsTableViewController.swift */,
 				99B1EDB8249EC8D000BC66F3 /* SettingsNavigationController.swift */,
 				99B1EDA1249EB07900BC66F3 /* SettingsInfoViewController.swift */,
+				995D0826253390BE008AD907 /* ConsoleStateTableViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -378,6 +502,10 @@
 				99B1EDA8249EB0A800BC66F3 /* SettingsSegmentedCell.xib */,
 				99B1ED9D249E924500BC66F3 /* SettingsToggleCell.swift */,
 				99B1ED9E249E924500BC66F3 /* SettingsToggleCell.xib */,
+				996F430D25343312001A31D2 /* AddConsoleStateCell.swift */,
+				996F430E25343312001A31D2 /* AddConsoleStateCell.xib */,
+				995D08322533A7FE008AD907 /* ConsoleStateCell.swift */,
+				995D08332533A7FE008AD907 /* ConsoleStateCell.xib */,
 			);
 			path = Cells;
 			sourceTree = "<group>";
@@ -534,6 +662,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				99B1EDA0249E924500BC66F3 /* SettingsToggleCell.xib in Resources */,
+				996F431025343312001A31D2 /* AddConsoleStateCell.xib in Resources */,
 				99488F4E248985F300942A1E /* LaunchScreen.storyboard in Resources */,
 				99B7C307249F009100B26AC6 /* Settings.bundle in Resources */,
 				999EF98724988D8B007149C9 /* Localizable.strings in Resources */,
@@ -543,6 +672,7 @@
 				99488F49248985F100942A1E /* Main.storyboard in Resources */,
 				99B1EDB1249EB0A800BC66F3 /* SettingsMoreInfoCell.xib in Resources */,
 				99B1EDB0249EB0A800BC66F3 /* SettingsSegmentedCell.xib in Resources */,
+				995D08362533A7FF008AD907 /* ConsoleStateCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -574,47 +704,70 @@
 				99FB220A248DCC7A00D557A4 /* MapperProtocol.swift in Sources */,
 				99B1ED9F249E924500BC66F3 /* SettingsToggleCell.swift in Sources */,
 				99488F46248985F100942A1E /* NesRomDocument.swift in Sources */,
+				995D082D2533A076008AD907 /* CoreDataController.swift in Sources */,
+				996F42F025341CCF001A31D2 /* NSManagedObject+TriangleState.swift in Sources */,
 				99B7C30B249F33EF00B26AC6 /* Date+Year.swift in Sources */,
 				991B28CE248B746A00A6A6DD /* Controller.swift in Sources */,
 				99B1EDB3249EB0A800BC66F3 /* SettingsAboutCell.swift in Sources */,
+				995D073325327E4C008AD907 /* Data+ValueConversion.swift in Sources */,
 				995C9AE3249BED0B00429ECC /* Mapper_MMC2.swift in Sources */,
+				995D076D2532BD5F008AD907 /* PPUState.swift in Sources */,
 				99EA746F24F0ACEC005D0EAA /* Mapper_NTDEC2722.swift in Sources */,
 				995C9ADF249BECE000429ECC /* Mapper_CNROM.swift in Sources */,
 				99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */,
 				991B28C12489F66300A6A6DD /* Cartridge.swift in Sources */,
 				994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */,
+				995D07732532BD6B008AD907 /* APUState.swift in Sources */,
+				995D0803253376DA008AD907 /* NSManagedObject+CPUState.swift in Sources */,
 				99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */,
+				996F42D82534111E001A31D2 /* PulseState.swift in Sources */,
 				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
+				995D0827253390BE008AD907 /* ConsoleStateTableViewController.swift in Sources */,
 				992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */,
 				99B7C309249F33DC00B26AC6 /* Bundle+Version.swift in Sources */,
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
 				99488F40248985F100942A1E /* AppDelegate.swift in Sources */,
 				99B1EDAD249EB0A800BC66F3 /* SettingsMoreInfoCell.swift in Sources */,
 				99B1EDB7249EB2DF00BC66F3 /* Collection+SafeIndex.swift in Sources */,
+				995D077F2532BDAD008AD907 /* MapperState.swift in Sources */,
+				996F42DE2534112D001A31D2 /* TriangleState.swift in Sources */,
 				9953246224B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */,
 				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
 				995C9ADD249BECCA00429ECC /* Mapper_MMC1.swift in Sources */,
 				99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */,
+				995D08422533C84D008AD907 /* NSManagedObject+APUState.swift in Sources */,
+				995D07F72533759D008AD907 /* CoreDataModel.xcdatamodeld in Sources */,
+				996F42EA25341156001A31D2 /* DMCState.swift in Sources */,
 				999AA95C248F668000DA77AA /* NesRomViewController.swift in Sources */,
+				995D07792532BDA0008AD907 /* ConsoleState.swift in Sources */,
+				995D081525338860008AD907 /* NSManagedObject+ConsoleState.swift in Sources */,
 				995C9ADB249BEC9A00429ECC /* Mapper_NROM_UNROM.swift in Sources */,
 				99B1EDA2249EB07900BC66F3 /* SettingsInfoViewController.swift in Sources */,
 				995EEC49249DFB2300FE24F8 /* Settings.swift in Sources */,
+				996F42E425341139001A31D2 /* NoiseState.swift in Sources */,
 				995C9AEA249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift in Sources */,
+				996F430F25343312001A31D2 /* AddConsoleStateCell.swift in Sources */,
+				995D080F25338007008AD907 /* NSManagedObject+PPUState.swift in Sources */,
 				99BD700D24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */,
 				99FEEA60249DBB280072D225 /* NesRomNavigationController.swift in Sources */,
 				99B1EDB2249EB0A800BC66F3 /* SettingsIconTextInfoCell.swift in Sources */,
+				996F42FC253429F5001A31D2 /* NSManagedObject+DMCState.swift in Sources */,
+				996F42D2253410C9001A31D2 /* NSManagedObject+PulseState.swift in Sources */,
 				991B28CC248B470C00A6A6DD /* Console.swift in Sources */,
 				99B1EDB9249EC8D000BC66F3 /* SettingsNavigationController.swift in Sources */,
 				99C7F1732494096000E4C04D /* Filter.swift in Sources */,
+				996F42F6253428D9001A31D2 /* NSManagedObject+NoiseState.swift in Sources */,
 				99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */,
+				995D080925337C74008AD907 /* NSManagedObject+MapperState.swift in Sources */,
 				99B0355E2496763000D2723F /* RomHeader.swift in Sources */,
 				99B1ED9C249E91C600BC66F3 /* SettingsTableViewController.swift in Sources */,
-				9989466724BFFC3E00E9A31E /* SaveState.swift in Sources */,
 				99B1EDAC249EB0A800BC66F3 /* SettingsSegmentedCell.swift in Sources */,
+				995D08342533A7FE008AD907 /* ConsoleStateCell.swift in Sources */,
 				995C9AE5249BED4000429ECC /* Mapper_MMC3.swift in Sources */,
 				99301E7925302D4200CC2DBD /* Data+MD5.swift in Sources */,
 				99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */,
 				99B1EDB5249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift in Sources */,
+				995D07642532BD54008AD907 /* CPUState.swift in Sources */,
 				99E2E21324966A32008AFCDB /* MirroringMode.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -636,40 +789,61 @@
 			buildActionMask = 2147483647;
 			files = (
 				9953246324B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */,
+				995D081625338860008AD907 /* NSManagedObject+ConsoleState.swift in Sources */,
 				99FA3CAA24A6F1120065E539 /* Mapper_AxROM.swift in Sources */,
 				99FA3CB724A6F12A0065E539 /* PPU.swift in Sources */,
 				99FA3CAD24A6F1180065E539 /* Mapper_MMC2.swift in Sources */,
+				996F42F125341CCF001A31D2 /* NSManagedObject+TriangleState.swift in Sources */,
 				99FA3CAF24A6F11D0065E539 /* Mapper_NROM_UNROM.swift in Sources */,
 				99FA3CAE24A6F11A0065E539 /* Mapper_MMC3.swift in Sources */,
 				99FA3CA324A6F08C0065E539 /* NesRomViewController.swift in Sources */,
+				995D07802532BDAD008AD907 /* MapperState.swift in Sources */,
+				996F42EB25341156001A31D2 /* DMCState.swift in Sources */,
 				99FA3CB124A6F1270065E539 /* MapperIdentifier.swift in Sources */,
 				99FA3CB924A6F12A0065E539 /* Controller.swift in Sources */,
 				99FA3CA524A6F1030065E539 /* Collection+SafeIndex.swift in Sources */,
 				99FA3CA924A6F1100065E539 /* MapperProtocol.swift in Sources */,
+				995D0804253376DA008AD907 /* NSManagedObject+CPUState.swift in Sources */,
+				995D080A25337C74008AD907 /* NSManagedObject+MapperState.swift in Sources */,
 				99FA3CAB24A6F1140065E539 /* Mapper_CNROM.swift in Sources */,
 				99FA3CBD24A6F1500065E539 /* SampleRate.swift in Sources */,
 				99FA3CA624A6F1050065E539 /* Bundle+Version.swift in Sources */,
 				99BD700E24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */,
+				996F42D92534111E001A31D2 /* PulseState.swift in Sources */,
+				996F42FD253429F5001A31D2 /* NSManagedObject+DMCState.swift in Sources */,
 				99FA3CB424A6F12A0065E539 /* Console.swift in Sources */,
+				996F42F7253428D9001A31D2 /* NSManagedObject+NoiseState.swift in Sources */,
 				99FA3C9324A6E7CD0065E539 /* RomListTableViewController.swift in Sources */,
 				99FA3CA824A6F10B0065E539 /* UIStackView+ArrangedSubviews.swift in Sources */,
 				99FA3CB824A6F12A0065E539 /* Cartridge.swift in Sources */,
 				99EA747024F0ACEC005D0EAA /* Mapper_NTDEC2722.swift in Sources */,
 				99FA3CAC24A6F1160065E539 /* Mapper_MMC1.swift in Sources */,
+				996F42DF2534112D001A31D2 /* TriangleState.swift in Sources */,
+				996F42D3253410C9001A31D2 /* NSManagedObject+PulseState.swift in Sources */,
+				995D077A2532BDA0008AD907 /* ConsoleState.swift in Sources */,
+				995D07742532BD6B008AD907 /* APUState.swift in Sources */,
 				99FA3CB524A6F12A0065E539 /* CPU.swift in Sources */,
+				995D0828253390BE008AD907 /* ConsoleStateTableViewController.swift in Sources */,
 				99301E7A25302D4200CC2DBD /* Data+MD5.swift in Sources */,
 				99FA3CB324A6F1270065E539 /* RomHeader.swift in Sources */,
 				99FA3CB024A6F11F0065E539 /* Mapper_UnsupportedPlaceholder.swift in Sources */,
+				995D08432533C84D008AD907 /* NSManagedObject+APUState.swift in Sources */,
 				99FA3CBC24A6F1500065E539 /* AudioEngine.swift in Sources */,
 				99FA3CB624A6F12A0065E539 /* APU.swift in Sources */,
+				995D07FB2533759D008AD907 /* CoreDataModel.xcdatamodeld in Sources */,
 				99FA3CA724A6F1090065E539 /* Date+Year.swift in Sources */,
 				99FA3CBE24A6F1500065E539 /* Settings.swift in Sources */,
-				9989466824BFFC3E00E9A31E /* SaveState.swift in Sources */,
+				995D082E2533A076008AD907 /* CoreDataController.swift in Sources */,
 				99FA3C9124A6E7CD0065E539 /* AppDelegate.swift in Sources */,
+				995D07652532BD54008AD907 /* CPUState.swift in Sources */,
 				99FA3CA424A6F1000065E539 /* UInt8+ByteUtils.swift in Sources */,
 				99FA3CBF24A6F16D0065E539 /* NESScreenView.swift in Sources */,
 				99FA3CBA24A6F12A0065E539 /* Filter.swift in Sources */,
 				99FA3CB224A6F1270065E539 /* MirroringMode.swift in Sources */,
+				995D073425327E4C008AD907 /* Data+ValueConversion.swift in Sources */,
+				995D076E2532BD5F008AD907 /* PPUState.swift in Sources */,
+				996F42E525341139001A31D2 /* NoiseState.swift in Sources */,
+				995D081025338007008AD907 /* NSManagedObject+PPUState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -844,7 +1018,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 354MRHL389;
 				INFOPLIST_FILE = "nes-emu-ios/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -866,7 +1040,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 354MRHL389;
 				INFOPLIST_FILE = "nes-emu-ios/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -936,7 +1110,7 @@
 				SDKROOT = appletvos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.4;
+				TVOS_DEPLOYMENT_TARGET = 14.0;
 			};
 			name = Debug;
 		};
@@ -959,7 +1133,7 @@
 				SWIFT_ENFORCE_EXCLUSIVE_ACCESS = off;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.4;
+				TVOS_DEPLOYMENT_TARGET = 14.0;
 			};
 			name = Release;
 		};
@@ -1003,6 +1177,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		995D06C1253157D7008AD907 /* CoreDataModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				995D06C2253157D7008AD907 /* CoreDataModel.xcdatamodel */,
+			);
+			currentVersion = 995D06C2253157D7008AD907 /* CoreDataModel.xcdatamodel */;
+			path = CoreDataModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 99488F34248985F100942A1E /* Project object */;
 }

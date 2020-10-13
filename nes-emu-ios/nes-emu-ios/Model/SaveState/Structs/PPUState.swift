@@ -1,42 +1,17 @@
 //
-//  SaveState.swift
+//  PPUState.swift
 //  nes-emu-ios
 //
-//  Created by Tom Salvo on 7/15/20.
+//  Created by Tom Salvo on 10/10/20.
 //  Copyright © 2020 Tom Salvo. All rights reserved.
 //
 
 import Foundation
 
-struct ConsoleState
-{
-    let cpuState: CPUState
-    let apuState: APUState
-    let ppuState: PPUState
-    let mapperState: MapperState
-}
-
-struct CPUState
-{
-    let ram: [UInt8]
-    let a: UInt8
-    let x: UInt8
-    let y: UInt8
-    let pc: UInt16
-    let cycles: UInt64
-    let flags: UInt8
-    let interrupt: UInt8
-    let stall: Int
-}
-
-struct APUState
-{
-    
-}
-
 struct PPUState
 {
-    let cycle: Int
+    let cycle: UInt16
+    let scanline: UInt16
     let frame: UInt64
     let paletteData: [UInt8]
     let nameTableData: [UInt8]
@@ -75,7 +50,7 @@ struct PPUState
     let tileData: UInt64
     
     // MARK: Sprite temporary variables
-    let spriteCount: Int
+    let spriteCount: UInt8
     let spritePatterns: [UInt32]
     let spritePositions: [UInt8]
     let spritePriorities: [UInt8]
@@ -140,14 +115,4 @@ struct PPUState
     
     /// colors in 0xBBGGRRAA format from Palette.colors
     let frontBuffer: [UInt32]
-    
-    let scanline: Int
-}
-
-struct MapperState
-{
-    let mirroringMode: UInt8
-    let ints: [Int]
-    let bools: [Bool]
-    let uint8s: [UInt8]
 }

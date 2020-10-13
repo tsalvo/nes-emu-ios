@@ -28,26 +28,26 @@ import Foundation
 struct APUStepResults
 {
     let shouldTriggerIRQOnCPU: Bool
-    let numCPUStallCycles: Int
+    let numCPUStallCycles: UInt64
 }
 
 /// NES Audio Processing Unit
 struct APU
 {
     weak var audioEngineDelegate: AudioEngineProtocol?
-    private var audioBufferIndex: Int = 0
+    private var audioBufferIndex: Int
     private var audioBuffer: [Float32]
     private(set) var sampleRate: SampleRate
-    private var cycleSampleRate: Double
-    private var pulse1: Pulse = Pulse(channel: 1)
-    private var pulse2: Pulse = Pulse(channel: 2)
-    private var triangle: Triangle = Triangle()
-    private var noise: Noise = Noise()
-    private var dmc: DMC = DMC()
-    private var cycle: UInt64 = 0
-    private var framePeriod: UInt8 = 0
-    private var frameValue: UInt8 = 0
-    private var frameIRQ: Bool = false
+    private let cycleSampleRate: Double
+    private var pulse1: Pulse
+    private var pulse2: Pulse
+    private var triangle: Triangle
+    private var noise: Noise
+    private var dmc: DMC
+    private var cycle: UInt64
+    private var framePeriod: UInt8
+    private var frameValue: UInt8
+    private var frameIRQ: Bool
     private var filterChain: FilterChain
     var filtersEnabled: Bool { return self.filterChain.filters.count > 0}
     var dmcCurrentAddress: UInt16 { return self.dmc.currentAddress }
@@ -66,9 +66,31 @@ struct APU
     {
         self.sampleRate = aSampleRate
         self.cycleSampleRate = Double(CPU.frequency) / aSampleRate.doubleValue
-        self.audioBuffer = [Float32].init(repeating: 0.0, count: Int(aSampleRate.bufferCapacity))
-        self.pulse1 = Pulse(channel: 1)
-        self.pulse2 = Pulse(channel: 2)
+        
+        if let safeState = aState
+        {
+            self.cycle = safeState.cycle
+            self.framePeriod = safeState.framePeriod
+            self.frameValue = safeState.frameValue
+            self.frameIRQ = safeState.frameIRQ
+            self.audioBuffer = safeState.audioBuffer.count == Int(aSampleRate.bufferCapacity) ? safeState.audioBuffer : [Float32].init(repeating: 0.0, count: Int(aSampleRate.bufferCapacity))
+            self.audioBufferIndex = Int(safeState.audioBufferIndex)
+        }
+        else
+        {
+            self.cycle = 0
+            self.framePeriod = 0
+            self.frameValue = 0
+            self.frameIRQ = false
+            self.audioBuffer = [Float32].init(repeating: 0.0, count: Int(aSampleRate.bufferCapacity))
+            self.audioBufferIndex = 0
+        }
+        
+        self.pulse1 = Pulse(channel: 1, state: aState?.pulse1)
+        self.pulse2 = Pulse(channel: 2, state: aState?.pulse2)
+        self.triangle = Triangle(state: aState?.triangle)
+        self.noise = Noise(state: aState?.noise)
+        self.dmc = DMC(state: aState?.dmc)
         self.filterChain = FilterChain(filters: aFiltersEnabled ? [
             APU.highPassFilter(sampleRate: aSampleRate.floatValue, cutoffFreq: 90),
             APU.highPassFilter(sampleRate: aSampleRate.floatValue, cutoffFreq: 440),
@@ -78,7 +100,7 @@ struct APU
     
     var apuState: APUState
     {
-        return APUState()
+        return APUState(cycle: self.cycle, framePeriod: self.framePeriod, frameValue: self.frameValue, frameIRQ: self.frameIRQ, audioBuffer: self.audioBuffer, audioBufferIndex: UInt32(self.audioBufferIndex), pulse1: self.pulse1.pulseState, pulse2: self.pulse2.pulseState, triangle: self.triangle.triangleState, noise: self.noise.noiseState, dmc: self.dmc.dmcState)
     }
     
     mutating func step(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> APUStepResults
@@ -87,7 +109,7 @@ struct APU
         let cycle1 = self.cycle
         self.cycle += 1
         let cycle2 = self.cycle
-        let numCPUStallCycles: Int = self.stepTimer(dmcCurrentAddressValue: aDmcCurrentAddressValue)
+        let numCPUStallCycles: UInt64 = self.stepTimer(dmcCurrentAddressValue: aDmcCurrentAddressValue)
         let f1 = Int(Double(cycle1) / APU.frameCounterRate)
         let f2 = Int(Double(cycle2) / APU.frameCounterRate)
         if f1 != f2
@@ -180,9 +202,9 @@ struct APU
         return shouldFireIRQ
     }
 
-    mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
+    mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> UInt64
     {
-        let numCPUStallCycles: Int
+        let numCPUStallCycles: UInt64
         if self.cycle % 2 == 0
         {
             self.pulse1.stepTimer()
@@ -410,6 +432,39 @@ struct APU
          [0, 1, 1, 1, 1, 0, 0, 0],
          [1, 0, 0, 1, 1, 1, 1, 1]]
         
+        init(channel aChannel: UInt8, state aState: PulseState? = nil)
+        {
+            self.channel = aChannel
+            if let safeState = aState
+            {
+                self.enabled = safeState.enabled
+                self.lengthEnabled = safeState.lengthEnabled
+                self.lengthValue = safeState.lengthValue
+                self.timerPeriod = safeState.timerPeriod
+                self.timerValue = safeState.timerValue
+                self.dutyMode = safeState.dutyMode
+                self.dutyValue = safeState.dutyValue
+                self.sweepReload = safeState.sweepReload
+                self.sweepEnabled = safeState.sweepEnabled
+                self.sweepNegate = safeState.sweepNegate
+                self.sweepShift = safeState.sweepShift
+                self.sweepPeriod = safeState.sweepPeriod
+                self.sweepValue = safeState.sweepValue
+                self.envelopeEnabled = safeState.envelopeEnabled
+                self.envelopeLoop = safeState.envelopeLoop
+                self.envelopeStart = safeState.envelopeStart
+                self.envelopePeriod = safeState.envelopePeriod
+                self.envelopeValue = safeState.envelopeValue
+                self.envelopeVolume = safeState.envelopeVolume
+                self.constantVolume = safeState.constantVolume
+            }
+        }
+        
+        var pulseState: PulseState
+        {
+            return PulseState.init(enabled: self.enabled, lengthEnabled: self.lengthEnabled, lengthValue: self.lengthValue, timerPeriod: self.timerPeriod, timerValue: self.timerValue, dutyMode: self.dutyMode, dutyValue: self.dutyValue, sweepReload: self.sweepReload, sweepEnabled: self.sweepEnabled, sweepNegate: self.sweepNegate, sweepShift: self.sweepShift, sweepPeriod: self.sweepPeriod, sweepValue: self.sweepValue, envelopeEnabled: self.envelopeEnabled, envelopeLoop: self.envelopeLoop, envelopeStart: self.envelopeStart, envelopePeriod: self.envelopePeriod, envelopeValue: self.envelopeValue, envelopeVolume: self.envelopeVolume, constantVolume: self.constantVolume)
+        }
+        
         mutating func writeControl(value aValue: UInt8)
         {
             self.dutyMode = (aValue >> 6) & 3
@@ -583,6 +638,27 @@ struct APU
         var counterValue: UInt8 = 0
         var counterReload: Bool = false
         
+        init(state aState: TriangleState? = nil)
+        {
+            if let safeState = aState
+            {
+                self.enabled = safeState.enabled
+                self.lengthEnabled = safeState.lengthEnabled
+                self.lengthValue = safeState.lengthValue
+                self.timerPeriod = safeState.timerPeriod
+                self.timerValue = safeState.timerValue
+                self.dutyValue = safeState.dutyValue
+                self.counterPeriod = safeState.counterPeriod
+                self.counterValue = safeState.counterValue
+                self.counterReload = safeState.counterReload
+            }
+        }
+        
+        var triangleState: TriangleState
+        {
+            return TriangleState.init(enabled: self.enabled, lengthEnabled: self.lengthEnabled, lengthValue: self.lengthValue, timerPeriod: self.timerPeriod, timerValue: self.timerValue, dutyValue: self.dutyValue, counterPeriod: self.counterPeriod, counterValue: self.counterValue, counterReload: self.counterReload)
+        }
+        
         mutating func writeControl(value aValue: UInt8)
         {
             self.lengthEnabled = (aValue >> 7) & 1 == 0
@@ -672,6 +748,32 @@ struct APU
         var constantVolume: UInt8 = 0
         
         static let noiseTable: [UInt16] = [4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 762, 1016, 2034, 4068]
+        
+        init(state aState: NoiseState? = nil)
+        {
+            if let safeState = aState
+            {
+                self.enabled = safeState.enabled
+                self.mode = safeState.mode
+                self.shiftRegister = safeState.shiftRegister
+                self.lengthEnabled = safeState.lengthEnabled
+                self.lengthValue = safeState.lengthValue
+                self.timerPeriod = safeState.timerPeriod
+                self.timerValue = safeState.timerValue
+                self.envelopeEnabled = safeState.envelopeEnabled
+                self.envelopeLoop = safeState.envelopeLoop
+                self.envelopeStart = safeState.envelopeStart
+                self.envelopePeriod = safeState.envelopePeriod
+                self.envelopeValue = safeState.envelopeValue
+                self.envelopeVolume = safeState.envelopeVolume
+                self.constantVolume = safeState.constantVolume
+            }
+        }
+        
+        var noiseState: NoiseState
+        {
+            return NoiseState(enabled: self.enabled, mode: self.mode, shiftRegister: self.shiftRegister, lengthEnabled: self.lengthEnabled, lengthValue: self.lengthValue, timerPeriod: self.timerPeriod, timerValue: self.timerValue, envelopeEnabled: self.envelopeEnabled, envelopeLoop: self.envelopeLoop, envelopeStart: self.envelopeStart, envelopePeriod: self.envelopePeriod, envelopeValue: self.envelopeValue, envelopeVolume: self.envelopeVolume, constantVolume: self.constantVolume)
+        }
         
         mutating func writeControl(value aValue: UInt8)
         {
@@ -781,6 +883,30 @@ struct APU
         
         static let dmcTable: [UInt8] = [214, 190, 170, 160, 143, 127, 113, 107, 95, 80, 71, 64, 53, 42, 36, 27]
         
+        init(state aState: DMCState? = nil)
+        {
+            if let safeState = aState
+            {
+                self.enabled = safeState.enabled
+                self.value = safeState.value
+                self.sampleAddress = safeState.sampleAddress
+                self.sampleLength = safeState.sampleLength
+                self.currentAddress = safeState.currentAddress
+                self.currentLength = safeState.currentLength
+                self.shiftRegister = safeState.shiftRegister
+                self.bitCount = safeState.bitCount
+                self.tickPeriod = safeState.tickPeriod
+                self.tickValue = safeState.tickValue
+                self.loop = safeState.loop
+                self.irq = safeState.irq
+            }
+        }
+        
+        var dmcState: DMCState
+        {
+            return DMCState(enabled: self.enabled, value: self.value, sampleAddress: self.sampleAddress, sampleLength: self.sampleLength, currentAddress: self.currentAddress, currentLength: self.currentLength, shiftRegister: self.shiftRegister, bitCount: self.bitCount, tickPeriod: self.tickPeriod, tickValue: self.tickValue, loop: self.loop, irq: self.irq)
+        }
+        
         mutating func writeControl(value aValue: UInt8)
         {
             self.irq = aValue & 0x80 == 0x80
@@ -811,14 +937,14 @@ struct APU
             self.currentLength = self.sampleLength
         }
 
-        mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
+        mutating func stepTimer(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> UInt64
         {
             if !self.enabled
             {
                 return 0
             }
             
-            let numCPUStallCycles: Int = self.stepReader(dmcCurrentAddressValue: aDmcCurrentAddressValue)
+            let numCPUStallCycles: UInt64 = self.stepReader(dmcCurrentAddressValue: aDmcCurrentAddressValue)
             
             if self.tickValue == 0
             {
@@ -833,9 +959,9 @@ struct APU
             return numCPUStallCycles
         }
 
-        mutating func stepReader(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> Int
+        mutating func stepReader(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> UInt64
         {
-            let numCPUStallCycles: Int
+            let numCPUStallCycles: UInt64
             if self.currentLength > 0 && self.bitCount == 0
             {
                 numCPUStallCycles = 4

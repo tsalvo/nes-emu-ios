@@ -31,6 +31,21 @@ class SettingsTableViewController: UITableViewController
     
     private let tableData: [Settings.Section] = [
         Settings.Section(
+            sectionName: NSLocalizedString("settings-section-general", comment: "General"),
+            cells: [
+                Settings.Cell(
+                    key: Settings.autoSaveKey,
+                    title: NSLocalizedString("settings-item-autosave", comment: "Autosave"),
+                    description: NSLocalizedString("settings-item-autosave-description", comment: "when exiting game"),
+                    type: Settings.CellType.Toggle),
+                Settings.Cell(
+                    key: Settings.loadLastSaveKey,
+                    title: NSLocalizedString("settings-item-load-last", comment: "Load last save"),
+                    description: NSLocalizedString("settings-item-load-last-description", comment: "when starting game"),
+                    type: Settings.CellType.Toggle),
+                ]
+            ),
+        Settings.Section(
             sectionName: NSLocalizedString("settings-section-audio", comment: "Audio"),
             cells: [
                 Settings.Cell(
