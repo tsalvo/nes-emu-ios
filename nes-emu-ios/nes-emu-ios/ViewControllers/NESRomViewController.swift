@@ -34,6 +34,12 @@ protocol EmulatorProtocol: class
     func resumeEmulation()
 }
 
+protocol ConsoleSaveStateSelectionDelegate: class
+{
+    func saveCurrentStateSelected()
+    func consoleStateSelected(consoleState aConsoleState: ConsoleState)
+}
+
 class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSaveStateSelectionDelegate
 {
     // MARK: - Constants
@@ -561,12 +567,16 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
+#if os(tvOS)
+
+#else
         if let safeSaveStateVC = segue.destination as? ConsoleStateTableViewController,
            let md5 = sender as? String
         {
             safeSaveStateVC.md5 = md5
             safeSaveStateVC.consoleSaveStateSelectionDelegate = self
         }
+#endif
     }
     
     // MARK: - Private Functions

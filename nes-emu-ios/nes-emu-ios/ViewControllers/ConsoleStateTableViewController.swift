@@ -8,12 +8,6 @@
 
 import UIKit
 
-protocol ConsoleSaveStateSelectionDelegate: class
-{
-    func saveCurrentStateSelected()
-    func consoleStateSelected(consoleState aConsoleState: ConsoleState)
-}
-
 class ConsoleStateTableViewController: UITableViewController
 {
     var md5: String?
