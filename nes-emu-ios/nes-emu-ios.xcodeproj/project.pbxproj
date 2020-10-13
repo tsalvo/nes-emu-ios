@@ -76,6 +76,10 @@
 		996F42F7253428D9001A31D2 /* NSManagedObject+NoiseState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42F5253428D9001A31D2 /* NSManagedObject+NoiseState.swift */; };
 		996F42FC253429F5001A31D2 /* NSManagedObject+DMCState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42FB253429F5001A31D2 /* NSManagedObject+DMCState.swift */; };
 		996F42FD253429F5001A31D2 /* NSManagedObject+DMCState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42FB253429F5001A31D2 /* NSManagedObject+DMCState.swift */; };
+		9985ACB625357973009EA2C0 /* ConsoleStateCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D08322533A7FE008AD907 /* ConsoleStateCell.swift */; };
+		9985ACBA25357978009EA2C0 /* ConsoleStateCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 995D08332533A7FE008AD907 /* ConsoleStateCell.xib */; };
+		9985ACBE2535797D009EA2C0 /* AddConsoleStateCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 996F430E25343312001A31D2 /* AddConsoleStateCell.xib */; };
+		9985ACC225357980009EA2C0 /* AddConsoleStateCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F430D25343312001A31D2 /* AddConsoleStateCell.swift */; };
 		999AA95C248F668000DA77AA /* NesRomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999AA95B248F668000DA77AA /* NesRomViewController.swift */; };
 		999EF98724988D8B007149C9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 999EF98624988D8B007149C9 /* Localizable.strings */; };
 		99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A372BE248F8EC000089773 /* NESScreenView.swift */; };
@@ -657,6 +661,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				99B1EDA0249E924500BC66F3 /* SettingsToggleCell.xib in Resources */,
+				9985ACBE2535797D009EA2C0 /* AddConsoleStateCell.xib in Resources */,
 				99488F4E248985F300942A1E /* LaunchScreen.storyboard in Resources */,
 				99B7C307249F009100B26AC6 /* Settings.bundle in Resources */,
 				999EF98724988D8B007149C9 /* Localizable.strings in Resources */,
@@ -666,6 +671,7 @@
 				99488F49248985F100942A1E /* Main.storyboard in Resources */,
 				99B1EDB1249EB0A800BC66F3 /* SettingsMoreInfoCell.xib in Resources */,
 				99B1EDB0249EB0A800BC66F3 /* SettingsSegmentedCell.xib in Resources */,
+				9985ACBA25357978009EA2C0 /* ConsoleStateCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -706,6 +712,7 @@
 				995C9AE3249BED0B00429ECC /* Mapper_MMC2.swift in Sources */,
 				995D076D2532BD5F008AD907 /* PPUState.swift in Sources */,
 				99EA746F24F0ACEC005D0EAA /* Mapper_NTDEC2722.swift in Sources */,
+				9985ACB625357973009EA2C0 /* ConsoleStateCell.swift in Sources */,
 				995C9ADF249BECE000429ECC /* Mapper_CNROM.swift in Sources */,
 				99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */,
 				991B28C12489F66300A6A6DD /* Cartridge.swift in Sources */,
@@ -738,6 +745,7 @@
 				99B1EDA2249EB07900BC66F3 /* SettingsInfoViewController.swift in Sources */,
 				995EEC49249DFB2300FE24F8 /* Settings.swift in Sources */,
 				996F42E425341139001A31D2 /* NoiseState.swift in Sources */,
+				9985ACC225357980009EA2C0 /* AddConsoleStateCell.swift in Sources */,
 				995C9AEA249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift in Sources */,
 				995D080F25338007008AD907 /* NSManagedObject+PPUState.swift in Sources */,
 				99BD700D24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */,
