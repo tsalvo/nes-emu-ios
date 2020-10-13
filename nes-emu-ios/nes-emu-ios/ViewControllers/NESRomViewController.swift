@@ -38,6 +38,7 @@ protocol ConsoleSaveStateSelectionDelegate: class
 {
     func saveCurrentStateSelected()
     func consoleStateSelected(consoleState aConsoleState: ConsoleState)
+    func consoleStateSelectionDismissed()
 }
 
 class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSaveStateSelectionDelegate
@@ -209,6 +210,11 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         }
     }
     
+    func consoleStateSelectionDismissed()
+    {
+        self.resumeEmulation()
+    }
+    
     // MARK: - Button Actions
     @objc private func dismissButtonPressed(_ sender: AnyObject?)
     {
@@ -265,6 +271,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     @objc private func saveStateButtonPressed(_ sender: AnyObject?)
     {
         guard let md5 = self.cartridge?.md5 else { return }
+        self.pauseEmulation()
         self.performSegue(withIdentifier: "showSaveStates", sender: md5)
     }
     
@@ -383,6 +390,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     // MARK: - Keyboard
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
 
+        print("pressesBegan - isFirstResponder = \(self.isFirstResponder)")
         var didHandleEvent = false
         for press in presses
         {
@@ -427,7 +435,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     
     override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         // Stop running when the user releases the left or right arrow key.
-
+        print("pressesEnded - isFirstResponder = \(self.isFirstResponder)")
         var didHandleEvent = false
         for press in presses
         {
@@ -587,7 +595,6 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         self.displayLink = CADisplayLink(target: self, selector: #selector(updateFrame))
         self.displayLink?.preferredFramesPerSecond = 60
         self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.default)
-//        self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.tracking)
     }
     
     private func destroyDisplayLink()
