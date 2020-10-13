@@ -11,6 +11,8 @@ import CoreData
 
 struct CoreDataController
 {
+    static let maximumAutoSavesPerGame: Int = 3
+    static let maximumManualSavesPerGame: Int = 13
     static private let cpuStateEntityName: String = "CPUState_CD"
     static private let ppuStateEntityName: String = "PPUState_CD"
     static private let apuStateEntityName: String = "APUState_CD"
@@ -21,21 +23,46 @@ struct CoreDataController
     static private let noiseStateEntityName: String = "NoiseState_CD"
     static private let dmcStateEntityName: String = "DMCState_CD"
     
-    static func consoleStates(forMD5 aMD5: String) throws -> [ConsoleState]?
+    static func removeAllConsoleStates() throws
     {
         guard let managedContext = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext
             else
         {
-            return nil
+            return
         }
-
+        
         let fetchRequest_Console = NSFetchRequest<NSManagedObject>(entityName: CoreDataController.consoleStateEntityName)
-        fetchRequest_Console.predicate =  NSPredicate(format: "md5 == %@", aMD5)
-
+        
         do
         {
-            let consoleStates: [ConsoleState] = try managedContext.fetch(fetchRequest_Console).compactMap({ $0.consoleStateStruct })
-            return consoleStates
+            let consoleStates = try managedContext.fetch(fetchRequest_Console)
+            for c in consoleStates
+            {
+                managedContext.delete(c)
+            }
+            try managedContext.save()
+        }
+        catch
+        {
+            throw error
+        }
+    }
+    
+    /// Returns the most recent ConsoleState for a given ROM's MD5 hash
+    static func mostRecentConsoleState(forMD5 aMD5: String) -> ConsoleState?
+    {
+        guard let consoleStates: [ConsoleState] = try? CoreDataController.consoleStates(forMD5: aMD5) else { return nil }
+        
+        return consoleStates.sorted(by: { $0.date < $1.date }).last
+    }
+    
+    /// Returns an array of console states for a given ROM's MD5 hash, sorted by date (most recent first)
+    static func consoleStates(forMD5 aMD5: String) throws -> [ConsoleState]?
+    {
+        do
+        {
+            let consoleStates: [ConsoleState]? = try CoreDataController.consoleStateManagedObjects(forMD5: aMD5)?.compactMap({ $0.consoleStateStruct })
+            return consoleStates?.sorted(by: { $0.date > $1.date })
         }
         catch
         {
@@ -89,11 +116,76 @@ struct CoreDataController
         apuState.setValuesForKeys(["pulseStates": [pulse1, pulse2], "triangleState": triangle, "noiseState": noise, "dmcState": dmc])
         
         let consoleState = NSManagedObject(entity: consoleStateEntity, insertInto: managedContext)
-        consoleState.setValuesForKeys(["date": Date(), "md5": aConsoleState.md5, "cpuState": cpuState, "mapperState": mapperState, "ppuState": ppuState, "apuState": apuState])
+        consoleState.setValuesForKeys(["isAutoSave": aConsoleState.isAutoSave, "date": Date(), "md5": aConsoleState.md5, "cpuState": cpuState, "mapperState": mapperState, "ppuState": ppuState, "apuState": apuState])
 
         do
         {
             try managedContext.save()
+            try CoreDataController.pruneConsoleStates(forMD5: aConsoleState.md5)
+        }
+        catch
+        {
+            throw error
+        }
+    }
+    
+    // MARK: - Private Functions
+    
+    static private func pruneConsoleStates(forMD5 aMD5: String) throws
+    {
+        guard let managedContext = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext,
+            let consoleStates = try? CoreDataController.consoleStateManagedObjects(forMD5: aMD5)
+        else
+        {
+            return
+        }
+        
+        // descending order
+        var sortedAutoStates = consoleStates.sorted(by: { ($0.value(forKeyPath: "date") as? Date ?? Date.distantPast ) > ($1.value(forKeyPath: "date") as? Date ?? Date.distantPast) }).filter({ $0.value(forKeyPath: "isAutoSave") as? Bool ?? false })
+        
+        var sortedManualStates = consoleStates.sorted(by: { ($0.value(forKeyPath: "date") as? Date ?? Date.distantPast ) > ($1.value(forKeyPath: "date") as? Date ?? Date.distantPast) }).filter({ !($0.value(forKeyPath: "isAutoSave") as? Bool ?? false) })
+        
+        while sortedAutoStates.count > CoreDataController.maximumAutoSavesPerGame
+        {
+            if let last = sortedAutoStates.popLast()
+            {
+                managedContext.delete(last)
+            }
+        }
+        
+        while sortedManualStates.count > CoreDataController.maximumManualSavesPerGame
+        {
+            if let last = sortedManualStates.popLast()
+            {
+                managedContext.delete(last)
+            }
+        }
+        
+        do
+        {
+            try managedContext.save()
+        }
+        catch
+        {
+            throw error
+        }
+    }
+    
+    static private func consoleStateManagedObjects(forMD5 aMD5: String) throws -> [NSManagedObject]?
+    {
+        guard let managedContext = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext
+            else
+        {
+            return nil
+        }
+
+        let fetchRequest_Console = NSFetchRequest<NSManagedObject>(entityName: CoreDataController.consoleStateEntityName)
+        fetchRequest_Console.predicate =  NSPredicate(format: "md5 == %@", aMD5)
+
+        do
+        {
+            let consoleStates = try managedContext.fetch(fetchRequest_Console)
+            return consoleStates
         }
         catch
         {

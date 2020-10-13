@@ -18,12 +18,13 @@ extension NSManagedObject
             let cpuState: CPUState = (self.value(forKeyPath: "cpuState") as? NSManagedObject)?.cpuStateStruct,
             let ppuState: PPUState = (self.value(forKeyPath: "ppuState") as? NSManagedObject)?.ppuStateStruct,
             let apuState: APUState = (self.value(forKeyPath: "apuState") as? NSManagedObject)?.apuStateStruct,
-            let mapperState: MapperState = (self.value(forKeyPath: "mapperState") as? NSManagedObject)?.mapperStateStruct
+            let mapperState: MapperState = (self.value(forKeyPath: "mapperState") as? NSManagedObject)?.mapperStateStruct,
+            let isAutoSave: Bool = self.value(forKeyPath: "isAutoSave") as? Bool
         else
         {
             return nil
         }
         
-        return ConsoleState(date: date, md5: md5, cpuState: cpuState, apuState: apuState, ppuState: ppuState, mapperState: mapperState)
+        return ConsoleState(isAutoSave: isAutoSave, date: date, md5: md5, cpuState: cpuState, apuState: apuState, ppuState: ppuState, mapperState: mapperState)
     }
 }

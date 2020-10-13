@@ -15,6 +15,7 @@
     </entity>
     <entity name="ConsoleState_CD" representedClassName="ConsoleState_CD" syncable="YES" codeGenerationType="class">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isAutoSave" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="md5" optional="YES" attributeType="String"/>
         <relationship name="apuState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="APUState_CD" inverseName="consoleState" inverseEntity="APUState_CD"/>
         <relationship name="cpuState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CPUState_CD" inverseName="consoleState" inverseEntity="CPUState_CD"/>
@@ -159,13 +160,13 @@
     </entity>
     <elements>
         <element name="APUState_CD" positionX="-72" positionY="9" width="128" height="208"/>
-        <element name="ConsoleState_CD" positionX="-132.98828125" positionY="-183.0234375" width="128" height="133"/>
+        <element name="ConsoleState_CD" positionX="-132.98828125" positionY="-183.0234375" width="128" height="148"/>
         <element name="CPUState_CD" positionX="-193.65625" positionY="-18.19921875" width="128" height="208"/>
+        <element name="DMCState_CD" positionX="-81" positionY="0" width="128" height="238"/>
         <element name="MapperState_CD" positionX="-81" positionY="117" width="128" height="133"/>
+        <element name="NoiseState_CD" positionX="-90" positionY="-9" width="128" height="268"/>
         <element name="PPUState_CD" positionX="-21.28515625" positionY="-16.421875" width="128" height="733"/>
         <element name="PulseState_CD" positionX="-108" positionY="-27" width="128" height="358"/>
         <element name="TriangleState_CD" positionX="-99" positionY="-18" width="128" height="193"/>
-        <element name="NoiseState_CD" positionX="-90" positionY="-9" width="128" height="268"/>
-        <element name="DMCState_CD" positionX="-81" positionY="0" width="128" height="238"/>
     </elements>
 </model>

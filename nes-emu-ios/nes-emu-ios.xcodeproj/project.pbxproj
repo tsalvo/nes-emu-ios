@@ -54,8 +54,8 @@
 		995D081025338007008AD907 /* NSManagedObject+PPUState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D080E25338007008AD907 /* NSManagedObject+PPUState.swift */; };
 		995D081525338860008AD907 /* NSManagedObject+ConsoleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D081425338860008AD907 /* NSManagedObject+ConsoleState.swift */; };
 		995D081625338860008AD907 /* NSManagedObject+ConsoleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D081425338860008AD907 /* NSManagedObject+ConsoleState.swift */; };
-		995D0827253390BE008AD907 /* SaveStateTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D0826253390BE008AD907 /* SaveStateTableViewController.swift */; };
-		995D0828253390BE008AD907 /* SaveStateTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D0826253390BE008AD907 /* SaveStateTableViewController.swift */; };
+		995D0827253390BE008AD907 /* ConsoleStateTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D0826253390BE008AD907 /* ConsoleStateTableViewController.swift */; };
+		995D0828253390BE008AD907 /* ConsoleStateTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D0826253390BE008AD907 /* ConsoleStateTableViewController.swift */; };
 		995D082D2533A076008AD907 /* CoreDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D082C2533A076008AD907 /* CoreDataController.swift */; };
 		995D082E2533A076008AD907 /* CoreDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D082C2533A076008AD907 /* CoreDataController.swift */; };
 		995D08342533A7FE008AD907 /* ConsoleStateCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D08322533A7FE008AD907 /* ConsoleStateCell.swift */; };
@@ -217,7 +217,7 @@
 		995D080825337C74008AD907 /* NSManagedObject+MapperState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+MapperState.swift"; sourceTree = "<group>"; };
 		995D080E25338007008AD907 /* NSManagedObject+PPUState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+PPUState.swift"; sourceTree = "<group>"; };
 		995D081425338860008AD907 /* NSManagedObject+ConsoleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+ConsoleState.swift"; sourceTree = "<group>"; };
-		995D0826253390BE008AD907 /* SaveStateTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveStateTableViewController.swift; sourceTree = "<group>"; };
+		995D0826253390BE008AD907 /* ConsoleStateTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleStateTableViewController.swift; sourceTree = "<group>"; };
 		995D082C2533A076008AD907 /* CoreDataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataController.swift; sourceTree = "<group>"; };
 		995D08322533A7FE008AD907 /* ConsoleStateCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleStateCell.swift; sourceTree = "<group>"; };
 		995D08332533A7FE008AD907 /* ConsoleStateCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ConsoleStateCell.xib; sourceTree = "<group>"; };
@@ -484,7 +484,7 @@
 				99B1ED9B249E91C600BC66F3 /* SettingsTableViewController.swift */,
 				99B1EDB8249EC8D000BC66F3 /* SettingsNavigationController.swift */,
 				99B1EDA1249EB07900BC66F3 /* SettingsInfoViewController.swift */,
-				995D0826253390BE008AD907 /* SaveStateTableViewController.swift */,
+				995D0826253390BE008AD907 /* ConsoleStateTableViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -722,7 +722,7 @@
 				99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */,
 				996F42D82534111E001A31D2 /* PulseState.swift in Sources */,
 				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
-				995D0827253390BE008AD907 /* SaveStateTableViewController.swift in Sources */,
+				995D0827253390BE008AD907 /* ConsoleStateTableViewController.swift in Sources */,
 				992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */,
 				99B7C309249F33DC00B26AC6 /* Bundle+Version.swift in Sources */,
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
@@ -823,7 +823,7 @@
 				995D077A2532BDA0008AD907 /* ConsoleState.swift in Sources */,
 				995D07742532BD6B008AD907 /* APUState.swift in Sources */,
 				99FA3CB524A6F12A0065E539 /* CPU.swift in Sources */,
-				995D0828253390BE008AD907 /* SaveStateTableViewController.swift in Sources */,
+				995D0828253390BE008AD907 /* ConsoleStateTableViewController.swift in Sources */,
 				99301E7A25302D4200CC2DBD /* Data+MD5.swift in Sources */,
 				99FA3CB324A6F1270065E539 /* RomHeader.swift in Sources */,
 				99FA3CB024A6F11F0065E539 /* Mapper_UnsupportedPlaceholder.swift in Sources */,
@@ -1018,7 +1018,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 354MRHL389;
 				INFOPLIST_FILE = "nes-emu-ios/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1040,7 +1040,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 354MRHL389;
 				INFOPLIST_FILE = "nes-emu-ios/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1110,7 +1110,7 @@
 				SDKROOT = appletvos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.4;
+				TVOS_DEPLOYMENT_TARGET = 14.0;
 			};
 			name = Debug;
 		};
@@ -1133,7 +1133,7 @@
 				SWIFT_ENFORCE_EXCLUSIVE_ACCESS = off;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.4;
+				TVOS_DEPLOYMENT_TARGET = 14.0;
 			};
 			name = Release;
 		};

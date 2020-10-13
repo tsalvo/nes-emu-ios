@@ -9,13 +9,20 @@
 "button-ok" = "OK";
 "title-error" = "Error";
 "error-failed-to-import-document" = "Failed to import document";
+"label-autosave" = "autosave";
+"label-new-save-state" = "New Save";
 
+"settings-item-autosave" = "Autosave";
+"settings-item-autosave-description" = "when exiting game";
+"settings-item-load-last" = "Load last save";
+"settings-item-load-last-description" = "when starting game";
 "settings-item-audio-sample-rate" = "Sample rate";
 "settings-item-audio-sample-rate-description" = "(kHz)";
 "settings-item-resume-other-audio" = "Resume other audio";
 "settings-item-resume-other-audio-description" = "when exiting game";
 "settings-item-audio-filtering" = "Audio filtering";
 "settings-item-audio-filtering-description" = "(low pass / high pass)";
+"settings-section-general" = "General";
 "settings-section-audio" = "Audio";
 "settings-section-about" = "About";
 "settings-item-license" = "License";

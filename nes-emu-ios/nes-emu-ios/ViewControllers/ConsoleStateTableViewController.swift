@@ -14,7 +14,7 @@ protocol ConsoleSaveStateSelectionDelegate: class
     func consoleStateSelected(consoleState aConsoleState: ConsoleState)
 }
 
-class SaveStateTableViewController: UITableViewController
+class ConsoleStateTableViewController: UITableViewController
 {
     var md5: String?
     weak var consoleSaveStateSelectionDelegate: ConsoleSaveStateSelectionDelegate?
@@ -74,11 +74,13 @@ class SaveStateTableViewController: UITableViewController
         {
         case 0:
             let cell = tableView.dequeueReusableCell(withIdentifier: AddConsoleStateCell.reuseIdentifier) as! AddConsoleStateCell
-            cell.saveStateText = "+ Add Save State"
+            cell.saveStateText = NSLocalizedString("label-new-save-state", comment: "New Save")
             return cell
         case 1:
             let cell = tableView.dequeueReusableCell(withIdentifier: ConsoleStateCell.reuseIdentifier) as! ConsoleStateCell
             cell.date = self.consoleStates?[indexPath.row].date
+            cell.buffer = self.consoleStates?[indexPath.row].ppuState.frontBuffer
+            cell.isAutosave = self.consoleStates?[indexPath.row].isAutoSave ?? false
             return cell
         default: return UITableViewCell()
         }

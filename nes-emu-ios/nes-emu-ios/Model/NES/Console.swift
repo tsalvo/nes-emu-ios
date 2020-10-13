@@ -39,9 +39,9 @@ struct Console
     }
     
     /// returns a ConsoleState struct containing the current state of the CPU, PPU, APU, and Mapper
-    var consoleState: ConsoleState
+    func consoleState(isAutoSave aIsAutosave: Bool) -> ConsoleState
     {
-        ConsoleState(date: Date(), md5: self.md5, cpuState: self.cpu.cpuState, apuState: self.cpu.apu.apuState, ppuState: self.cpu.ppu.ppuState, mapperState: self.cpu.ppu.mapper.mapperState)
+        ConsoleState(isAutoSave: aIsAutosave, date: Date(), md5: self.md5, cpuState: self.cpu.cpuState, apuState: self.cpu.apu.apuState, ppuState: self.cpu.ppu.ppuState, mapperState: self.cpu.ppu.mapper.mapperState)
     }
     
     // MARK: - Life cycle

@@ -10,6 +10,7 @@ import Foundation
 
 struct ConsoleState
 {
+    let isAutoSave: Bool
     let date: Date
     let md5: String
     let cpuState: CPUState

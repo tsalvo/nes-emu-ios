@@ -68,10 +68,15 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
             guard let safeCartridge = self.cartridge else { return }
             let sampleRate: SampleRate = SampleRate.init(rawValue: UserDefaults.standard.integer(forKey: Settings.sampleRateKey)) ?? Settings.defaultSampleRate
             let audioFiltersEnabled: Bool = UserDefaults.standard.bool(forKey: Settings.audioFiltersEnabledKey)
+            let autoLoadSave: Bool = UserDefaults.standard.bool(forKey: Settings.loadLastSaveKey)
+            let mostRecentState: ConsoleState? = autoLoadSave ? CoreDataController.mostRecentConsoleState(forMD5: safeCartridge.md5) : nil
             self.consoleQueue.async { [weak self] in
-                self?.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled)
+                self?.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled, state: mostRecentState)
                 self?.console?.set(audioEngineDelegate: self?.audioEngine)
-                self?.console?.reset()
+                if mostRecentState == nil
+                {
+                    self?.console?.reset()
+                }
             }
         }
     }
@@ -160,7 +165,6 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     }
     
     // MARK: EmulatorProtocol
-    
     func pauseEmulation()
     {
         self.consoleFrameQueueSize = 0
@@ -174,23 +178,18 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     }
     
     // MARK: - ConsoleSaveStateSelectionDelegate
-    
     func consoleStateSelected(consoleState aConsoleState: ConsoleState)
     {
         self.consoleQueue.async { [weak self] in
             self?.console?.load(state: aConsoleState)
             self?.console?.set(audioEngineDelegate: self?.audioEngine)
-            
-            DispatchQueue.main.async {
-                self?.resumeEmulation()
-            }
         }
     }
     
     func saveCurrentStateSelected()
     {
         self.consoleQueue.async { [weak self] in
-            guard let safeState = self?.console?.consoleState else { return }
+            guard let safeState = self?.console?.consoleState(isAutoSave: false) else { return }
             DispatchQueue.main.async {
                 do
                 {
@@ -207,14 +206,43 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     // MARK: - Button Actions
     @objc private func dismissButtonPressed(_ sender: AnyObject?)
     {
-        if !self.isBeingDismissed
+        func dismissNesRomVC()
         {
-            self.destroyDisplayLink()
+            if !self.isBeingDismissed
+            {
+                self.destroyDisplayLink()
 #if os(tvOS)
-            self.navigationController?.popViewController(animated: true)
+                self.navigationController?.popViewController(animated: true)
 #else
-            self.dismiss(animated: true, completion: nil)
+                self.dismiss(animated: true, completion: nil)
 #endif
+            }
+        }
+        
+        let autoSave: Bool = UserDefaults.standard.bool(forKey: Settings.autoSaveKey)
+        if autoSave
+        {
+            self.consoleQueue.async { [weak self] in
+                let consoleState = self?.console?.consoleState(isAutoSave: true)
+                DispatchQueue.main.async {
+                    if let safeConsoleState = consoleState
+                    {
+                        do
+                        {
+                            try CoreDataController.save(consoleState: safeConsoleState)
+                        }
+                        catch
+                        {
+                            print(error)
+                        }
+                    }
+                    dismissNesRomVC()
+                }
+            }
+        }
+        else
+        {
+            dismissNesRomVC()
         }
     }
     
@@ -230,14 +258,8 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     
     @objc private func saveStateButtonPressed(_ sender: AnyObject?)
     {
-        self.consoleQueue.async { [weak self] in
-            if let s = self?.console?.consoleState
-            {
-                DispatchQueue.main.async {
-                    self?.performSegue(withIdentifier: "showSaveStates", sender: s.md5)
-                }
-            }
-        }
+        guard let md5 = self.cartridge?.md5 else { return }
+        self.performSegue(withIdentifier: "showSaveStates", sender: md5)
     }
     
     @IBAction private func startButtonPressed(_ sender: AnyObject?)
@@ -539,7 +561,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
-        if let safeSaveStateVC = segue.destination as? SaveStateTableViewController,
+        if let safeSaveStateVC = segue.destination as? ConsoleStateTableViewController,
            let md5 = sender as? String
         {
             safeSaveStateVC.md5 = md5
@@ -555,7 +577,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         self.displayLink = CADisplayLink(target: self, selector: #selector(updateFrame))
         self.displayLink?.preferredFramesPerSecond = 60
         self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.default)
-        self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.tracking)
+//        self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.tracking)
     }
     
     private func destroyDisplayLink()
@@ -703,38 +725,5 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
 #else
         self.navigationItem.setRightBarButtonItems([closeButton], animated: false)
 #endif
-    }
-    
-    func printSaveStateInfo()
-    {
-        guard let md5: String = self.cartridge?.md5,
-              let managedContext = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext
-        else
-        {
-            return
-        }
-
-        let fetchRequest_CPU = NSFetchRequest<NSManagedObject>(entityName: "CPUState_CD")
-        let fetchRequest_Mapper = NSFetchRequest<NSManagedObject>(entityName: "MapperState_CD")
-        let fetchRequest_PPU = NSFetchRequest<NSManagedObject>(entityName: "PPUState_CD")
-        let fetchRequest_Console = NSFetchRequest<NSManagedObject>(entityName: "ConsoleState_CD")
-        fetchRequest_Console.predicate =  NSPredicate(format: "md5 == %@", md5)
-
-        do
-        {
-            let cpuStates: [CPUState] = try managedContext.fetch(fetchRequest_CPU).map({ $0.cpuStateStruct })
-            let mapperStates: [MapperState] = try managedContext.fetch(fetchRequest_Mapper).map({ $0.mapperStateStruct })
-            let ppuStates: [PPUState] = try managedContext.fetch(fetchRequest_PPU).map({ $0.ppuStateStruct })
-            let consoleStates: [ConsoleState] = try managedContext.fetch(fetchRequest_Console).compactMap({ $0.consoleStateStruct })
-            
-            print("CPU States: \(cpuStates.count)")
-            print("Mapper States: \(mapperStates.count)")
-            print("PPU States: \(ppuStates.count)")
-            print("Console States: \(consoleStates.count)")
-        }
-        catch let error as NSError
-        {
-            print("Could not fetch. \(error), \(error.userInfo)")
-        }
     }
 }
