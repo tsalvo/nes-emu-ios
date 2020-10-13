@@ -31,6 +31,7 @@ protocol EmulatorProtocol: class
 {
     var cartridge: Cartridge? { get set }
     func pauseEmulation()
+    func resumeEmulation()
 }
 
 class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSaveStateSelectionDelegate
@@ -159,10 +160,17 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     }
     
     // MARK: EmulatorProtocol
+    
     func pauseEmulation()
     {
         self.consoleFrameQueueSize = 0
         self.destroyDisplayLink()
+    }
+    
+    func resumeEmulation()
+    {
+        self.consoleFrameQueueSize = NesRomViewController.defaultFrameQueueSize
+        self.createDisplayLink()
     }
     
     // MARK: - ConsoleSaveStateSelectionDelegate
@@ -172,6 +180,10 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         self.consoleQueue.async { [weak self] in
             self?.console?.load(state: aConsoleState)
             self?.console?.set(audioEngineDelegate: self?.audioEngine)
+            
+            DispatchQueue.main.async {
+                self?.resumeEmulation()
+            }
         }
     }
     
@@ -725,36 +737,4 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
             print("Could not fetch. \(error), \(error.userInfo)")
         }
     }
-    
-//    private func save(consoleState aConsoleState: ConsoleState)
-//    {
-//        guard let md5: String = self.cartridge?.md5,
-//            let managedContext = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext,
-//            let cpuStateEntity = NSEntityDescription.entity(forEntityName: "CPUState_CD", in: managedContext),
-//            let mapperStateEntity = NSEntityDescription.entity(forEntityName: "MapperState_CD", in: managedContext),
-//            let ppuStateEntity = NSEntityDescription.entity(forEntityName: "PPUState_CD", in: managedContext),
-//            let consoleStateEntity = NSEntityDescription.entity(forEntityName: "ConsoleState_CD", in: managedContext)
-//        else
-//        {
-//            return
-//        }
-//
-//        let cpuState = NSManagedObject(entity: cpuStateEntity, insertInto: managedContext)
-//        cpuState.cpuStateStruct = aConsoleState.cpuState
-//
-//        let mapperState = NSManagedObject(entity: mapperStateEntity, insertInto: managedContext)
-//        mapperState.mapperStateStruct = aConsoleState.mapperState
-//
-//        let ppuState = NSManagedObject(entity: ppuStateEntity, insertInto: managedContext)
-//        ppuState.ppuStateStruct = aConsoleState.ppuState
-//
-//        let consoleState = NSManagedObject(entity: consoleStateEntity, insertInto: managedContext)
-//        consoleState.setValuesForKeys(["date": Date(), "md5": md5, "cpuState": cpuState, "mapperState": mapperState, "ppuState": ppuState])
-//        // 4
-//        do {
-//            try managedContext.save()
-//        } catch let error as NSError {
-//            print("Could not save. \(error), \(error.userInfo)")
-//        }
-//    }
 }
