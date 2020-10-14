@@ -8,6 +8,7 @@
 
 "button-ok" = "OK";
 "title-error" = "Error";
+"error-failed-to-add-save-state" = "Failed to add save state";
 "error-failed-to-import-document" = "Failed to import document";
 "label-autosave" = "autosave";
 "label-new-save-state" = "New Save";

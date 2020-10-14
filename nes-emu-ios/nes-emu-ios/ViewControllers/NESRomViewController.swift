@@ -204,7 +204,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
                 }
                 catch
                 {
-                    print("error")
+                    let alertVC = UIAlertController.init(title: NSLocalizedString("title-error", comment: "Error"), message: NSLocalizedString("error-failed-to-add-save-state", comment: "Failed to add save state"), preferredStyle: .alert)
+                    alertVC.addAction(UIAlertAction.init(title: NSLocalizedString("button-ok", comment: "OK"), style: .cancel, handler: nil))
+                    self?.present(alertVC, animated: true, completion: nil)
                 }
             }
         }
@@ -245,7 +247,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
                         }
                         catch
                         {
-                            print(error)
+                            
                         }
                     }
                     dismissNesRomVC()
@@ -390,7 +392,6 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     // MARK: - Keyboard
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
 
-        print("pressesBegan - isFirstResponder = \(self.isFirstResponder)")
         var didHandleEvent = false
         for press in presses
         {
@@ -435,7 +436,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     
     override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         // Stop running when the user releases the left or right arrow key.
-        print("pressesEnded - isFirstResponder = \(self.isFirstResponder)")
+
         var didHandleEvent = false
         for press in presses
         {
