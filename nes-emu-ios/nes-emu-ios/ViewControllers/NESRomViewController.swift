@@ -579,7 +579,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
 #if os(tvOS)
 
 #else
-        if let safeSaveStateVC = segue.destination as? ConsoleStateTableViewController,
+        if let safeSaveStateVC = segue.destination as? ConsoleStateNavigationController,
            let md5 = sender as? String
         {
             safeSaveStateVC.md5 = md5

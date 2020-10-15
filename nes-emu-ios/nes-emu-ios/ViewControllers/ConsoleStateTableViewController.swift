@@ -12,6 +12,7 @@ class ConsoleStateTableViewController: UITableViewController
 {
     var md5: String?
     weak var consoleSaveStateSelectionDelegate: ConsoleSaveStateSelectionDelegate?
+
     private var observation: NSKeyValueObservation?
     private var consoleStates: [ConsoleState]?
     {
@@ -28,6 +29,18 @@ class ConsoleStateTableViewController: UITableViewController
         if let safeMD5 = self.md5 {
             self.consoleStates = try? CoreDataController.consoleStates(forMD5: safeMD5)
         }
+        
+#if targetEnvironment(macCatalyst)
+        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 24.0, weight: .semibold)
+        let closeButtonName: String = "xmark"
+#else
+        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 21.0, weight: .semibold)
+        let closeButtonName: String = "chevron.down"
+#endif
+        
+        let closeButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: closeButtonName, withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(dismissButtonPressed(_:)))
+        
+        self.navigationItem.setRightBarButton(closeButton, animated: false)
     
         self.observation = self.tableView.observe(\.contentSize) { [weak self] (t, _) in
             self?.navigationController?.preferredContentSize = CGSize(width: 320, height: t.contentSize.height)
@@ -44,9 +57,9 @@ class ConsoleStateTableViewController: UITableViewController
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
     
-    override func viewWillDisappear(_ animated: Bool)
+    override func viewDidDisappear(_ animated: Bool)
     {
-        super.viewWillDisappear(animated)
+        super.viewDidDisappear(animated)
         self.consoleSaveStateSelectionDelegate?.consoleStateSelectionDismissed()
     }
 
@@ -148,5 +161,12 @@ class ConsoleStateTableViewController: UITableViewController
         // Pass the selected object to the new view controller.
     }
     */
+    
+    // MARK: - Button Actions
+    
+    @IBAction private func dismissButtonPressed(_ sender: AnyObject?)
+    {
+        self.dismiss(animated: true, completion: nil)
+    }
 
 }
