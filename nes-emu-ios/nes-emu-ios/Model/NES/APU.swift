@@ -404,27 +404,27 @@ struct APU
     
     struct Pulse
     {
-        var channel: UInt8
-        var enabled: Bool = false
-        var lengthEnabled: Bool = false
-        var lengthValue: UInt8 = 0
-        var timerPeriod: UInt16 = 0
-        var timerValue: UInt16 = 0
-        var dutyMode: UInt8 = 0
-        var dutyValue: UInt8 = 0
-        var sweepReload: Bool = false
-        var sweepEnabled: Bool = false
-        var sweepNegate: Bool = false
-        var sweepShift: UInt8 = 0
-        var sweepPeriod: UInt8 = 0
-        var sweepValue: UInt8 = 0
-        var envelopeEnabled: Bool = false
-        var envelopeLoop: Bool = false
-        var envelopeStart: Bool = false
-        var envelopePeriod: UInt8 = 0
-        var envelopeValue:  UInt8 = 0
-        var envelopeVolume: UInt8 = 0
-        var constantVolume: UInt8 = 0
+        let channel: UInt8
+        var enabled: Bool
+        var lengthEnabled: Bool
+        var lengthValue: UInt8
+        var timerPeriod: UInt16
+        var timerValue: UInt16
+        var dutyMode: UInt8
+        var dutyValue: UInt8
+        var sweepReload: Bool
+        var sweepEnabled: Bool
+        var sweepNegate: Bool
+        var sweepShift: UInt8
+        var sweepPeriod: UInt8
+        var sweepValue: UInt8
+        var envelopeEnabled: Bool
+        var envelopeLoop: Bool
+        var envelopeStart: Bool
+        var envelopePeriod: UInt8
+        var envelopeValue: UInt8
+        var envelopeVolume: UInt8
+        var constantVolume: UInt8
         
         static let dutyTable: [[UInt8]] =
         [[0, 1, 0, 0, 0, 0, 0, 0],
@@ -457,6 +457,29 @@ struct APU
                 self.envelopeValue = safeState.envelopeValue
                 self.envelopeVolume = safeState.envelopeVolume
                 self.constantVolume = safeState.constantVolume
+            }
+            else
+            {
+                self.enabled = false
+                self.lengthEnabled = false
+                self.lengthValue = 0
+                self.timerPeriod = 0
+                self.timerValue = 0
+                self.dutyMode = 0
+                self.dutyValue = 0
+                self.sweepReload = false
+                self.sweepEnabled = false
+                self.sweepNegate = false
+                self.sweepShift = 0
+                self.sweepPeriod = 0
+                self.sweepValue = 0
+                self.envelopeEnabled = false
+                self.envelopeLoop = false
+                self.envelopeStart = false
+                self.envelopePeriod = 0
+                self.envelopeValue = 0
+                self.envelopeVolume = 0
+                self.constantVolume = 0
             }
         }
         
@@ -628,15 +651,15 @@ struct APU
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         ]
         
-        var enabled: Bool = false
-        var lengthEnabled: Bool = false
-        var lengthValue: UInt8 = 0
-        var timerPeriod: UInt16 = 0
-        var timerValue: UInt16 = 0
-        var dutyValue: UInt8 = 0
-        var counterPeriod: UInt8 = 0
-        var counterValue: UInt8 = 0
-        var counterReload: Bool = false
+        var enabled: Bool
+        var lengthEnabled: Bool
+        var lengthValue: UInt8
+        var timerPeriod: UInt16
+        var timerValue: UInt16
+        var dutyValue: UInt8
+        var counterPeriod: UInt8
+        var counterValue: UInt8
+        var counterReload: Bool
         
         init(state aState: TriangleState? = nil)
         {
@@ -651,6 +674,18 @@ struct APU
                 self.counterPeriod = safeState.counterPeriod
                 self.counterValue = safeState.counterValue
                 self.counterReload = safeState.counterReload
+            }
+            else
+            {
+                self.enabled = false
+                self.lengthEnabled = false
+                self.lengthValue = 0
+                self.timerPeriod = 0
+                self.timerValue = 0
+                self.dutyValue = 0
+                self.counterPeriod = 0
+                self.counterValue = 0
+                self.counterReload = false
             }
         }
         
@@ -732,20 +767,20 @@ struct APU
     
     struct Noise
     {
-        var enabled: Bool = false
-        var mode: Bool = false
-        var shiftRegister: UInt16 = 1
-        var lengthEnabled: Bool = false
-        var lengthValue: UInt8 = 0
-        var timerPeriod: UInt16 = 0
-        var timerValue: UInt16 = 0
-        var envelopeEnabled: Bool = false
-        var envelopeLoop: Bool = false
-        var envelopeStart: Bool = false
-        var envelopePeriod: UInt8 = 0
-        var envelopeValue: UInt8 = 0
-        var envelopeVolume: UInt8 = 0
-        var constantVolume: UInt8 = 0
+        var enabled: Bool
+        var mode: Bool
+        var shiftRegister: UInt16
+        var lengthEnabled: Bool
+        var lengthValue: UInt8
+        var timerPeriod: UInt16
+        var timerValue: UInt16
+        var envelopeEnabled: Bool
+        var envelopeLoop: Bool
+        var envelopeStart: Bool
+        var envelopePeriod: UInt8
+        var envelopeValue: UInt8
+        var envelopeVolume: UInt8
+        var constantVolume: UInt8
         
         static let noiseTable: [UInt16] = [4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 762, 1016, 2034, 4068]
         
@@ -767,6 +802,23 @@ struct APU
                 self.envelopeValue = safeState.envelopeValue
                 self.envelopeVolume = safeState.envelopeVolume
                 self.constantVolume = safeState.constantVolume
+            }
+            else
+            {
+                self.enabled = false
+                self.mode = false
+                self.shiftRegister = 1
+                self.lengthEnabled = false
+                self.lengthValue = 0
+                self.timerPeriod = 0
+                self.timerValue = 0
+                self.envelopeEnabled = false
+                self.envelopeLoop = false
+                self.envelopeStart = false
+                self.envelopePeriod = 0
+                self.envelopeValue = 0
+                self.envelopeVolume = 0
+                self.constantVolume = 0
             }
         }
         
@@ -868,18 +920,18 @@ struct APU
     
     struct DMC
     {
-        var enabled: Bool = false
-        var value: UInt8 = 0
-        var sampleAddress: UInt16 = 0
-        var sampleLength: UInt16 = 0
-        var currentAddress: UInt16 = 0
-        var currentLength: UInt16 = 0
-        var shiftRegister: UInt8 = 0
-        var bitCount: UInt8 = 0
-        var tickPeriod: UInt8 = 0
-        var tickValue: UInt8 = 0
-        var loop: Bool = false
-        var irq: Bool = false
+        var enabled: Bool
+        var value: UInt8
+        var sampleAddress: UInt16
+        var sampleLength: UInt16
+        var currentAddress: UInt16
+        var currentLength: UInt16
+        var shiftRegister: UInt8
+        var bitCount: UInt8
+        var tickPeriod: UInt8
+        var tickValue: UInt8
+        var loop: Bool
+        var irq: Bool
         
         static let dmcTable: [UInt8] = [214, 190, 170, 160, 143, 127, 113, 107, 95, 80, 71, 64, 53, 42, 36, 27]
         
@@ -899,6 +951,21 @@ struct APU
                 self.tickValue = safeState.tickValue
                 self.loop = safeState.loop
                 self.irq = safeState.irq
+            }
+            else
+            {
+                self.enabled = false
+                self.value = 0
+                self.sampleAddress = 0
+                self.sampleLength = 0
+                self.currentAddress = 0
+                self.currentLength = 0
+                self.shiftRegister = 0
+                self.bitCount = 0
+                self.tickPeriod = 0
+                self.tickValue = 0
+                self.loop = false
+                self.irq = false
             }
         }
         

@@ -83,8 +83,6 @@ struct Mapper_MMC2: MapperProtocol
         
         self.prgBank2 = max((aCartridge.prgBlocks.count * 16384) - (3 * 8192), 0)
         
-        
-        
         if self.chr.count == 0
         {
             // use a block for CHR RAM if no block exists
