@@ -149,8 +149,9 @@ struct PPU
     private var bufferedData: UInt8 = 0
     
     // MARK: Pixel Buffer
-    
-    static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 256 * 224)
+    static let screenWidth: Int = 256
+    static let screenHeight: Int = 224
+    static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: PPU.screenWidth * PPU.screenHeight)
     private static let paletteColors: [UInt32] = [
         0x666666FF, 0x882A00FF, 0xA71214FF, 0xA4003BFF, 0x7E005CFF, 0x40006EFF, 0x00066CFF, 0x001D56FF,
         0x003533FF, 0x00480BFF, 0x005200FF, 0x084F00FF, 0x4D4000FF, 0x000000FF, 0x000000FF, 0x000000FF,

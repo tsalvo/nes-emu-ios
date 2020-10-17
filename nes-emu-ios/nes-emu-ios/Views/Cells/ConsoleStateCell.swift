@@ -29,9 +29,7 @@ class ConsoleStateCell: UITableViewCell
 {
     private let rgbColorSpace: CGColorSpace = CGColorSpaceCreateDeviceRGB()
     static private let elementLength: Int = 4
-    static private let screenWidth: Int = 256
-    static private let screenHeight: Int = 224
-    static private let imageSize: CGSize = CGSize(width: ConsoleStateCell.screenWidth, height: ConsoleStateCell.screenHeight)
+    static private let imageSize: CGSize = CGSize(width: PPU.screenWidth, height: PPU.screenHeight)
     
     // MARK: - UI Outlets
     
@@ -77,7 +75,7 @@ class ConsoleStateCell: UITableViewCell
         didSet
         {
             guard let _ = self.buffer else { return }
-            let image = CIImage(bitmapData: NSData(bytes: &self.buffer!, length: ConsoleStateCell.screenWidth * ConsoleStateCell.screenHeight * ConsoleStateCell.elementLength) as Data, bytesPerRow: ConsoleStateCell.screenWidth * ConsoleStateCell.elementLength, size: ConsoleStateCell.imageSize, format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace)
+            let image = CIImage(bitmapData: NSData(bytes: &self.buffer!, length: PPU.screenWidth * PPU.screenHeight * ConsoleStateCell.elementLength) as Data, bytesPerRow: PPU.screenWidth * ConsoleStateCell.elementLength, size: ConsoleStateCell.imageSize, format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace)
             self.thumbnailImageView.image = UIImage(ciImage: image)
         }
     }
