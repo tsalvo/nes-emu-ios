@@ -48,6 +48,32 @@ struct CoreDataController
         }
     }
     
+    static func removeConsoleState(forMD5 aMD5: String, date aDate: Date) throws
+    {
+        guard let managedContext = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext
+            else
+        {
+            return
+        }
+        
+        let fetchRequest_Console = NSFetchRequest<NSManagedObject>(entityName: CoreDataController.consoleStateEntityName)
+        fetchRequest_Console.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [NSPredicate(format: "md5 == %@", aMD5), NSPredicate(format: "date == %@", aDate as NSDate)])
+        
+        do
+        {
+            let consoleStates = try managedContext.fetch(fetchRequest_Console)
+            for c in consoleStates
+            {
+                managedContext.delete(c)
+            }
+            try managedContext.save()
+        }
+        catch
+        {
+            throw error
+        }
+    }
+    
     /// Returns the most recent ConsoleState for a given ROM's MD5 hash
     static func mostRecentConsoleState(forMD5 aMD5: String) -> ConsoleState?
     {
