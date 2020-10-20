@@ -30,7 +30,8 @@ class ConsoleStateNavigationController: UINavigationController
     var md5: String?
     weak var consoleSaveStateSelectionDelegate: ConsoleSaveStateSelectionDelegate?
     
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
 
         if let safeConsoleStateVC = self.viewControllers.first as? ConsoleStateTableViewController

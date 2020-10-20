@@ -398,7 +398,7 @@ struct CPU
     private var interrupt: Interrupt = .none
     
     /// number of cycles to stall
-    var stall: UInt64 = 0
+    private var stall: UInt64 = 0
     
     // MARK: Reset
     

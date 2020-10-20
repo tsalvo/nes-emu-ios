@@ -122,6 +122,12 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     private var displayLink: CADisplayLink?
     private var audioEngine: AudioEngine = AudioEngine()
     
+    // MARK: - UIResponder
+    override var canBecomeFirstResponder: Bool
+    {
+        return true
+    }
+    
     // MARK: - UIViewController Life Cycle
     override func viewDidLoad()
     {
@@ -190,6 +196,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         self.consoleQueue.async { [weak self] in
             self?.console?.load(state: aConsoleState)
             self?.console?.set(audioEngineDelegate: self?.audioEngine)
+            DispatchQueue.main.async {
+                self?.becomeFirstResponder()
+            }
         }
     }
     
@@ -208,6 +217,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
                     alertVC.addAction(UIAlertAction.init(title: NSLocalizedString("button-ok", comment: "OK"), style: .cancel, handler: nil))
                     self?.present(alertVC, animated: true, completion: nil)
                 }
+                self?.becomeFirstResponder()
             }
         }
     }
@@ -582,6 +592,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         if let safeSaveStateVC = segue.destination as? ConsoleStateNavigationController,
            let md5 = sender as? String
         {
+            self.resignFirstResponder()
             safeSaveStateVC.md5 = md5
             safeSaveStateVC.consoleSaveStateSelectionDelegate = self
         }
