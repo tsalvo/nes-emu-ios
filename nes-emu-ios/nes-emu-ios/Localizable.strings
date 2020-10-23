@@ -6,6 +6,7 @@
   Copyright © 2020 Tom Salvo. All rights reserved.
 */
 
+"button-cancel" = "Cancel";
 "button-ok" = "OK";
 "title-error" = "Error";
 "error-failed-to-add-save-state" = "Failed to add save state";
@@ -14,6 +15,8 @@
 "label-autosave" = "autosave";
 "label-new-save-state" = "New Save";
 
+"settings-item-reset-save-data" = "Reset save data";
+"settings-item-reset-save-data-button" = "Reset";
 "settings-item-autosave" = "Autosave";
 "settings-item-autosave-description" = "when exiting game";
 "settings-item-load-last" = "Load last save";

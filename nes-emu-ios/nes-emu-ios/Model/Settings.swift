@@ -39,6 +39,7 @@ class Settings
     static let sampleRateKey: String = "sampleRateKey"
     static let audioFiltersEnabledKey: String = "audioFiltersEnabledKey"
     static let audioSessionNotifyOthersOnDeactivationKey: String = "audioSessionNotifyOthersOnDeactivationKey"
+    static let saveDataExistsKey: String = "saveDataExistsKey"
     
     // MARK: - Default Values
     static let defaultSampleRate: SampleRate = SampleRate._22050Hz
@@ -46,6 +47,7 @@ class Settings
     static let defaultAudioFiltersEnabled: Bool = true
     static let defaultAutoSaveKey: Bool = true
     static let defaultLoadLastSaveKey: Bool = true
+    static let defaultSaveDataExistsKey: Bool = false
 
     class func registerDefaultsIfNeeded()
     {
@@ -55,12 +57,13 @@ class Settings
             Settings.sampleRateKey: Settings.defaultSampleRate.rawValue,
             Settings.audioFiltersEnabledKey: Settings.defaultAudioFiltersEnabled,
             Settings.audioSessionNotifyOthersOnDeactivationKey: Settings.defaultAudioSessionNotifyOthersOnDeactivation,
+            Settings.saveDataExistsKey: Settings.defaultSaveDataExistsKey
         ])
     }
     
     enum CellType
     {
-        case Toggle, About, Info, Segmented
+        case Toggle, About, Info, Segmented, Confirmation
     }
     
     struct Cell

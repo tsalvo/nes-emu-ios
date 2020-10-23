@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		991A77B525411F8600152369 /* SettingsConfirmationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A77B325411F8600152369 /* SettingsConfirmationCell.swift */; };
+		991A77B625411F8600152369 /* SettingsConfirmationCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 991A77B425411F8600152369 /* SettingsConfirmationCell.xib */; };
 		991B28C12489F66300A6A6DD /* Cartridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C02489F66300A6A6DD /* Cartridge.swift */; };
 		991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C3248A22BA00A6A6DD /* CPU.swift */; };
 		991B28C8248B43A700A6A6DD /* APU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28C7248B43A700A6A6DD /* APU.swift */; };
@@ -181,6 +183,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		991A77B325411F8600152369 /* SettingsConfirmationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsConfirmationCell.swift; sourceTree = "<group>"; };
+		991A77B425411F8600152369 /* SettingsConfirmationCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SettingsConfirmationCell.xib; sourceTree = "<group>"; };
 		991B28C02489F66300A6A6DD /* Cartridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cartridge.swift; sourceTree = "<group>"; };
 		991B28C3248A22BA00A6A6DD /* CPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPU.swift; sourceTree = "<group>"; };
 		991B28C7248B43A700A6A6DD /* APU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APU.swift; sourceTree = "<group>"; };
@@ -496,6 +500,8 @@
 			children = (
 				99B1EDAB249EB0A800BC66F3 /* SettingsAboutCell.swift */,
 				99B1EDA7249EB0A800BC66F3 /* SettingsAboutCell.xib */,
+				991A77B325411F8600152369 /* SettingsConfirmationCell.swift */,
+				991A77B425411F8600152369 /* SettingsConfirmationCell.xib */,
 				99B1EDAA249EB0A800BC66F3 /* SettingsIconTextInfoCell.swift */,
 				99B1EDA6249EB0A800BC66F3 /* SettingsIconTextInfoCell.xib */,
 				99B1EDA5249EB0A800BC66F3 /* SettingsMoreInfoCell.swift */,
@@ -675,6 +681,7 @@
 				99B1EDB1249EB0A800BC66F3 /* SettingsMoreInfoCell.xib in Resources */,
 				99B1EDB0249EB0A800BC66F3 /* SettingsSegmentedCell.xib in Resources */,
 				9985ACBA25357978009EA2C0 /* ConsoleStateCell.xib in Resources */,
+				991A77B625411F8600152369 /* SettingsConfirmationCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -728,6 +735,7 @@
 				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
 				995D0827253390BE008AD907 /* ConsoleStateTableViewController.swift in Sources */,
 				992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */,
+				991A77B525411F8600152369 /* SettingsConfirmationCell.swift in Sources */,
 				99B7C309249F33DC00B26AC6 /* Bundle+Version.swift in Sources */,
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
 				99488F40248985F100942A1E /* AppDelegate.swift in Sources */,

@@ -25,9 +25,9 @@
 
 import UIKit
 
-class SettingsTableViewController: UITableViewController
+class SettingsTableViewController: UITableViewController, SettingsConfirmationDelegate
 {
-    // MARK: - Private Cariables
+    // MARK: - Private Variables
     
     private let tableData: [Settings.Section] = [
         Settings.Section(
@@ -43,6 +43,12 @@ class SettingsTableViewController: UITableViewController
                     title: NSLocalizedString("settings-item-load-last", comment: "Load last save"),
                     description: NSLocalizedString("settings-item-load-last-description", comment: "when starting game"),
                     type: Settings.CellType.Toggle),
+                Settings.Cell(
+                    key: Settings.saveDataExistsKey,
+                    title: NSLocalizedString("settings-item-reset-save-data", comment: "Reset save data"),
+                    description: NSLocalizedString("settings-item-reset-save-data-button", comment: "Reset"),
+                    metadata: { do { try CoreDataController.removeAllConsoleStates() } catch { } },
+                    type: Settings.CellType.Confirmation),
                 ]
             ),
         Settings.Section(
@@ -101,6 +107,7 @@ class SettingsTableViewController: UITableViewController
         self.tableView.register(UINib.init(nibName: SettingsAboutCell.reuseIdentifier, bundle: nil), forCellReuseIdentifier: SettingsAboutCell.reuseIdentifier)
         self.tableView.register(UINib.init(nibName: SettingsMoreInfoCell.reuseIdentifier, bundle: nil), forCellReuseIdentifier: SettingsMoreInfoCell.reuseIdentifier)
         self.tableView.register(UINib.init(nibName: SettingsSegmentedCell.reuseIdentifier, bundle: nil), forCellReuseIdentifier: SettingsSegmentedCell.reuseIdentifier)
+        self.tableView.register(UINib.init(nibName: SettingsConfirmationCell.reuseIdentifier, bundle: nil), forCellReuseIdentifier: SettingsConfirmationCell.reuseIdentifier)
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -187,6 +194,15 @@ class SettingsTableViewController: UITableViewController
             }
             
             return cell
+            
+        case .Confirmation:
+            let cell = tableView.dequeueReusableCell(withIdentifier: SettingsConfirmationCell.reuseIdentifier) as! SettingsConfirmationCell
+            cell.settingText = cellData.title ?? ""
+            cell.buttonText = cellData.description
+            cell.settingKey = cellData.key
+            cell.confirmationBlock = cellData.metadata as? (() -> Void)
+            cell.confirmationDelegate = self
+            return cell
         }
     }
     
@@ -218,5 +234,17 @@ class SettingsTableViewController: UITableViewController
         {
             safeSettingsInfoVC.tableData = safeTableData
         }
+    }
+    
+    // MARK: - SettingsConfirmationDelegate
+    
+    func confirmationButtonPressed(forKey aKey: String, message aMessage: String, confirmationBlock aConfirmationBlock: (() -> Void)?)
+    {
+        let alertController = UIAlertController(title: nil, message: aMessage, preferredStyle: .alert)
+        alertController.addAction(UIAlertAction.init(title: NSLocalizedString("button-ok", comment: "OK"), style: .destructive, handler: { _ in
+            aConfirmationBlock?()
+        }))
+        alertController.addAction(UIAlertAction.init(title: NSLocalizedString("button-cancel", comment: "Cancel"), style: .cancel, handler: nil))
+        self.present(alertController, animated: true, completion: nil)
     }
 }
