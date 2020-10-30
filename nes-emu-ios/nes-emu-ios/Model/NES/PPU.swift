@@ -149,8 +149,9 @@ struct PPU
     private var bufferedData: UInt8 = 0
     
     // MARK: Pixel Buffer
-    
-    static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: 256 * 224)
+    static let screenWidth: Int = 256
+    static let screenHeight: Int = 224
+    static let emptyBuffer: [UInt32] = [UInt32].init(repeating: 0, count: PPU.screenWidth * PPU.screenHeight)
     private static let paletteColors: [UInt32] = [
         0x666666FF, 0x882A00FF, 0xA71214FF, 0xA4003BFF, 0x7E005CFF, 0x40006EFF, 0x00066CFF, 0x001D56FF,
         0x003533FF, 0x00480BFF, 0x005200FF, 0x084F00FF, 0x4D4000FF, 0x000000FF, 0x000000FF, 0x000000FF,
@@ -167,10 +168,63 @@ struct PPU
     private var backBuffer: [UInt32] = PPU.emptyBuffer
     private(set) var scanline: Int = 240
     
-    init(mapper aMapper: MapperProtocol)
+    init(mapper aMapper: MapperProtocol, state aState: PPUState? = nil)
     {
         self.mapper = aMapper
         self.mapperHasStep = aMapper.hasStep
+        if let safePPUState = aState
+        {
+            self.cycle = Int(safePPUState.cycle)
+            self.frame = safePPUState.frame
+            self.paletteData = safePPUState.paletteData
+            self.nameTableData = safePPUState.nameTableData
+            self.oamData = safePPUState.oamData
+            self.v = safePPUState.v
+            self.t = safePPUState.t
+            self.x = safePPUState.x
+            self.w = safePPUState.w
+            self.f = safePPUState.f
+            self.register = safePPUState.register
+            self.nmiOccurred = safePPUState.nmiOccurred
+            self.nmiOutput = safePPUState.nmiOutput
+            self.nmiPrevious = safePPUState.nmiPrevious
+            self.nmiDelay = safePPUState.nmiDelay
+            self.nameTableByte = safePPUState.nameTableByte
+            self.attributeTableByte = safePPUState.attributeTableByte
+            self.lowTileByte = safePPUState.lowTileByte
+            self.highTileByte = safePPUState.highTileByte
+            self.tileData = safePPUState.tileData
+            self.spriteCount = Int(safePPUState.spriteCount)
+            self.spritePatterns = safePPUState.spritePatterns
+            self.spritePositions = safePPUState.spritePositions
+            self.spritePriorities = safePPUState.spritePriorities
+            self.spriteIndexes = safePPUState.spriteIndexes
+            self.flagNameTable = safePPUState.flagNameTable
+            self.flagIncrement = safePPUState.flagIncrement
+            self.flagSpriteTable = safePPUState.flagSpriteTable
+            self.flagBackgroundTable = safePPUState.flagBackgroundTable
+            self.flagSpriteSize = safePPUState.flagSpriteSize
+            self.flagMasterSlave = safePPUState.flagMasterSlave
+            self.flagGrayscale = safePPUState.flagGrayscale
+            self.flagShowLeftBackground = safePPUState.flagShowLeftBackground
+            self.flagShowLeftSprites = safePPUState.flagShowLeftSprites
+            self.flagShowBackground = safePPUState.flagShowBackground
+            self.flagShowSprites = safePPUState.flagShowSprites
+            self.flagRedTint = safePPUState.flagRedTint
+            self.flagGreenTint = safePPUState.flagGreenTint
+            self.flagBlueTint = safePPUState.flagBlueTint
+            self.flagSpriteZeroHit = safePPUState.flagSpriteZeroHit
+            self.flagSpriteOverflow = safePPUState.flagSpriteOverflow
+            self.oamAddress = safePPUState.oamAddress
+            self.bufferedData = safePPUState.bufferedData
+            self.frontBuffer = safePPUState.frontBuffer
+            self.scanline = Int(safePPUState.scanline)
+        }
+    }
+    
+    var ppuState: PPUState
+    {
+        return PPUState.init(cycle: UInt16(self.cycle), scanline: UInt16(self.scanline), frame: self.frame, paletteData: self.paletteData, nameTableData: self.nameTableData, oamData: self.oamData, v: self.v, t: self.t, x: self.x, w: self.w, f: self.f, register: self.register, nmiOccurred: self.nmiOccurred, nmiOutput: self.nmiOutput, nmiPrevious: self.nmiPrevious, nmiDelay: self.nmiDelay, nameTableByte: self.nameTableByte, attributeTableByte: self.attributeTableByte, lowTileByte: self.lowTileByte, highTileByte: self.highTileByte, tileData: self.tileData, spriteCount: UInt8(self.spriteCount), spritePatterns: self.spritePatterns, spritePositions: self.spritePositions, spritePriorities: self.spritePriorities, spriteIndexes: self.spriteIndexes, flagNameTable: self.flagNameTable, flagIncrement: self.flagIncrement, flagSpriteTable: self.flagSpriteTable, flagBackgroundTable: self.flagBackgroundTable, flagSpriteSize: self.flagSpriteSize, flagMasterSlave: self.flagMasterSlave, flagGrayscale: self.flagGrayscale, flagShowLeftBackground: self.flagShowLeftBackground, flagShowLeftSprites: self.flagShowLeftSprites, flagShowBackground: self.flagShowBackground, flagShowSprites: self.flagShowSprites, flagRedTint: self.flagRedTint, flagGreenTint: self.flagGreenTint, flagBlueTint: self.flagBlueTint, flagSpriteZeroHit: self.flagSpriteZeroHit, flagSpriteOverflow: self.flagSpriteOverflow, oamAddress: self.oamAddress, bufferedData: self.bufferedData, frontBuffer: self.frontBuffer)
     }
     
     mutating func read(address aAddress: UInt16) -> UInt8
