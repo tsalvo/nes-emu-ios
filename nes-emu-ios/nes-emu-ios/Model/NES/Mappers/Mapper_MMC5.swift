@@ -81,8 +81,9 @@ struct Mapper_MMC5: MapperProtocol
     private var prgOffsets: [Int] = [Int].init(repeating: 0, count: 4)
     private var chrOffsets: [Int] = [Int].init(repeating: 0, count: 8)
     
-    init(withCartridge aCartridge: CartridgeProtocol)
+    init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
+        // TODO: implement restoration from MapperState once MMC5 mapper is working correctly
         self.mirroringMode = aCartridge.header.mirroringMode
         for p in aCartridge.prgBlocks
         {
@@ -98,6 +99,21 @@ struct Mapper_MMC5: MapperProtocol
         self.prgOffsets[1] = (aCartridge.prgBlocks.count - 1) * 16384
         self.prgOffsets[2] = (aCartridge.prgBlocks.count - 1) * 16384 + 8192
         self.prgOffsets[3] = (aCartridge.prgBlocks.count - 1) * 16384
+    }
+    
+    // TODO: implement retrieval of MapperState, and restoration from MapperState, once MMC5 mapper is working correctly
+    var mapperState: MapperState
+    {
+        get
+        {
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [], uint8s: [], chr: self.chr)
+        }
+        set
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            
+            self.chr = newValue.chr
+        }
     }
     
     /// read a given mapper address from the CPU (must be an address in the range 0x6000 ... 0xFFFF)
