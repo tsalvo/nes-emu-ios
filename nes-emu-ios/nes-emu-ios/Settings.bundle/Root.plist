@@ -10,6 +10,40 @@
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 			<key>Title</key>
+			<string>settings-section-general</string>
+		</dict>
+        <dict>
+            <key>Type</key>
+            <string>PSToggleSwitchSpecifier</string>
+            <key>Title</key>
+            <string>settings-item-autosave</string>
+            <key>Key</key>
+            <string>autoSaveKey</string>
+            <key>DefaultValue</key>
+            <true/>
+            <key>TrueValue</key>
+            <string>YES</string>
+            <key>FalseValue</key>
+            <string>NO</string>
+        </dict>
+        <dict>
+            <key>Type</key>
+            <string>PSToggleSwitchSpecifier</string>
+            <key>Title</key>
+            <string>settings-item-load-last-save</string>
+            <key>Key</key>
+            <string>loadLastSaveKey</string>
+            <key>DefaultValue</key>
+            <true/>
+            <key>TrueValue</key>
+            <string>YES</string>
+            <key>FalseValue</key>
+            <string>NO</string>
+        </dict>
+		<dict>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+			<key>Title</key>
 			<string>settings-section-audio</string>
 		</dict>
 		<dict>

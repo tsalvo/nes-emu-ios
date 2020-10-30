@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19H2" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="APUState_CD" representedClassName="APUState_CD" syncable="YES" codeGenerationType="class">
+        <attribute name="audioBuffer" optional="YES" attributeType="Binary"/>
+        <attribute name="audioBufferIndex" optional="YES" attributeType="Binary"/>
+        <attribute name="cycle" optional="YES" attributeType="Binary"/>
+        <attribute name="frameIRQ" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="framePeriod" optional="YES" attributeType="Binary"/>
+        <attribute name="frameValue" optional="YES" attributeType="Binary"/>
+        <relationship name="consoleState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ConsoleState_CD" inverseName="apuState" inverseEntity="ConsoleState_CD"/>
+        <relationship name="dmcState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DMCState_CD" inverseName="apuState" inverseEntity="DMCState_CD"/>
+        <relationship name="noiseState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="NoiseState_CD" inverseName="apuState" inverseEntity="NoiseState_CD"/>
+        <relationship name="pulseStates" optional="YES" toMany="YES" minCount="2" maxCount="2" deletionRule="Nullify" ordered="YES" destinationEntity="PulseState_CD" inverseName="apuState" inverseEntity="PulseState_CD"/>
+        <relationship name="triangleState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TriangleState_CD" inverseName="apuState" inverseEntity="TriangleState_CD"/>
+    </entity>
+    <entity name="ConsoleState_CD" representedClassName="ConsoleState_CD" syncable="YES" codeGenerationType="class">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isAutoSave" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="md5" optional="YES" attributeType="String"/>
+        <relationship name="apuState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="APUState_CD" inverseName="consoleState" inverseEntity="APUState_CD"/>
+        <relationship name="cpuState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CPUState_CD" inverseName="consoleState" inverseEntity="CPUState_CD"/>
+        <relationship name="mapperState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MapperState_CD" inverseName="consoleState" inverseEntity="MapperState_CD"/>
+        <relationship name="ppuState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PPUState_CD" inverseName="consoleState" inverseEntity="PPUState_CD"/>
+    </entity>
+    <entity name="CPUState_CD" representedClassName="CPUState_CD" syncable="YES" codeGenerationType="class">
+        <attribute name="a" optional="YES" attributeType="Binary"/>
+        <attribute name="cycles" optional="YES" attributeType="Binary"/>
+        <attribute name="flags" optional="YES" attributeType="Binary"/>
+        <attribute name="interrupt" optional="YES" attributeType="Binary"/>
+        <attribute name="pc" optional="YES" attributeType="Binary"/>
+        <attribute name="ram" optional="YES" attributeType="Binary"/>
+        <attribute name="sp" optional="YES" attributeType="Binary"/>
+        <attribute name="stall" optional="YES" attributeType="Binary"/>
+        <attribute name="x" optional="YES" attributeType="Binary"/>
+        <attribute name="y" optional="YES" attributeType="Binary"/>
+        <relationship name="consoleState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ConsoleState_CD" inverseName="cpuState" inverseEntity="ConsoleState_CD"/>
+    </entity>
+    <entity name="DMCState_CD" representedClassName="DMCState_CD" syncable="YES" codeGenerationType="class">
+        <attribute name="bitCount" optional="YES" attributeType="Binary"/>
+        <attribute name="currentAddress" optional="YES" attributeType="Binary"/>
+        <attribute name="currentLength" optional="YES" attributeType="Binary"/>
+        <attribute name="enabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="irq" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="loop" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="sampleAddress" optional="YES" attributeType="Binary"/>
+        <attribute name="sampleLength" optional="YES" attributeType="Binary"/>
+        <attribute name="shiftRegister" optional="YES" attributeType="Binary"/>
+        <attribute name="tickPeriod" optional="YES" attributeType="Binary"/>
+        <attribute name="tickValue" optional="YES" attributeType="Binary"/>
+        <attribute name="value" optional="YES" attributeType="Binary"/>
+        <relationship name="apuState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="APUState_CD" inverseName="dmcState" inverseEntity="APUState_CD"/>
+    </entity>
+    <entity name="MapperState_CD" representedClassName="MapperState_CD" syncable="YES" codeGenerationType="class">
+        <attribute name="bools" optional="YES" attributeType="Binary"/>
+        <attribute name="chr" optional="YES" attributeType="Binary"/>
+        <attribute name="ints" optional="YES" attributeType="Binary"/>
+        <attribute name="mirroringMode" optional="YES" attributeType="Binary"/>
+        <attribute name="uint8s" optional="YES" attributeType="Binary"/>
+        <relationship name="consoleState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ConsoleState_CD" inverseName="mapperState" inverseEntity="ConsoleState_CD"/>
+    </entity>
+    <entity name="NoiseState_CD" representedClassName="NoiseState_CD" syncable="YES" codeGenerationType="class">
+        <attribute name="constantVolume" optional="YES" attributeType="Binary"/>
+        <attribute name="enabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="envelopeEnabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="envelopeLoop" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="envelopePeriod" optional="YES" attributeType="Binary"/>
+        <attribute name="envelopeStart" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="envelopeValue" optional="YES" attributeType="Binary"/>
+        <attribute name="envelopeVolume" optional="YES" attributeType="Binary"/>
+        <attribute name="lengthEnabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lengthValue" optional="YES" attributeType="Binary"/>
+        <attribute name="mode" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="shiftRegister" optional="YES" attributeType="Binary"/>
+        <attribute name="timerPeriod" optional="YES" attributeType="Binary"/>
+        <attribute name="timerValue" optional="YES" attributeType="Binary"/>
+        <relationship name="apuState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="APUState_CD" inverseName="noiseState" inverseEntity="APUState_CD"/>
+    </entity>
+    <entity name="PPUState_CD" representedClassName="PPUState_CD" syncable="YES" codeGenerationType="class">
+        <attribute name="attributeTableByte" optional="YES" attributeType="Binary"/>
+        <attribute name="bufferedData" optional="YES" attributeType="Binary"/>
+        <attribute name="cycle" optional="YES" attributeType="Binary"/>
+        <attribute name="f" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagBackgroundTable" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagBlueTint" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagGrayscale" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagGreenTint" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagIncrement" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagMasterSlave" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagNameTable" optional="YES" attributeType="Binary"/>
+        <attribute name="flagRedTint" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagShowBackground" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagShowLeftBackground" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagShowLeftSprites" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagShowSprites" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagSpriteOverflow" optional="YES" attributeType="Binary"/>
+        <attribute name="flagSpriteSize" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagSpriteTable" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="flagSpriteZeroHit" optional="YES" attributeType="Binary"/>
+        <attribute name="frame" optional="YES" attributeType="Binary"/>
+        <attribute name="frontBuffer" optional="YES" attributeType="Binary"/>
+        <attribute name="highTileByte" optional="YES" attributeType="Binary"/>
+        <attribute name="lowTileByte" optional="YES" attributeType="Binary"/>
+        <attribute name="nameTableByte" optional="YES" attributeType="Binary"/>
+        <attribute name="nameTableData" optional="YES" attributeType="Binary"/>
+        <attribute name="nmiDelay" optional="YES" attributeType="Binary"/>
+        <attribute name="nmiOccurred" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="nmiOutput" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="nmiPrevious" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="oamAddress" optional="YES" attributeType="Binary"/>
+        <attribute name="oamData" optional="YES" attributeType="Binary"/>
+        <attribute name="paletteData" optional="YES" attributeType="Binary"/>
+        <attribute name="register" optional="YES" attributeType="Binary"/>
+        <attribute name="scanline" optional="YES" attributeType="Binary"/>
+        <attribute name="spriteCount" optional="YES" attributeType="Binary"/>
+        <attribute name="spriteIndexes" optional="YES" attributeType="Binary"/>
+        <attribute name="spritePatterns" optional="YES" attributeType="Binary"/>
+        <attribute name="spritePositions" optional="YES" attributeType="Binary"/>
+        <attribute name="spritePriorities" optional="YES" attributeType="Binary"/>
+        <attribute name="t" optional="YES" attributeType="Binary"/>
+        <attribute name="tileData" optional="YES" attributeType="Binary"/>
+        <attribute name="v" optional="YES" attributeType="Binary"/>
+        <attribute name="w" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="x" optional="YES" attributeType="Binary"/>
+        <relationship name="consoleState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ConsoleState_CD" inverseName="ppuState" inverseEntity="ConsoleState_CD"/>
+    </entity>
+    <entity name="PulseState_CD" representedClassName="PulseState_CD" syncable="YES" codeGenerationType="class">
+        <attribute name="constantVolume" optional="YES" attributeType="Binary"/>
+        <attribute name="dutyMode" optional="YES" attributeType="Binary"/>
+        <attribute name="dutyValue" optional="YES" attributeType="Binary"/>
+        <attribute name="enabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="envelopeEnabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="envelopeLoop" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="envelopePeriod" optional="YES" attributeType="Binary"/>
+        <attribute name="envelopeStart" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="envelopeValue" optional="YES" attributeType="Binary"/>
+        <attribute name="envelopeVolume" optional="YES" attributeType="Binary"/>
+        <attribute name="lengthEnabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lengthValue" optional="YES" attributeType="Binary"/>
+        <attribute name="sweepEnabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="sweepNegate" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="sweepPeriod" optional="YES" attributeType="Binary"/>
+        <attribute name="sweepReload" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="sweepShift" optional="YES" attributeType="Binary"/>
+        <attribute name="sweepValue" optional="YES" attributeType="Binary"/>
+        <attribute name="timerPeriod" optional="YES" attributeType="Binary"/>
+        <attribute name="timerValue" optional="YES" attributeType="Binary"/>
+        <relationship name="apuState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="APUState_CD" inverseName="pulseStates" inverseEntity="APUState_CD"/>
+    </entity>
+    <entity name="TriangleState_CD" representedClassName="TriangleState_CD" syncable="YES" codeGenerationType="class">
+        <attribute name="counterPeriod" optional="YES" attributeType="Binary"/>
+        <attribute name="counterReload" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="counterValue" optional="YES" attributeType="Binary"/>
+        <attribute name="dutyValue" optional="YES" attributeType="Binary"/>
+        <attribute name="enabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lengthEnabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lengthValue" optional="YES" attributeType="Binary"/>
+        <attribute name="timerPeriod" optional="YES" attributeType="Binary"/>
+        <attribute name="timerValue" optional="YES" attributeType="Binary"/>
+        <relationship name="apuState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="APUState_CD" inverseName="triangleState" inverseEntity="APUState_CD"/>
+    </entity>
+    <elements>
+        <element name="APUState_CD" positionX="-72" positionY="9" width="128" height="208"/>
+        <element name="ConsoleState_CD" positionX="-132.98828125" positionY="-183.0234375" width="128" height="148"/>
+        <element name="CPUState_CD" positionX="-193.65625" positionY="-18.19921875" width="128" height="208"/>
+        <element name="DMCState_CD" positionX="-81" positionY="0" width="128" height="238"/>
+        <element name="MapperState_CD" positionX="-81" positionY="117" width="128" height="133"/>
+        <element name="NoiseState_CD" positionX="-90" positionY="-9" width="128" height="268"/>
+        <element name="PPUState_CD" positionX="-21.28515625" positionY="-16.421875" width="128" height="733"/>
+        <element name="PulseState_CD" positionX="-108" positionY="-27" width="128" height="358"/>
+        <element name="TriangleState_CD" positionX="-99" positionY="-18" width="128" height="193"/>
+    </elements>
+</model>

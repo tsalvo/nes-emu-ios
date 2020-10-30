@@ -29,11 +29,12 @@ class NesRomDocument: UIDocument
 {
     static let fileExtension: String = "nes"
     var cartridge: Cartridge?
+    var data: Data?
     
     override func contents(forType typeName: String) throws -> Any
     {
         // Encode your document with an instance of NSData or NSFileWrapper
-        return self.cartridge?.data ?? Data()
+        return self.data ?? Data()
     }
     
     override func load(fromContents contents: Any, ofType typeName: String?) throws
@@ -42,6 +43,7 @@ class NesRomDocument: UIDocument
         if let safeRomData: Data = contents as? Data
         {
             self.cartridge = Cartridge(fromData: safeRomData)
+            self.data = safeRomData
         }
     }
 }

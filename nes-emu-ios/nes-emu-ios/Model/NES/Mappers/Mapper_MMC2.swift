@@ -41,16 +41,40 @@ struct Mapper_MMC2: MapperProtocol
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
     
-    private var chrLatch1: Int = 1
-    private var chrLatch2: Int = 1
-    private var chrBanks1: [Int] = [0, 0]
-    private var chrBanks2: [Int] = [1, 0]
-    private var prgBank1: Int = 0 // switch between different 8KB PRG Banks
+    private var chrLatch1: Int
+    private var chrLatch2: Int
+    private var chrBanks1: [Int]
+    private var chrBanks2: [Int]
+    private var prgBank1: Int // switch between different 8KB PRG Banks
     private let prgBank2: Int // fixed to last 3x 8KB PRG banks
     
-    init(withCartridge aCartridge: CartridgeProtocol)
+    init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        self.mirroringMode = aCartridge.header.mirroringMode
+        if let safeState = aState
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.chrLatch1 = safeState.ints[safe: 0] ?? 1
+            self.chrLatch2 = safeState.ints[safe: 1] ?? 1
+            self.chrBanks1 = [safeState.ints[safe: 2] ?? 0, safeState.ints[safe: 3] ?? 0]
+            self.chrBanks2 = [safeState.ints[safe: 4] ?? 1, safeState.ints[safe: 5] ?? 0]
+            self.prgBank1 = safeState.ints[safe: 6] ?? 0
+            
+            self.chr = safeState.chr
+        }
+        else
+        {
+            self.mirroringMode = aCartridge.header.mirroringMode
+            self.chrLatch1 = 1
+            self.chrLatch2 = 1
+            self.chrBanks1 = [0, 0]
+            self.chrBanks2 = [1, 0]
+            self.prgBank1 = 0
+            
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
+        }
         
         for p in aCartridge.prgBlocks
         {
@@ -59,17 +83,29 @@ struct Mapper_MMC2: MapperProtocol
         
         self.prgBank2 = max((aCartridge.prgBlocks.count * 16384) - (3 * 8192), 0)
         
-        for c in aCartridge.chrBlocks
-        {
-            self.chr.append(contentsOf: c)
-        }
-        
         if self.chr.count == 0
         {
             // use a block for CHR RAM if no block exists
             self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
         }
-
+    }
+    
+    var mapperState: MapperState
+    {
+        get
+        {
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrLatch1, self.chrLatch2, self.chrBanks1[0], self.chrBanks1[1], self.chrBanks2[0], self.chrBanks2[1], self.prgBank1], bools: [], uint8s: [], chr: self.chr)
+        }
+        set
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.chrLatch1 = newValue.ints[safe: 0] ?? 1
+            self.chrLatch2 = newValue.ints[safe: 1] ?? 1
+            self.chrBanks1 = [newValue.ints[safe: 2] ?? 0, newValue.ints[safe: 3] ?? 0]
+            self.chrBanks2 = [newValue.ints[safe: 4] ?? 1, newValue.ints[safe: 5] ?? 0]
+            self.prgBank1 = newValue.ints[safe: 6] ?? 0
+            self.chr = newValue.chr
+        }
     }
     
     func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
