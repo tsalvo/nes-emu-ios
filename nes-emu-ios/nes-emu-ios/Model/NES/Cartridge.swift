@@ -37,8 +37,8 @@ struct Cartridge: CartridgeProtocol
     init(fromData aData: Data)
     {
         let header = RomHeader(fromData: aData.prefix(RomHeader.sizeInBytes))
-        self.data = aData
         self.header = header
+        self.md5 = aData.md5
         
         guard header.isValid
             else
@@ -48,6 +48,7 @@ struct Cartridge: CartridgeProtocol
             self.prgBlocks = []
             self.trainerData = Data()
             self.isValid = false
+            
             return
         }
         
@@ -96,7 +97,7 @@ struct Cartridge: CartridgeProtocol
         self.isValid = true
     }
     
-    var mapper: MapperProtocol
+    func mapper(withState aState: MapperState? = nil) -> MapperProtocol
     {
         guard let safeMapperIdentifier: MapperIdentifier = self.header.mapperIdentifier,
             safeMapperIdentifier.isSupported
@@ -108,30 +109,30 @@ struct Cartridge: CartridgeProtocol
         switch self.header.mapperIdentifier
         {
         case .NROM, .UxROM:
-            return Mapper_NROM_UNROM(withCartridge: self)
+            return Mapper_NROM_UNROM(withCartridge: self, state: aState)
         case .MMC1:
-            return Mapper_MMC1(withCartridge: self)
+            return Mapper_MMC1(withCartridge: self, state: aState)
         case .CNROM:
-            return Mapper_CNROM(withCartridge: self)
+            return Mapper_CNROM(withCartridge: self, state: aState)
         case .MMC3:
-            return Mapper_MMC3(withCartridge: self)
+            return Mapper_MMC3(withCartridge: self, state: aState)
         case .AxROM:
-            return Mapper_AxROM(withCartridge: self)
+            return Mapper_AxROM(withCartridge: self, state: aState)
         case .MMC2:
-            return Mapper_MMC2(withCartridge: self)
+            return Mapper_MMC2(withCartridge: self, state: aState)
         case .ColorDreams, .GxROM:
-            return Mapper_ColorDreams_GxROM(withCartridge: self)
+            return Mapper_ColorDreams_GxROM(withCartridge: self, state: aState)
         case .Namcot118_TengenMimic1:
-            return Mapper_Namcot118_TengenMimic1(withCartridge: self)
+            return Mapper_Namcot118_TengenMimic1(withCartridge: self, state: aState)
         case .NTDEC_2722:
-            return Mapper_NTDEC2722(withCartridge: self)
+            return Mapper_NTDEC2722(withCartridge: self, state: aState)
         default:
-            return Mapper_UnsupportedPlaceholder(withCartridge: self)
+            return Mapper_UnsupportedPlaceholder(withCartridge: self, state: aState)
         }
     }
     
+    let md5: String
     let header: RomHeader
-    let data: Data
     let trainerData: Data
     let prgBlocks: [[UInt8]]
     var chrBlocks: [[UInt8]]

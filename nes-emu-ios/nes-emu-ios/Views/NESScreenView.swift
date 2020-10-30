@@ -35,10 +35,8 @@ class NESScreenView: MTKView, MTKViewDelegate
     private let context: CIContext
     private let commandQueue: MTLCommandQueue
     static private let elementLength: Int = 4
-    static private let screenWidth: Int = 256
-    static private let screenHeight: Int = 224
     static private let bitsPerComponent: Int = 8
-    static private let imageSize: CGSize = CGSize(width: NESScreenView.screenWidth, height: NESScreenView.screenHeight)
+    static private let imageSize: CGSize = CGSize(width: PPU.screenWidth, height: PPU.screenHeight)
 
     required init(coder: NSCoder)
     {
@@ -51,7 +49,7 @@ class NESScreenView: MTKView, MTKViewDelegate
         
         self.device = dev
         self.autoResizeDrawable = false
-        self.drawableSize = CGSize(width: NESScreenView.screenWidth, height: NESScreenView.screenHeight)
+        self.drawableSize = CGSize(width: PPU.screenWidth, height: PPU.screenHeight)
         self.isPaused = true
         self.enableSetNeedsDisplay = false
         self.framebufferOnly = false
@@ -93,7 +91,7 @@ class NESScreenView: MTKView, MTKViewDelegate
             return
         }
         
-        let image = CIImage(bitmapData: NSData(bytes: &self.buffer, length: NESScreenView.screenWidth * NESScreenView.screenHeight * NESScreenView.elementLength) as Data, bytesPerRow: NESScreenView.screenWidth * NESScreenView.elementLength, size: NESScreenView.imageSize, format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace)
+        let image = CIImage(bitmapData: NSData(bytes: &self.buffer, length: PPU.screenWidth * PPU.screenHeight * NESScreenView.elementLength) as Data, bytesPerRow: PPU.screenWidth * NESScreenView.elementLength, size: NESScreenView.imageSize, format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace)
         let renderDestination = CIRenderDestination(width: Int(self.drawableSize.width), height: Int(self.drawableSize.height), pixelFormat: self.colorPixelFormat, commandBuffer: safeCommandBuffer) {
             () -> MTLTexture in return safeCurrentDrawable.texture
         }

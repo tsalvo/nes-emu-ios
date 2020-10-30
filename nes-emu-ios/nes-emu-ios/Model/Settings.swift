@@ -34,27 +34,36 @@ protocol SettingsEnum
 class Settings
 {
     // MARK: - UserDefaults Keys
+    static let autoSaveKey: String = "autoSaveKey"
+    static let loadLastSaveKey: String = "loadLastSaveKey"
     static let sampleRateKey: String = "sampleRateKey"
     static let audioFiltersEnabledKey: String = "audioFiltersEnabledKey"
     static let audioSessionNotifyOthersOnDeactivationKey: String = "audioSessionNotifyOthersOnDeactivationKey"
+    static let saveDataExistsKey: String = "saveDataExistsKey"
     
     // MARK: - Default Values
     static let defaultSampleRate: SampleRate = SampleRate._22050Hz
     static let defaultAudioSessionNotifyOthersOnDeactivation = true
     static let defaultAudioFiltersEnabled: Bool = true
+    static let defaultAutoSaveKey: Bool = true
+    static let defaultLoadLastSaveKey: Bool = true
+    static let defaultSaveDataExistsKey: Bool = false
 
     class func registerDefaultsIfNeeded()
     {
         UserDefaults.standard.register(defaults: [
+            Settings.loadLastSaveKey: Settings.defaultLoadLastSaveKey,
+            Settings.autoSaveKey: Settings.defaultAutoSaveKey,
             Settings.sampleRateKey: Settings.defaultSampleRate.rawValue,
             Settings.audioFiltersEnabledKey: Settings.defaultAudioFiltersEnabled,
             Settings.audioSessionNotifyOthersOnDeactivationKey: Settings.defaultAudioSessionNotifyOthersOnDeactivation,
+            Settings.saveDataExistsKey: Settings.defaultSaveDataExistsKey
         ])
     }
     
     enum CellType
     {
-        case Toggle, About, Info, Segmented
+        case Toggle, About, Info, Segmented, Confirmation
     }
     
     struct Cell

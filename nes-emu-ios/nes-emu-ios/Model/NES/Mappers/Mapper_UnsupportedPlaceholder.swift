@@ -29,9 +29,28 @@ struct Mapper_UnsupportedPlaceholder: MapperProtocol
 {
     let hasStep: Bool = false
     
-    init(withCartridge aCartridge: CartridgeProtocol)
+    init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        self.mirroringMode = aCartridge.header.mirroringMode
+        if let safeState = aState
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+        }
+        else
+        {
+            self.mirroringMode = aCartridge.header.mirroringMode
+        }
+    }
+    
+    var mapperState: MapperState
+    {
+        get
+        {
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [], uint8s: [], chr: [])
+        }
+        set
+        {
+            
+        }
     }
     
     let mirroringMode: MirroringMode

@@ -29,6 +29,7 @@ struct Console
 {
     // MARK: - Private Variables
     private var cpu: CPU
+    private var md5: String /// game MD5 hash
     
     // MARK: - Computed Properties
     /// returns a 256x224 array of palette colors copies from the PPU's current screen buffer
@@ -37,10 +38,17 @@ struct Console
         return self.cpu.ppu.frontBuffer
     }
     
-    // MARK: - Life cycle
-    init(withCartridge aCartridge: Cartridge, sampleRate aSampleRate: SampleRate, audioFiltersEnabled aAudioFiltersEnabled: Bool)
+    /// returns a ConsoleState struct containing the current state of the CPU, PPU, APU, and Mapper
+    func consoleState(isAutoSave aIsAutosave: Bool) -> ConsoleState
     {
-        self.cpu = CPU(ppu: PPU(mapper: aCartridge.mapper), apu: APU(withSampleRate: aSampleRate, filtersEnabled: aAudioFiltersEnabled), controllers: [Controller(), Controller()])
+        ConsoleState(isAutoSave: aIsAutosave, date: Date(), md5: self.md5, cpuState: self.cpu.cpuState, apuState: self.cpu.apu.apuState, ppuState: self.cpu.ppu.ppuState, mapperState: self.cpu.ppu.mapper.mapperState)
+    }
+    
+    // MARK: - Life cycle
+    init(withCartridge aCartridge: Cartridge, sampleRate aSampleRate: SampleRate, audioFiltersEnabled aAudioFiltersEnabled: Bool, state aState: ConsoleState? = nil)
+    {
+        self.md5 = aCartridge.md5
+        self.cpu = CPU(ppu: PPU(mapper: aCartridge.mapper(withState: aState?.mapperState), state: aState?.ppuState), apu: APU(withSampleRate: aSampleRate, filtersEnabled: aAudioFiltersEnabled, state: aState?.apuState), controllers: [Controller(), Controller()], state: aState?.cpuState)
     }
     
     // MARK: - Audio
@@ -69,6 +77,16 @@ struct Console
     mutating func reset()
     {
         self.cpu.reset()
+    }
+    
+    mutating func load(state aState: ConsoleState)
+    {
+        let sampleRate: SampleRate = self.cpu.apu.sampleRate
+        let filtersEnabled: Bool = self.cpu.apu.filtersEnabled
+        var mapper = self.cpu.ppu.mapper
+        mapper.mapperState = aState.mapperState
+        
+        self.cpu = CPU(ppu: PPU(mapper: mapper, state: aState.ppuState), apu: APU(withSampleRate: sampleRate, filtersEnabled: filtersEnabled, state: aState.apuState), controllers: [Controller(), Controller()], state: aState.cpuState)
     }
     
     // MARK: - Timing
