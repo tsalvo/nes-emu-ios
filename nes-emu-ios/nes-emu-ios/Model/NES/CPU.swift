@@ -415,7 +415,7 @@ struct CPU
     // MARK: Flag Operations
     
     /// returns a UInt8 with flag bits arranged as c,z,i,d,b,u,v,n
-    private mutating func flags() -> UInt8
+    private func flags() -> UInt8
     {
         let flagByte: UInt8 = UInt8.init(fromLittleEndianBitArray: [self.c, self.z, self.i, self.d, self.b, self.u, self.v, self.n])
         return flagByte
