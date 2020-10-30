@@ -88,7 +88,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         }
     }
     private let consoleQueue: DispatchQueue = DispatchQueue(label: "ConsoleQueue", qos: .userInteractive)
-    
+    private var hasSuspended: Bool = false
     private var controller1: GCController?
     {
         didSet
@@ -575,11 +575,16 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     @objc private func appResignedActive()
     {
         self.consoleQueue.suspend()
+        self.hasSuspended = true
     }
     
     @objc private func appBecameActive()
     {
-        self.consoleQueue.resume()
+        if self.hasSuspended
+        {
+            self.consoleQueue.resume()
+            self.hasSuspended = false
+        }
     }
     
     // MARK: - Navigation

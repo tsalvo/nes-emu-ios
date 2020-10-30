@@ -29,8 +29,8 @@ import os
 
 class NESScreenView: MTKView, MTKViewDelegate
 {
-    private var queue: DispatchQueue = DispatchQueue.init(label: "renderQueue", qos: .userInteractive)
-
+    private let queue: DispatchQueue = DispatchQueue.init(label: "renderQueue", qos: .userInteractive)
+    private var hasSuspended: Bool = false
     private let rgbColorSpace: CGColorSpace = CGColorSpaceCreateDeviceRGB()
     private let context: CIContext
     private let commandQueue: MTLCommandQueue
@@ -112,10 +112,15 @@ class NESScreenView: MTKView, MTKViewDelegate
     @objc private func appResignedActive()
     {
         self.queue.suspend()
+        self.hasSuspended = true
     }
     
     @objc private func appBecameActive()
     {
-        self.queue.resume()
+        if self.hasSuspended
+        {
+            self.queue.resume()
+            self.hasSuspended = false
+        }
     }
 }
