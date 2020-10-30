@@ -47,8 +47,10 @@ protocol MapperProtocol
     /// returns the current mirroring mode for the mapper.  the mirroring mode is initially set to whatever the NES ROM iNES header specifies, but some mappers allow this to be changed at runtime
     var mirroringMode: MirroringMode { get }
     
-    /// read a given mapper address from the CPU (must be an address in the range 0x5000 ... 0xFFFF)
-    mutating func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
+    var mapperState: MapperState { get set }
+    
+    /// read a given mapper address from the CPU (must be an address in the range 0x6000 ... 0xFFFF)
+    func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
     
     /// write to a given mapper address from the CPU (must be an address in the range 0x5000 ... 0xFFFF)
     mutating func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF

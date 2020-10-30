@@ -41,25 +41,30 @@ struct Mapper_Namcot118_TengenMimic1: MapperProtocol
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
     
-    private var register: UInt8 = 0
-    private var registers: [UInt8] = [UInt8].init(repeating: 0, count: 8)
-    private var prgMode: UInt8 = 0
-    private var chrMode: UInt8 = 0
-    private var prgOffsets: [Int] = [Int].init(repeating: 0, count: 4)
-    private var chrOffsets: [Int] = [Int].init(repeating: 0, count: 8)
+    private var register: UInt8
+    private var registers: [UInt8]
+    private var prgMode: UInt8
+    private var chrMode: UInt8
+    private var prgOffsets: [Int]
+    private var chrOffsets: [Int]
     
-    init(withCartridge aCartridge: CartridgeProtocol)
+    init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        self.mirroringMode = aCartridge.header.mirroringMode
-        
         for p in aCartridge.prgBlocks
         {
             self.prg.append(contentsOf: p)
         }
 
-        for c in aCartridge.chrBlocks
+        if let safeState = aState
         {
-            self.chr.append(contentsOf: c)
+            self.chr = safeState.chr
+        }
+        else
+        {
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
         }
 
         if self.chr.count == 0
@@ -67,11 +72,61 @@ struct Mapper_Namcot118_TengenMimic1: MapperProtocol
             // use a block for CHR RAM if no block exists
             self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
         }
-
-        self.prgOffsets[0] = self.prgBankOffset(index: 0)
-        self.prgOffsets[1] = self.prgBankOffset(index: 1)
-        self.prgOffsets[2] = self.prgBankOffset(index: -2)
-        self.prgOffsets[3] = self.prgBankOffset(index: -1)
+        
+        if let safeState = aState,
+           safeState.uint8s.count >= 11,
+           safeState.ints.count >= 12
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.prgOffsets = [safeState.ints[0], safeState.ints[1], safeState.ints[2], safeState.ints[3]]
+            self.chrOffsets = [safeState.ints[4], safeState.ints[5], safeState.ints[6], safeState.ints[7], safeState.ints[8], safeState.ints[9], safeState.ints[10], safeState.ints[11]]
+            self.register = safeState.uint8s[0]
+            self.registers = [safeState.uint8s[1], safeState.uint8s[2], safeState.uint8s[3], safeState.uint8s[4], safeState.uint8s[5], safeState.uint8s[6], safeState.uint8s[7], safeState.uint8s[8]]
+            self.prgMode = safeState.uint8s[9]
+            self.chrMode = safeState.uint8s[10]
+        }
+        else
+        {
+            self.mirroringMode = aCartridge.header.mirroringMode
+            self.prgOffsets = [Int].init(repeating: 0, count: 4)
+            self.chrOffsets = [Int].init(repeating: 0, count: 8)
+            self.register = 0
+            self.registers = [UInt8].init(repeating: 0, count: 8)
+            self.prgMode = 0
+            self.chrMode = 0
+            self.prgOffsets[0] = self.prgBankOffset(index: 0)
+            self.prgOffsets[1] = self.prgBankOffset(index: 1)
+            self.prgOffsets[2] = self.prgBankOffset(index: -2)
+            self.prgOffsets[3] = self.prgBankOffset(index: -1)
+        }
+    }
+    
+    var mapperState: MapperState
+    {
+        get
+        {
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]], bools: [], uint8s: [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode], chr: self.chr)
+        }
+        set
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            
+            guard newValue.uint8s.count >= 13,
+                  newValue.bools.count >= 1,
+                  newValue.ints.count >= 12
+            else
+            {
+                return
+            }
+            
+            self.prgOffsets = [newValue.ints[0], newValue.ints[1], newValue.ints[2], newValue.ints[3]]
+            self.chrOffsets = [newValue.ints[4], newValue.ints[5], newValue.ints[6], newValue.ints[7], newValue.ints[8], newValue.ints[9], newValue.ints[10], newValue.ints[11]]
+            self.register = newValue.uint8s[0]
+            self.registers = [newValue.uint8s[1], newValue.uint8s[2], newValue.uint8s[3], newValue.uint8s[4], newValue.uint8s[5], newValue.uint8s[6], newValue.uint8s[7], newValue.uint8s[8]]
+            self.prgMode = newValue.uint8s[9]
+            self.chrMode = newValue.uint8s[10]
+            self.chr = newValue.chr
+        }
     }
     
     func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF

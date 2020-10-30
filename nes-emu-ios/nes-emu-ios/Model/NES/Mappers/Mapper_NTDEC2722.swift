@@ -15,8 +15,8 @@ struct Mapper_NTDEC2722: MapperProtocol
     
     var mirroringMode: MirroringMode
     
-    private var prgBank: Int = 0
-    private var cycles: Int = 0
+    private var prgBank: Int
+    private var cycles: Int
     
     /// linear 1D array of all PRG blocks
     private var prg: [UInt8] = []
@@ -27,24 +27,52 @@ struct Mapper_NTDEC2722: MapperProtocol
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
     
-    init(withCartridge aCartridge: CartridgeProtocol)
+    init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        self.mirroringMode = aCartridge.header.mirroringMode
+        if let safeState = aState
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.prgBank = safeState.ints[safe: 0] ?? 0
+            self.cycles = safeState.ints[safe: 1] ?? 0
+            
+            self.chr = safeState.chr
+        }
+        else
+        {
+            self.mirroringMode = aCartridge.header.mirroringMode
+            self.prgBank = 0
+            self.cycles = 0
+            
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
+        }
         
         for p in aCartridge.prgBlocks
         {
             self.prg.append(contentsOf: p)
         }
         
-        for c in aCartridge.chrBlocks
-        {
-            self.chr.append(contentsOf: c)
-        }
-        
         if self.chr.count == 0
         {
             // use a block for CHR RAM if no block exists
             self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
+        }
+    }
+    
+    var mapperState: MapperState
+    {
+        get
+        {
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank, self.cycles], bools: [], uint8s: [], chr: self.chr)
+        }
+        set
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.prgBank = newValue.ints[safe: 0] ?? 0
+            self.cycles = newValue.ints[safe: 1] ?? 0
+            self.chr = newValue.chr
         }
     }
     

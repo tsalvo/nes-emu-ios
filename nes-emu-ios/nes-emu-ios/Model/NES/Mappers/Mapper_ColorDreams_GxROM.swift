@@ -44,21 +44,44 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
     private var prgBank: Int = 0
     private var chrBank: Int = 0
     
-    init(withCartridge aCartridge: CartridgeProtocol)
+    init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        self.mirroringMode = aCartridge.header.mirroringMode
-        
         for p in aCartridge.prgBlocks
         {
             self.prg.append(contentsOf: p)
         }
         
-        for c in aCartridge.chrBlocks
-        {
-            self.chr.append(contentsOf: c)
-        }
+        self.mirroringMode = aCartridge.header.mirroringMode
         
-        self.prgBank = max(0, self.prg.count - 0x8000) / 0x8000
+        if let safeState = aState
+        {
+            self.prgBank = safeState.ints[safe: 0] ?? 0
+            self.chrBank = safeState.ints[safe: 1] ?? 0
+            self.chr = safeState.chr
+        }
+        else
+        {
+            self.chrBank = 0
+            self.prgBank = max(0, self.prg.count - 0x8000) / 0x8000
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
+        }
+    }
+    
+    var mapperState: MapperState
+    {
+        get
+        {
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank, self.chrBank], bools: [], uint8s: [], chr: self.chr)
+        }
+        set
+        {
+            self.prgBank = newValue.ints[safe: 0] ?? 0
+            self.chrBank = newValue.ints[safe: 1] ?? 0
+            self.chr = newValue.chr
+        }
     }
     
     func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF

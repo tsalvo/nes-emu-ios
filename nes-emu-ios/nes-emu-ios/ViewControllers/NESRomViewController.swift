@@ -25,14 +25,23 @@
 
 import UIKit
 import GameController
+import CoreData
 
 protocol EmulatorProtocol: class
 {
     var cartridge: Cartridge? { get set }
     func pauseEmulation()
+    func resumeEmulation()
 }
 
-class NesRomViewController: GCEventViewController, EmulatorProtocol
+protocol ConsoleSaveStateSelectionDelegate: class
+{
+    func saveCurrentStateSelected()
+    func consoleStateSelected(consoleState aConsoleState: ConsoleState)
+    func consoleStateSelectionDismissed()
+}
+
+class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSaveStateSelectionDelegate
 {
     // MARK: - Constants
     private static let defaultFrameQueueSize: Int = 3
@@ -53,6 +62,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     // MARK: - Private Variables
     private weak var dismissBarButtonItem: UIBarButtonItem?
     private weak var resetBarButtonItem: UIBarButtonItem?
+    private weak var saveStateBarButtonItem: UIBarButtonItem?
     private weak var controller1BarButtonItem: UIBarButtonItem?
     private weak var controller2BarButtonItem: UIBarButtonItem?
     
@@ -65,10 +75,15 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
             guard let safeCartridge = self.cartridge else { return }
             let sampleRate: SampleRate = SampleRate.init(rawValue: UserDefaults.standard.integer(forKey: Settings.sampleRateKey)) ?? Settings.defaultSampleRate
             let audioFiltersEnabled: Bool = UserDefaults.standard.bool(forKey: Settings.audioFiltersEnabledKey)
+            let autoLoadSave: Bool = UserDefaults.standard.bool(forKey: Settings.loadLastSaveKey)
+            let mostRecentState: ConsoleState? = autoLoadSave ? CoreDataController.mostRecentConsoleState(forMD5: safeCartridge.md5) : nil
             self.consoleQueue.async { [weak self] in
-                self?.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled)
+                self?.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled, state: mostRecentState)
                 self?.console?.set(audioEngineDelegate: self?.audioEngine)
-                self?.console?.reset()
+                if mostRecentState == nil
+                {
+                    self?.console?.reset()
+                }
             }
         }
     }
@@ -106,6 +121,12 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
     private var console: Console?
     private var displayLink: CADisplayLink?
     private var audioEngine: AudioEngine = AudioEngine()
+    
+    // MARK: - UIResponder
+    override var canBecomeFirstResponder: Bool
+    {
+        return true
+    }
     
     // MARK: - UIViewController Life Cycle
     override func viewDidLoad()
@@ -163,17 +184,89 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.destroyDisplayLink()
     }
     
+    func resumeEmulation()
+    {
+        self.consoleFrameQueueSize = NesRomViewController.defaultFrameQueueSize
+        self.createDisplayLink()
+    }
+    
+    // MARK: - ConsoleSaveStateSelectionDelegate
+    func consoleStateSelected(consoleState aConsoleState: ConsoleState)
+    {
+        self.consoleQueue.async { [weak self] in
+            self?.console?.load(state: aConsoleState)
+            self?.console?.set(audioEngineDelegate: self?.audioEngine)
+            DispatchQueue.main.async {
+                self?.becomeFirstResponder()
+            }
+        }
+    }
+    
+    func saveCurrentStateSelected()
+    {
+        self.consoleQueue.async { [weak self] in
+            guard let safeState = self?.console?.consoleState(isAutoSave: false) else { return }
+            DispatchQueue.main.async {
+                do
+                {
+                    try CoreDataController.save(consoleState: safeState)
+                }
+                catch
+                {
+                    let alertVC = UIAlertController.init(title: NSLocalizedString("title-error", comment: "Error"), message: NSLocalizedString("error-failed-to-add-save-state", comment: "Failed to add save state"), preferredStyle: .alert)
+                    alertVC.addAction(UIAlertAction.init(title: NSLocalizedString("button-ok", comment: "OK"), style: .cancel, handler: nil))
+                    self?.present(alertVC, animated: true, completion: nil)
+                }
+                self?.becomeFirstResponder()
+            }
+        }
+    }
+    
+    func consoleStateSelectionDismissed()
+    {
+        self.resumeEmulation()
+    }
+    
     // MARK: - Button Actions
     @objc private func dismissButtonPressed(_ sender: AnyObject?)
     {
-        if !self.isBeingDismissed
+        func dismissNesRomVC()
         {
-            self.destroyDisplayLink()
+            if !self.isBeingDismissed
+            {
+                self.destroyDisplayLink()
 #if os(tvOS)
-            self.navigationController?.popViewController(animated: true)
+                self.navigationController?.popViewController(animated: true)
 #else
-            self.dismiss(animated: true, completion: nil)
+                self.dismiss(animated: true, completion: nil)
 #endif
+            }
+        }
+        
+        let autoSave: Bool = UserDefaults.standard.bool(forKey: Settings.autoSaveKey)
+        if autoSave
+        {
+            self.consoleQueue.async { [weak self] in
+                let consoleState = self?.console?.consoleState(isAutoSave: true)
+                DispatchQueue.main.async {
+                    if let safeConsoleState = consoleState
+                    {
+                        do
+                        {
+                            try CoreDataController.save(consoleState: safeConsoleState)
+                        }
+                        catch
+                        {
+                            
+                        }
+                    }
+                    dismissNesRomVC()
+                }
+            }
+        }
+        else
+        {
+            dismissNesRomVC()
         }
     }
     
@@ -185,6 +278,13 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
                 self?.screen.buffer = PPU.emptyBuffer
             }
         }
+    }
+    
+    @objc private func saveStateButtonPressed(_ sender: AnyObject?)
+    {
+        guard let md5 = self.cartridge?.md5 else { return }
+        self.pauseEmulation()
+        self.performSegue(withIdentifier: "showSaveStates", sender: md5)
     }
     
     @IBAction private func startButtonPressed(_ sender: AnyObject?)
@@ -482,6 +582,23 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.consoleQueue.resume()
     }
     
+    // MARK: - Navigation
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+#if os(tvOS)
+
+#else
+        if let safeSaveStateVC = segue.destination as? ConsoleStateNavigationController,
+           let md5 = sender as? String
+        {
+            self.resignFirstResponder()
+            safeSaveStateVC.md5 = md5
+            safeSaveStateVC.consoleSaveStateSelectionDelegate = self
+        }
+#endif
+    }
+    
     // MARK: - Private Functions
     
     private func createDisplayLink()
@@ -490,7 +607,6 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         self.displayLink = CADisplayLink(target: self, selector: #selector(updateFrame))
         self.displayLink?.preferredFramesPerSecond = 60
         self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.default)
-        self.displayLink?.add(to: RunLoop.current, forMode: RunLoop.Mode.tracking)
     }
     
     private func destroyDisplayLink()
@@ -619,6 +735,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
 #endif
             
         let resetButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "power", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(resetButtonPressed(_:)))
+        let saveStateButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "bookmark", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(saveStateButtonPressed(_:)))
         let controller1Button: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gamecontroller", withConfiguration: symbolConfig), style: .plain, target: self, action: nil)
         let controller2Button: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gamecontroller", withConfiguration: symbolConfig), style: .plain, target: self, action: nil)
         let closeButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(dismissButtonPressed(_:)))
@@ -626,11 +743,12 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol
         controller2Button.isEnabled = false
         
         self.resetBarButtonItem = resetButton
+        self.saveStateBarButtonItem = saveStateButton
         self.controller1BarButtonItem = controller1Button
         self.controller2BarButtonItem = controller2Button
         self.dismissBarButtonItem = closeButton
            
-        self.navigationItem.setLeftBarButtonItems([resetButton, controller1Button, controller2Button], animated: false)
+        self.navigationItem.setLeftBarButtonItems([resetButton, saveStateButton, controller1Button, controller2Button], animated: false)
         
 #if targetEnvironment(macCatalyst)
 #else
