@@ -76,6 +76,7 @@ struct Mapper_NROM_UNROM: MapperProtocol
         
         self.prgBanks = self.prg.count / 0x4000
         self.prgBank2 = max(0, self.prgBanks - 1)
+    }
     
     var mapperState: MapperState
     {
