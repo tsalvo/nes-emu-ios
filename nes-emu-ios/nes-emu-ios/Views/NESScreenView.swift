@@ -48,7 +48,7 @@ class NESScreenView: MTKView, MTKViewDelegate
         super.init(coder: coder)
         
         self.device = dev
-        self.autoResizeDrawable = false
+        self.autoResizeDrawable = true
         self.drawableSize = CGSize(width: PPU.screenWidth, height: PPU.screenHeight)
         self.isPaused = true
         self.enableSetNeedsDisplay = false
@@ -91,7 +91,9 @@ class NESScreenView: MTKView, MTKViewDelegate
             return
         }
         
-        let image = CIImage(bitmapData: NSData(bytes: &self.buffer, length: PPU.screenWidth * PPU.screenHeight * NESScreenView.elementLength) as Data, bytesPerRow: PPU.screenWidth * NESScreenView.elementLength, size: NESScreenView.imageSize, format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace)
+        let scale: CGFloat = self.drawableSize.width / CGFloat(PPU.screenWidth)
+        
+        let image = CIImage(bitmapData: NSData(bytes: &self.buffer, length: PPU.screenWidth * PPU.screenHeight * NESScreenView.elementLength) as Data, bytesPerRow: PPU.screenWidth * NESScreenView.elementLength, size: NESScreenView.imageSize, format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace).samplingNearest().transformed(by: CGAffineTransform(scaleX: scale, y: scale))
         let renderDestination = CIRenderDestination(width: Int(self.drawableSize.width), height: Int(self.drawableSize.height), pixelFormat: self.colorPixelFormat, commandBuffer: safeCommandBuffer) {
             () -> MTLTexture in return safeCurrentDrawable.texture
         }
