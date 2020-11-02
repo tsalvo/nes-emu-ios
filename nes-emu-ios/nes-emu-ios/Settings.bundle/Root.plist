@@ -101,8 +101,8 @@
             <array>
                 <string>off</string>
                 <string>low</string>
-                <string>med</string>
-                <string>hi</string>
+                <string>medium</string>
+                <string>high</string>
             </array>
             <key>Values</key>
             <array>
