@@ -78,6 +78,8 @@
 		996F42F7253428D9001A31D2 /* NSManagedObject+NoiseState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42F5253428D9001A31D2 /* NSManagedObject+NoiseState.swift */; };
 		996F42FC253429F5001A31D2 /* NSManagedObject+DMCState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42FB253429F5001A31D2 /* NSManagedObject+DMCState.swift */; };
 		996F42FD253429F5001A31D2 /* NSManagedObject+DMCState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F42FB253429F5001A31D2 /* NSManagedObject+DMCState.swift */; };
+		9972A9CA254E8089007D0DBC /* Scanlines.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9972A9C9254E8089007D0DBC /* Scanlines.swift */; };
+		9972A9CB254E8089007D0DBC /* Scanlines.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9972A9C9254E8089007D0DBC /* Scanlines.swift */; };
 		9985ACB625357973009EA2C0 /* ConsoleStateCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D08322533A7FE008AD907 /* ConsoleStateCell.swift */; };
 		9985ACBA25357978009EA2C0 /* ConsoleStateCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 995D08332533A7FE008AD907 /* ConsoleStateCell.xib */; };
 		9985ACBE2535797D009EA2C0 /* AddConsoleStateCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 996F430E25343312001A31D2 /* AddConsoleStateCell.xib */; };
@@ -237,6 +239,7 @@
 		996F42FB253429F5001A31D2 /* NSManagedObject+DMCState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObject+DMCState.swift"; sourceTree = "<group>"; };
 		996F430D25343312001A31D2 /* AddConsoleStateCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddConsoleStateCell.swift; sourceTree = "<group>"; };
 		996F430E25343312001A31D2 /* AddConsoleStateCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AddConsoleStateCell.xib; sourceTree = "<group>"; };
+		9972A9C9254E8089007D0DBC /* Scanlines.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scanlines.swift; sourceTree = "<group>"; };
 		999AA95B248F668000DA77AA /* NesRomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomViewController.swift; sourceTree = "<group>"; };
 		999EF98624988D8B007149C9 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		99A372BE248F8EC000089773 /* NESScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NESScreenView.swift; sourceTree = "<group>"; };
@@ -385,6 +388,7 @@
 				99488F45248985F100942A1E /* NesRomDocument.swift */,
 				99C7F1742494221800E4C04D /* AudioEngine.swift */,
 				99A43E9724944CFD0009DB5B /* SampleRate.swift */,
+				9972A9C9254E8089007D0DBC /* Scanlines.swift */,
 				995EEC48249DFB2300FE24F8 /* Settings.swift */,
 			);
 			path = Model;
@@ -775,6 +779,7 @@
 				99B1ED9C249E91C600BC66F3 /* SettingsTableViewController.swift in Sources */,
 				99B1EDAC249EB0A800BC66F3 /* SettingsSegmentedCell.swift in Sources */,
 				995C9AE5249BED4000429ECC /* Mapper_MMC3.swift in Sources */,
+				9972A9CA254E8089007D0DBC /* Scanlines.swift in Sources */,
 				99301E7925302D4200CC2DBD /* Data+MD5.swift in Sources */,
 				99A372BF248F8EC000089773 /* NESScreenView.swift in Sources */,
 				99B1EDB5249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift in Sources */,
@@ -833,6 +838,7 @@
 				996F42D3253410C9001A31D2 /* NSManagedObject+PulseState.swift in Sources */,
 				995D077A2532BDA0008AD907 /* ConsoleState.swift in Sources */,
 				995D07742532BD6B008AD907 /* APUState.swift in Sources */,
+				9972A9CB254E8089007D0DBC /* Scanlines.swift in Sources */,
 				99FA3CB524A6F12A0065E539 /* CPU.swift in Sources */,
 				99301E7A25302D4200CC2DBD /* Data+MD5.swift in Sources */,
 				99FA3CB324A6F1270065E539 /* RomHeader.swift in Sources */,

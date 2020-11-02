@@ -15,8 +15,15 @@
 "label-autosave" = "autosave";
 "label-new-save-state" = "New Save";
 
-"settings-item-reset-save-data" = "Reset save data";
-"settings-item-reset-save-data-button" = "Reset";
+"settings-item-reset-save-data" = "Delete save data";
+"settings-item-reset-save-data-button" = "Delete";
+"settings-item-scanlines" = "Scanlines";
+"settings-item-check-for-duplicate-frames" = "Skip duplicate frames";
+"settings-item-check-for-duplicate-frames-description" = "by comparing to previous frame";
+"settings-item-nearest-neighbor" = "Nearest neighbor";
+"settings-item-nearest-neighbor-description" = "interpolation for sharper edges";
+"settings-item-integer-scaling" = "Integer scaling";
+"settings-item-integer-scaling-description" = "to exact multiple of 256 × 224";
 "settings-item-autosave" = "Autosave";
 "settings-item-autosave-description" = "when exiting game";
 "settings-item-load-last" = "Load last save";
@@ -28,6 +35,7 @@
 "settings-item-audio-filtering" = "Audio filtering";
 "settings-item-audio-filtering-description" = "(low pass / high pass)";
 "settings-section-general" = "General";
+"settings-section-video" = "Video";
 "settings-section-audio" = "Audio";
 "settings-section-about" = "About";
 "settings-item-license" = "License";
