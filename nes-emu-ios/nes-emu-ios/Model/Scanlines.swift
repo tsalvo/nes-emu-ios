@@ -26,7 +26,7 @@ enum Scanlines: UInt8, CaseIterable, SettingsEnum
         }
     }
     
-    var storedValue: Any { return self.rawValue }
+    var storedValue: Any { return Int(self.rawValue) }
     
     func colorArray() -> [UInt32]
     {
