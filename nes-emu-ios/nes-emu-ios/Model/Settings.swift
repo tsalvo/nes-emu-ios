@@ -40,6 +40,10 @@ class Settings
     static let audioFiltersEnabledKey: String = "audioFiltersEnabledKey"
     static let audioSessionNotifyOthersOnDeactivationKey: String = "audioSessionNotifyOthersOnDeactivationKey"
     static let saveDataExistsKey: String = "saveDataExistsKey"
+    static let nearestNeighborRenderingKey: String = "nearestNeighborRenderingKey"
+    static let checkForRedundantFramesKey: String = "checkForRedundantFramesKey"
+    static let integerScalingKey: String = "integerScalingKey"
+    static let scanlinesKey: String = "scanlinesKey"
     
     // MARK: - Default Values
     static let defaultSampleRate: SampleRate = SampleRate._22050Hz
@@ -48,6 +52,10 @@ class Settings
     static let defaultAutoSaveKey: Bool = true
     static let defaultLoadLastSaveKey: Bool = true
     static let defaultSaveDataExistsKey: Bool = false
+    static let defaultNearestNeighborRenderingKey: Bool = false
+    static let defaultCheckForRedundantFramesKey: Bool = false
+    static let defaultIntegerScalingKey: Bool = false
+    static let defaultScanlinesKey: Scanlines = Scanlines.off
 
     class func registerDefaultsIfNeeded()
     {
@@ -57,7 +65,11 @@ class Settings
             Settings.sampleRateKey: Settings.defaultSampleRate.rawValue,
             Settings.audioFiltersEnabledKey: Settings.defaultAudioFiltersEnabled,
             Settings.audioSessionNotifyOthersOnDeactivationKey: Settings.defaultAudioSessionNotifyOthersOnDeactivation,
-            Settings.saveDataExistsKey: Settings.defaultSaveDataExistsKey
+            Settings.saveDataExistsKey: Settings.defaultSaveDataExistsKey,
+            Settings.nearestNeighborRenderingKey: Settings.defaultNearestNeighborRenderingKey,
+            Settings.checkForRedundantFramesKey: Settings.defaultCheckForRedundantFramesKey,
+            Settings.integerScalingKey: Settings.defaultIntegerScalingKey,
+            Settings.scanlinesKey: Int(Settings.defaultScanlinesKey.rawValue)
         ])
     }
     

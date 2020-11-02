@@ -52,6 +52,32 @@ class SettingsTableViewController: UITableViewController, SettingsConfirmationDe
                 ]
             ),
         Settings.Section(
+            sectionName: NSLocalizedString("settings-section-video", comment: "Video"),
+            cells: [
+                Settings.Cell(
+                    key: Settings.nearestNeighborRenderingKey,
+                    title: NSLocalizedString("settings-item-nearest-neighbor", comment: "Nearest neighbor"),
+                    description: NSLocalizedString("settings-item-nearest-neighbor-description", comment: "interpolation for sharper edges"),
+                    type: Settings.CellType.Toggle),
+                Settings.Cell(
+                    key: Settings.integerScalingKey,
+                    title: NSLocalizedString("settings-item-integer-scaling", comment: "Integer scaling"),
+                    description: NSLocalizedString("settings-item-integer-scaling-description", comment: "to exact multiple of 256 × 224"),
+                    type: Settings.CellType.Toggle),
+                Settings.Cell(
+                    key: Settings.checkForRedundantFramesKey,
+                    title: NSLocalizedString("settings-item-check-for-duplicate-frames", comment: "Skip duplicate frames"),
+                    description: NSLocalizedString("settings-item-check-for-duplicate-frames-description", comment: ""),
+                    type: Settings.CellType.Toggle),
+                Settings.Cell(
+                    key: Settings.scanlinesKey,
+                    title: NSLocalizedString("settings-item-scanlines", comment: "Scanlines"),
+                    description: nil,
+                    metadata: Scanlines.allCases,
+                    type: Settings.CellType.Segmented),
+                ]
+            ),
+        Settings.Section(
             sectionName: NSLocalizedString("settings-section-audio", comment: "Audio"),
             cells: [
                 Settings.Cell(
