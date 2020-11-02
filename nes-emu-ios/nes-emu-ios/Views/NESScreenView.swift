@@ -34,6 +34,17 @@ class NESScreenView: MTKView, MTKViewDelegate
     private let rgbColorSpace: CGColorSpace = CGColorSpaceCreateDeviceRGB()
     private let context: CIContext
     private let commandQueue: MTLCommandQueue
+    private var nearestNeighborRendering: Bool
+    private var integerScaling: Bool
+    private var checkForRedundantFrames: Bool
+    private var scanlines: Scanlines
+    private var currentScale: CGFloat = 1.0
+    private var viewportOffset: CGPoint = CGPoint.zero
+    private var lastDrawableSize: CGSize = CGSize.zero
+    private var scanlineBuffer: [UInt32]
+    private var scanlineBaseImage: CIImage
+    private var scanlineImage: CIImage = CIImage.empty()
+    private var tNesScreen: CGAffineTransform = CGAffineTransform.identity
     static private let elementLength: Int = 4
     static private let bitsPerComponent: Int = 8
     static private let imageSize: CGSize = CGSize(width: PPU.screenWidth, height: PPU.screenHeight)
@@ -42,11 +53,16 @@ class NESScreenView: MTKView, MTKViewDelegate
     {
         let dev: MTLDevice = MTLCreateSystemDefaultDevice()!
         let commandQueue = dev.makeCommandQueue()!
+        let s: Scanlines = Scanlines(rawValue: UInt8(UserDefaults.standard.integer(forKey: Settings.scanlinesKey))) ?? Settings.defaultScanlinesKey
         self.context = CIContext.init(mtlCommandQueue: commandQueue, options: [.cacheIntermediates: false])
         self.commandQueue = commandQueue
-
+        self.nearestNeighborRendering = UserDefaults.standard.bool(forKey: Settings.nearestNeighborRenderingKey)
+        self.checkForRedundantFrames = UserDefaults.standard.bool(forKey: Settings.checkForRedundantFramesKey)
+        self.integerScaling = UserDefaults.standard.bool(forKey: Settings.integerScalingKey)
+        self.scanlines = s
+        self.scanlineBuffer = s.colorArray()
+        self.scanlineBaseImage = CIImage(bitmapData: NSData(bytes: &self.scanlineBuffer, length: PPU.screenHeight * 2 *  NESScreenView.elementLength) as Data, bytesPerRow: NESScreenView.elementLength, size: CGSize(width: 1, height: PPU.screenHeight * 2), format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace)
         super.init(coder: coder)
-        
         self.device = dev
         self.autoResizeDrawable = true
         self.drawableSize = CGSize(width: PPU.screenWidth, height: PPU.screenHeight)
@@ -69,6 +85,12 @@ class NESScreenView: MTKView, MTKViewDelegate
     {
         didSet
         {
+            guard !self.checkForRedundantFrames || self.drawableSize != self.lastDrawableSize || !self.buffer.elementsEqual(oldValue)
+                else
+            {
+                return
+            }
+            
             self.queue.async { [weak self] in
                 self?.draw()
             }
@@ -79,7 +101,22 @@ class NESScreenView: MTKView, MTKViewDelegate
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize)
     {
-
+        let exactScale: CGFloat = size.width / CGFloat(PPU.screenWidth)
+        self.currentScale = self.integerScaling ? floor(exactScale) : exactScale
+        self.viewportOffset = self.integerScaling ? CGPoint(x: (size.width - (CGFloat(PPU.screenWidth) * self.currentScale)) * 0.5, y: (size.height - (CGFloat(PPU.screenHeight) * self.currentScale)) * 0.5) : CGPoint.zero
+        
+        let t1: CGAffineTransform = CGAffineTransform(scaleX: self.currentScale, y: self.currentScale)
+        let t2: CGAffineTransform = self.integerScaling ? CGAffineTransform(translationX: self.viewportOffset.x, y: self.viewportOffset.y) : CGAffineTransform.identity
+        self.tNesScreen = t1.concatenating(t2)
+        
+        switch self.scanlines
+        {
+        case .off: break
+        default:
+            let t1s: CGAffineTransform = CGAffineTransform(scaleX: self.currentScale * CGFloat(PPU.screenWidth), y: self.currentScale * 0.5)
+            let t: CGAffineTransform = t1s.concatenating(t2)
+            self.scanlineImage = self.scanlineBaseImage.samplingNearest().transformed(by: t)
+        }
     }
 
     func draw(in view: MTKView)
@@ -91,9 +128,18 @@ class NESScreenView: MTKView, MTKViewDelegate
             return
         }
         
-        let scale: CGFloat = self.drawableSize.width / CGFloat(PPU.screenWidth)
+        let image: CIImage
+        let baseImage: CIImage = CIImage(bitmapData: NSData(bytes: &self.buffer, length: PPU.screenWidth * PPU.screenHeight * NESScreenView.elementLength) as Data, bytesPerRow: PPU.screenWidth * NESScreenView.elementLength, size: NESScreenView.imageSize, format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace)
         
-        let image = CIImage(bitmapData: NSData(bytes: &self.buffer, length: PPU.screenWidth * PPU.screenHeight * NESScreenView.elementLength) as Data, bytesPerRow: PPU.screenWidth * NESScreenView.elementLength, size: NESScreenView.imageSize, format: CIFormat.ARGB8, colorSpace: self.rgbColorSpace).samplingNearest().transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+        if self.nearestNeighborRendering
+        {
+            image = self.scanlineImage.composited(over: baseImage.samplingNearest().transformed(by: self.tNesScreen))
+        }
+        else
+        {
+            image = self.scanlineImage.composited(over: baseImage.transformed(by: self.tNesScreen))
+        }
+        
         let renderDestination = CIRenderDestination(width: Int(self.drawableSize.width), height: Int(self.drawableSize.height), pixelFormat: self.colorPixelFormat, commandBuffer: safeCommandBuffer) {
             () -> MTLTexture in return safeCurrentDrawable.texture
         }
@@ -109,6 +155,8 @@ class NESScreenView: MTKView, MTKViewDelegate
         
         safeCommandBuffer.present(safeCurrentDrawable)
         safeCommandBuffer.commit()
+        
+        self.lastDrawableSize = self.drawableSize
     }
     
     @objc private func appResignedActive()
