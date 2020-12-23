@@ -133,6 +133,16 @@ struct Mapper_AxROM: MapperProtocol
     {
         self.chr[Int(aAddress)] = aValue
     }
+    
+    mutating func ppuControl(value aValue: UInt8)
+    {
+        
+    }
+    
+    mutating func ppuMask(value aValue: UInt8)
+    {
+    
+    }
 
     func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {

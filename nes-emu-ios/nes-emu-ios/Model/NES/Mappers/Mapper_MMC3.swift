@@ -189,6 +189,16 @@ struct Mapper_MMC3: MapperProtocol
         self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
     }
     
+    mutating func ppuControl(value aValue: UInt8)
+    {
+        
+    }
+    
+    mutating func ppuMask(value aValue: UInt8)
+    {
+    
+    }
+    
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
         if aMapperStepInput.ppuCycle != 280 // TODO: this *should* be 260

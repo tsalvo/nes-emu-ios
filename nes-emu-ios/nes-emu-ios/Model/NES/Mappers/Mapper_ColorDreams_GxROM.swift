@@ -132,6 +132,16 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
         self.chr[(self.chrBank * 0x2000) + Int(aAddress)] = aValue
     }
     
+    mutating func ppuControl(value aValue: UInt8)
+    {
+        
+    }
+    
+    mutating func ppuMask(value aValue: UInt8)
+    {
+    
+    }
+    
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
         return nil
