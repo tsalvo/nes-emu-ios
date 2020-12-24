@@ -30,6 +30,9 @@ struct Mapper_MMC5: MapperProtocol
     }
     
     let hasStep: Bool = true
+    
+    let hasExtendedNametableMapping: Bool = true
+    
     var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
@@ -69,15 +72,17 @@ struct Mapper_MMC5: MapperProtocol
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 1024 * 128)
     
     private var extendedRam: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
+    private var onboardVRamPage0: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
+    private var onboardVRamPage1: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
     
     /// the last address read from the PPU the range 0x2000 - 0x2FFF
     private var last2xxxReadAddress: UInt16 = 0
     /// the number of consecutive PPU reads of a single address in the range 0x2000 - 0x2FFF
     private var ppu2xxxConsecutiveReadCount: UInt8 = 0
     private var reg5203Value: UInt8 = 0
-    private var scanline: UInt8 = 0
+//    private var scanline: UInt8 = 0
     private var inFrameFlag: Bool = false
-    private var ppuIsReading: Bool = false
+//    private var ppuIsReading: Bool = false
     private var idleCount: Int = 0
     private var irqEnableFlag: Bool = false
     private var upperChrBankSet: Bool = true
@@ -477,17 +482,14 @@ struct Mapper_MMC5: MapperProtocol
     
     mutating func ppuRead(address aAddress: UInt16) -> UInt8
     {
-        self.ppuIsReading = true
+//        self.ppuIsReading = true
         switch aAddress
         {
         case 0x0000 ...  0x1FFF:
-            self.last2xxxReadAddress = 0
-            self.ppu2xxxConsecutiveReadCount = 0
+//            self.last2xxxReadAddress = 0
+//            self.ppu2xxxConsecutiveReadCount = 0
             self.ppuFetchesThisScanline += 1
-            if self.ppuFetchesThisScanline > 34 * 16 // TODO: is this number right?
-            {
-                self.upperChrBankSet = false
-            }
+            self.upperChrBankSet = self.ppuFetchesThisScanline <= 64 // TODO: is this number right? it seemed like it should be 34 tiles * 16 bytes per tile
             switch self.chrMode
             {
             case 0:
@@ -534,27 +536,50 @@ struct Mapper_MMC5: MapperProtocol
                 return 0
             }
         case 0x2000 ... 0x2FFF:
-            self.ppu2xxxConsecutiveReadCount = aAddress == self.last2xxxReadAddress ? self.ppu2xxxConsecutiveReadCount + 1 : 0
-            self.last2xxxReadAddress = aAddress
-            if self.ppu2xxxConsecutiveReadCount == 2
+            //os_log("Mapper_MMC5 PPU read at address: 0x%04X", aAddress)
+//            self.ppu2xxxConsecutiveReadCount = aAddress == self.last2xxxReadAddress ? self.ppu2xxxConsecutiveReadCount + 1 : 0
+//            self.last2xxxReadAddress = aAddress
+//            if self.ppu2xxxConsecutiveReadCount == 2
+//            {
+//                self.ppuFetchesThisScanline = 0
+//                self.upperChrBankSet = true
+//                if self.inFrameFlag == false
+//                {
+//                    self.inFrameFlag = true
+//                    self.scanline = 0
+//                }
+//                else
+//                {
+//                    self.scanline += 1
+//                    if self.scanline == self.reg5203Value
+//                    {
+//                        self.pendingIRQFlag = true
+//                    }
+//                }
+//            }
+
+            let nameTableMapIndex: Int = Int(aAddress - 0x2000) / 0x400
+            let offset: Int = Int(aAddress % 0x400)
+            
+            switch nameTableModes[nameTableMapIndex]
             {
-                self.ppuFetchesThisScanline = 0
-                self.upperChrBankSet = true
-                if self.inFrameFlag == false
+            case .onboardVRAMPage0:
+                return self.onboardVRamPage0[offset]
+            case .onboardVRAMPage1:
+                return self.onboardVRamPage1[offset]
+            case .internalExpansionRAM:
+                if self.extendedRamMode <= 1
                 {
-                    self.inFrameFlag = true
-                    self.scanline = 0
+                    return self.extendedRam[offset]
                 }
                 else
                 {
-                    self.scanline += 1
-                    if self.scanline == self.reg5203Value
-                    {
-                        self.pendingIRQFlag = true
-                    }
+                    return 0
                 }
+            case .fillModeData:
+                return 0
             }
-            return 0
+
         default:
             os_log("unhandled Mapper_MMC5 PPU read at address (unimplemented): 0x%04X", aAddress)
             return 0
@@ -586,15 +611,14 @@ struct Mapper_MMC5: MapperProtocol
                 let offset: Int = Int(aAddress % 0x0800)
                 self.chr[self.chrOffsets[bank] + offset] = aValue
             case 3:
-                break
-//                if self.upperChrBankSet && self.sprite8x16ModeEnable
-//                {
-//                    let adjustedAddress: UInt16 = aAddress % 0x1000
-//                    let bank: Int = 8 + Int(adjustedAddress / 0x0400)
-//                    let offset: Int = Int(aAddress % 0x0400)
-//                    self.chr[self.chrOffsets[bank] + offset] = aValue
-//                }
-                /*else
+                if self.upperChrBankSet && self.sprite8x16ModeEnable
+                {
+                    let adjustedAddress: UInt16 = aAddress % 0x1000
+                    let bank: Int = 8 + Int(adjustedAddress / 0x0400)
+                    let offset: Int = Int(aAddress % 0x0400)
+                    self.chr[self.chrOffsets[bank] + offset] = aValue
+                }
+                else
                 {
                     /// $0000-$03FF: 1 KB switchable CHR bank
                     /// $0400-$07FF: 1 KB switchable CHR bank
@@ -607,15 +631,38 @@ struct Mapper_MMC5: MapperProtocol
                     let bank: Int = Int(aAddress / 0x0400)
                     let offset: Int = Int(aAddress % 0x0400)
                     self.chr[self.chrOffsets[bank] + offset] = aValue
-                }*/
+                }
             default: break
             }
-        case 0x2001:
-            if aValue & 0x18 == 0
+        case 0x2000 ... 0x2FFF:
+//            if aAddress == 0x2001 && aValue & 0x18 == 0
+//            {
+//                self.inFrameFlag = false
+//                self.last2xxxReadAddress = 0
+//            }
+
+            let nameTableMapIndex: Int = Int(aAddress - 0x2000) / 0x400
+            let offset: Int = Int(aAddress % 0x400)
+            
+            switch nameTableModes[nameTableMapIndex]
             {
-                self.inFrameFlag = false
-                self.last2xxxReadAddress = 0
+            case .onboardVRAMPage0:
+                self.onboardVRamPage0[offset] = aValue
+            case .onboardVRAMPage1:
+                self.onboardVRamPage1[offset] = aValue
+            case .internalExpansionRAM:
+                if self.extendedRamMode <= 1
+                {
+                    self.extendedRam[offset] = aValue
+                }
+                else
+                {
+                    break
+                }
+            case .fillModeData:
+                break
             }
+        
         default:
             os_log("unhandled Mapper_MMC5 PPU write at address (unimplemented): 0x%04X", aAddress)
             break
@@ -667,17 +714,19 @@ struct Mapper_MMC5: MapperProtocol
 //        }
 //        self.ppuIsReading = false
         
-        if aMapperStepInput.ppuScanline > self.lastScanline,
-           aMapperStepInput.ppuScanline == self.reg5203Value
+        if aMapperStepInput.ppuScanline != self.lastScanline
         {
-            self.irqEnableFlag = true
-            self.pendingIRQFlag = true
+            self.ppuFetchesThisScanline = 0
+            self.upperChrBankSet = true
+            if aMapperStepInput.ppuScanline == self.reg5203Value
+            {
+                self.irqEnableFlag = true
+                self.pendingIRQFlag = true
+            }
         }
-        
-        
-        
+
         self.inFrameFlag = (0 ..< 240).contains(aMapperStepInput.ppuScanline)
-        
+
         self.lastScanline = aMapperStepInput.ppuScanline
         
         return MapperStepResults(shouldTriggerIRQOnCPU: self.pendingIRQFlag && self.irqEnableFlag)

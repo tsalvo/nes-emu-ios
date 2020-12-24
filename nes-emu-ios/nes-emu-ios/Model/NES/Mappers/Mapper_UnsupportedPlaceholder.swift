@@ -29,6 +29,8 @@ struct Mapper_UnsupportedPlaceholder: MapperProtocol
 {
     let hasStep: Bool = false
     
+    let hasExtendedNametableMapping: Bool = false
+    
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
         if let safeState = aState

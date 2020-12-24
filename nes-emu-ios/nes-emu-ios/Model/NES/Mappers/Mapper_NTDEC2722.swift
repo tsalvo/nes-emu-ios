@@ -13,6 +13,8 @@ struct Mapper_NTDEC2722: MapperProtocol
 {
     let hasStep: Bool = true
     
+    let hasExtendedNametableMapping: Bool = false
+    
     var mirroringMode: MirroringMode
     
     private var prgBank: Int

@@ -30,6 +30,8 @@ struct Mapper_MMC3: MapperProtocol
 {
     let hasStep: Bool = true
     
+    let hasExtendedNametableMapping: Bool = false
+    
     var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks

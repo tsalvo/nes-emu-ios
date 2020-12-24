@@ -30,6 +30,8 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
 {
     let hasStep: Bool = false
     
+    let hasExtendedNametableMapping: Bool = false
+    
     let mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks

@@ -39,6 +39,7 @@ struct PPU
     
     /// an optimization to prevent unnecessary Mapper object type lookups and mapper step calls during frequent PPU.step() calls
     private let mapperHasStep: Bool
+    private let mapperHasExtendedNametableMapping: Bool
     
     var mapper: MapperProtocol
     private var paletteData: [UInt8] = [UInt8].init(repeating: 0, count: 32)
@@ -172,6 +173,7 @@ struct PPU
     {
         self.mapper = aMapper
         self.mapperHasStep = aMapper.hasStep
+        self.mapperHasExtendedNametableMapping = aMapper.hasExtendedNametableMapping
         if let safePPUState = aState
         {
             self.cycle = Int(safePPUState.cycle)
@@ -231,11 +233,20 @@ struct PPU
     {
         let address = aAddress % 0x4000
         switch address {
-        case 0x0000 ..< 0x2000:
+        case 0x0000 ... 0x1FFF:
             return self.mapper.ppuRead(address: address)
-        case 0x2000 ..< 0x3F00:
+        case 0x2000 ... 0x2FFF:
+            if self.mapperHasExtendedNametableMapping
+            {
+                return self.mapper.ppuRead(address: aAddress)
+            }
+            else
+            {
+                return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)]
+            }
+        case 0x3000 ... 0x3EFF:
             return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)]
-        case 0x3F00 ..< 0x4000:
+        case 0x3F00 ... 0x3FFF:
             return self.readPalette(address: (address % 32))
         default:
             return 0
@@ -246,11 +257,20 @@ struct PPU
     {
         let address = aAddress % 0x4000
         switch address {
-        case 0x0000 ..< 0x2000:
+        case 0x0000 ... 0x1FFF:
             self.mapper.ppuWrite(address: address, value: aValue)
-        case 0x2000 ..< 0x3F00:
+        case 0x2000 ... 0x2FFF:
+            if self.mapperHasExtendedNametableMapping
+            {
+                self.mapper.ppuWrite(address: address, value: aValue)
+            }
+            else
+            {
+                self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)] = aValue
+            }
+        case 0x3000 ... 0x3EFF:
             self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)] = aValue
-        case 0x3F00 ..< 0x4000:
+        case 0x3F00 ... 0x3FFF:
             self.writePalette(address: (address % 32), value: aValue)
         default:
             break
