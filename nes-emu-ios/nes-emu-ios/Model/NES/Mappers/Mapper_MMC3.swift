@@ -205,22 +205,22 @@ struct Mapper_MMC3: MapperProtocol
     {
         if aMapperStepInput.ppuCycle != 280 // TODO: this *should* be 260
         {
-            return MapperStepResults(shouldTriggerIRQOnCPU: false)
+            return MapperStepResults(requestedCPUInterrupt: nil)
         }
         
         if aMapperStepInput.ppuScanline > 239 && aMapperStepInput.ppuScanline < 261
         {
-            return MapperStepResults(shouldTriggerIRQOnCPU: false)
+            return MapperStepResults(requestedCPUInterrupt: nil)
         }
         
         if !aMapperStepInput.ppuShowBackground && !aMapperStepInput.ppuShowSprites
         {
-            return MapperStepResults(shouldTriggerIRQOnCPU: false)
+            return MapperStepResults(requestedCPUInterrupt: nil)
         }
         
         let shouldTriggerIRQ = self.handleScanline()
         
-        return MapperStepResults(shouldTriggerIRQOnCPU: shouldTriggerIRQ)
+        return MapperStepResults(requestedCPUInterrupt: shouldTriggerIRQ ? .irq : nil)
     }
 
     private mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)

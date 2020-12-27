@@ -68,31 +68,21 @@ struct Mapper_MMC5: MapperProtocol
     /// 0 - 15 - select an 8KB range of SRAM within the 128KB total SRAM
     private var sramBank: UInt8 = 0
     
-    /// 128KB of SRAM addressible through 0x6000 ... 0x7FFF, 8KB bank-switched
+    /// 128KB of SRAM addressible through 0x6000 ... 0x7FFF or 0x8000 ... 0xDFFF, 8KB bank-switched
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 1024 * 128)
     
     private var extendedRam: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
     private var onboardVRamPage0: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
     private var onboardVRamPage1: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
-    
-    /// the last address read from the PPU the range 0x2000 - 0x2FFF
-    private var last2xxxReadAddress: UInt16 = 0
-    /// the number of consecutive PPU reads of a single address in the range 0x2000 - 0x2FFF
-    private var ppu2xxxConsecutiveReadCount: UInt8 = 0
+    private var requestedInterrupt: Interrupt?
     private var reg5203Value: UInt8 = 0
-//    private var scanline: UInt8 = 0
     private var inFrameFlag: Bool = false
-//    private var ppuIsReading: Bool = false
-    private var idleCount: Int = 0
     private var irqEnableFlag: Bool = false
     private var upperChrBankSet: Bool = true
     private var ppuFetchesThisScanline: Int = 0
     private var sprite8x16ModeEnable: Bool = false
     private var ppuCtrl: UInt8 = 0
     private var ppuMask: UInt8 = 0
-    private var lastScanline: Int = 0
-    
-    private var selectedPrgRamChip: UInt8 = 0
     
     /// becomes set at any time that the internal scanline counter matches the value written to register $5203
     private var pendingIRQFlag: Bool = false
@@ -114,10 +104,10 @@ struct Mapper_MMC5: MapperProtocol
             self.chr.append(contentsOf: c)
         }
         
-        self.prgOffsets[0] = 0//(aCartridge.prgBlocks.count - 1) * 16384
-        self.prgOffsets[1] = 0//(aCartridge.prgBlocks.count - 1) * 16384
+        self.prgOffsets[0] = (aCartridge.prgBlocks.count - 1) * 16384
+        self.prgOffsets[1] = (aCartridge.prgBlocks.count - 1) * 16384 + 8192
         self.prgOffsets[2] = (aCartridge.prgBlocks.count - 1) * 16384 + 8192
-        self.prgOffsets[3] = 0//(aCartridge.prgBlocks.count - 1) * 16384
+        self.prgOffsets[3] = (aCartridge.prgBlocks.count - 1) * 16384
     }
     
     // TODO: implement retrieval of MapperState, and restoration from MapperState, once MMC5 mapper is working correctly
@@ -144,7 +134,6 @@ struct Mapper_MMC5: MapperProtocol
             if aAddress == 0xFFFA || aAddress == 0xFFFB
             {
                 self.inFrameFlag = false
-                self.last2xxxReadAddress = 0
             }
             switch self.prgMode
             {
@@ -165,10 +154,12 @@ struct Mapper_MMC5: MapperProtocol
                 {
                 case 0x8000 ... 0xBFFF:
                     return self.prg[self.prgOffsets[0] + Int(aAddress - 0x8000)]
-                default: /// 0xC000 ... 0xFFFF
-                    let bank: Int = 1 + (Int(aAddress - 0xC000) / 0x2000)
-                    let offset: Int = Int(aAddress % 0x2000)
-                    return self.prg[self.prgOffsets[bank] + offset]
+                case 0xC000 ... 0xDFFF:
+                    return self.prg[self.prgOffsets[1] + Int(aAddress - 0xC000)]
+                case 0xE000 ... 0xFFFF:
+                    return self.prg[self.prgOffsets[2] + Int(aAddress - 0xE000)]
+                default:
+                    return 0
                 }
             case 3:
                 /// CPU $8000-$9FFF: 8 KB switchable PRG ROM/RAM bank
@@ -192,18 +183,17 @@ struct Mapper_MMC5: MapperProtocol
              |+-------- "In Frame" flag
              +--------- Scanline IRQ Pending flag
              */
-            let result: UInt8 = (self.pendingIRQFlag ? 0b00000001 : 0) + (self.inFrameFlag ? 0b00000010 : 0)
+            let result: UInt8 = (self.pendingIRQFlag ? 0b10000000 : 0) | (self.inFrameFlag ? 0b01000000 : 0)
             self.pendingIRQFlag = false
-            os_log("CPU Read Scanline IRQ Status (0x5204) -> %@", result.binaryString)
-            return result
+            self.requestedInterrupt = Interrupt.none
+//            os_log("CPU Read Scanline IRQ Status (0x5204) -> %@", result.binaryString)
+            return result // 0b11000000 // 0xFF // result // TODO: this is totally wrong but seems to work for Castlevania 3
         case 0x5C00 ... 0x5FFF:
-            if self.extendedRamMode == 0x2 || self.extendedRamMode == 0x3
+            switch self.extendedRamMode
             {
+            case 0x02, 0x03:
                 return self.extendedRam[Int(aAddress - 0x5C00)]
-            }
-            else
-            {
-                return self.sram[Int(aAddress)]
+            default: return 0 // self.sram[Int(aAddress)] ?
             }
         case 0x6000 ... 0x7FFF:
             return self.sram[(Int(self.sramBank) * 0x2000) + (Int(aAddress) - 0x6000)]
@@ -235,12 +225,14 @@ struct Mapper_MMC5: MapperProtocol
                 /// CPU $E000-$FFFF: 8 KB switchable PRG ROM bank
                 switch aAddress
                 {
-                case 0x8000 ... 0x9FFF:
+                case 0x8000 ... 0xBFFF:
                     self.prg[self.prgOffsets[0] + Int(aAddress - 0x8000)] = aValue
-                default: /// 0xC000 ... 0xFFFF
-                    let bank: Int = 1 + (Int(aAddress - 0xC000) / 0x2000)
-                    let offset: Int = Int(aAddress % 0x2000)
-                    self.prg[self.prgOffsets[bank] + offset] = aValue
+                case 0xC000 ... 0xDFFF:
+                    self.prg[self.prgOffsets[1] + Int(aAddress - 0xC000)] = aValue
+                case 0xE000 ... 0xFFFF:
+                    self.prg[self.prgOffsets[2] + Int(aAddress - 0xE000)] = aValue
+                default:
+                    break
                 }
             case 3:
                 /// CPU $8000-$9FFF: 8 KB switchable PRG ROM/RAM bank
@@ -255,7 +247,6 @@ struct Mapper_MMC5: MapperProtocol
             }
         case 0x6000 ... 0x7FFF:
             self.sram[(Int(self.sramBank) * 0x2000) + (Int(aAddress) - 0x6000)] = aValue
-            os_log("unhandled Mapper_MMC5 CPU write at address (APU?) (unimplemented): 0x%04X -> %@", aAddress,  aValue.binaryString)
         case 0x5000 ... 0x5015:
             os_log("unhandled Mapper_MMC5 CPU write at address (APU?) (unimplemented): 0x%04X -> %@", aAddress,  aValue.binaryString)
         case 0x5100:
@@ -287,7 +278,6 @@ struct Mapper_MMC5: MapperProtocol
                    ||
                    ++- RAM protect 1
             */
-//            self.sramBank = aValue & 03
             os_log("PRG RAM Protect 1 (unimplemented): %@", aValue.binaryString)
         case 0x5103:
             /*
@@ -336,7 +326,7 @@ struct Mapper_MMC5: MapperProtocol
         case 0x5106:
             /// All eight bits specify the tile number to use for fill-mode nametable
             self.fillModeTile = aValue
-            os_log("Fill-Mode Tile (0x%04X): %@", aAddress, aValue.binaryString)
+            os_log("Fill Mode Tile (0x%04X): %@", aAddress, aValue.binaryString)
         case 0x5107:
             /*
              7  bit  0
@@ -346,7 +336,7 @@ struct Mapper_MMC5: MapperProtocol
                     ++- Specify attribute bits to use for fill-mode nametable
              */
             self.fillModeColor = aValue & 0x03
-            os_log("Fill-Mode Color (0x%04X): %@ (%d)", aAddress, aValue.binaryString, self.fillModeColor)
+            os_log("Fill Mode Color (0x%04X): %@ (%d)", aAddress, aValue.binaryString, self.fillModeColor)
             
         case 0x5113 ... 0x5117:
             /*
@@ -370,20 +360,17 @@ struct Mapper_MMC5: MapperProtocol
             {
             case 0x5113:
                 self.sramBank = aValue & 0x7F
-                //self.selectedPrgRamChip = ((aValue >> 2) & 0x1)
                 os_log("PRG RAM Bank Switch (0x%04X) %d: %@", aAddress, aValue.binaryString)
             case 0x5114:
                 /// prg mode 2: (unused)
                 os_log("PRG Bank Switch (0x%04X) (unimplemented) %d: %@", aAddress, aValue.binaryString)
-                break
             case 0x5115:
                 switch self.prgMode
                 {
-                /// prg mode 2: CPU $8000-$BFFF: 16 KB switchable PRG ROM/RAM bank
+                /// prg mode 2: CPU $8000-$BFFF: 16 KB switchable PRG ROM/RAM bank, indexed from a multiple of 8KB offset
                 case 2:
-                    let bank = Int(aValue & 0x7F)
+                    let bank: Int = Int(aValue & 0x7F) & ~0x1
                     self.prgOffsets[0] = 8192 * bank
-                    //self.prgOffsets[1] = 8192 * bank + 8192
                     os_log("PRG Bank Switch (0x%04X) PRG Mode: %d, 16KB bank: %d, %@", aAddress, self.prgMode, bank, aValue.binaryString)
                 default:
                     os_log("PRG Bank Switch (0x%04X) (unimplemented) %@", aAddress, aValue.binaryString)
@@ -393,7 +380,7 @@ struct Mapper_MMC5: MapperProtocol
                 {
                 /// prg mode 2: CPU $C000-$DFFF: 8 KB switchable PRG ROM/RAM bank
                 case 2:
-                    let bank: Int = Int(aValue) & 0x7F
+                    let bank: Int = Int(aValue & 0x7F)
                     self.prgOffsets[1] = 8192 * bank
                     os_log("PRG Bank Switch (0x%04X) PRG Mode: %d, 8KB bank: %d, %@", aAddress, self.prgMode, bank, aValue.binaryString)
                 default:
@@ -401,7 +388,7 @@ struct Mapper_MMC5: MapperProtocol
                 }
             case 0x5117:
                 /// prg mode 2: CPU $E000-$FFFF: 8 KB switchable PRG ROM bank
-                let bank: Int = Int(aValue) & 0x7F
+                let bank: Int = Int(aValue & 0x7F)
                 self.prgOffsets[2] = 8192 * bank
                 os_log("PRG Bank Switch (0x%04X) (unimplemented): %@", aAddress, aValue.binaryString)
             default: break
@@ -451,10 +438,10 @@ struct Mapper_MMC5: MapperProtocol
             self.verticalSplitScreenSide = (aValue >> 6) & 1 == 1
             self.verticalSplitScreenMode = (aValue >> 7) & 1 == 1
             self.verticalSplitStartStopTile = aValue & 0x1F
-            os_log("Vertical Split Mode (0x%04X): %@", aAddress, aValue.binaryString)
+            os_log("Vertical Split Mode (0x%04X): Enabled: %@ %@", aAddress, self.verticalSplitScreenMode ? "true" : "false", aValue.binaryString)
         case 0x5203:
             self.reg5203Value = aValue
-            os_log("IRQ Scanline Compare Value (0x%04X): %@", aAddress, aValue.binaryString)
+            os_log("IRQ Set Scanline Compare Value (0x%04X): %@ (%d)", aAddress, aValue.binaryString, aValue)
         case 0x5204:
             /*
             7  bit  0
@@ -465,29 +452,34 @@ struct Mapper_MMC5: MapperProtocol
             */
             self.irqEnableFlag = (aValue >> 7) & 1 == 1
             os_log("IRQ Enable Flag (0x%04X): %@", aAddress, aValue.binaryString)
+        case 0x5C00 ... 0x5FFF:
+            /*
+            7  bit  0
+            ---- ----
+            AACC CCCC
+            |||| ||||
+            ||++-++++- Select 4 KB CHR bank to use with specified tile
+            ++-------- Select palette to use with specified tile
+            */
+            switch self.extendedRamMode
+            {
+            case 0x03:
+                os_log("Extended RAM write (0x%04X): FAIL (extended RAM mode = %d) %@", aAddress, self.extendedRamMode, aValue.binaryString)
+            default:
+                os_log("Extended RAM write (0x%04X): extended RAM mode = %d, %@", aAddress, self.extendedRamMode, aValue.binaryString)
+                self.extendedRam[Int(aAddress - 0x5C00)] = aValue
+            }
         default:
             os_log("unhandled Mapper_MMC5 CPU write at address (unimplemented): 0x%04X", aAddress)
             break
-        }
-        
-        if aAddress >= 0x5C00 && aAddress <= 0x5FFF
-        {
-            if self.extendedRamMode != 0x3
-            {
-                self.sram[Int(aAddress)] = aValue
-                self.extendedRam[Int(aAddress - 0x5C00)] = aValue
-            }
         }
     }
     
     mutating func ppuRead(address aAddress: UInt16) -> UInt8
     {
-//        self.ppuIsReading = true
         switch aAddress
         {
         case 0x0000 ...  0x1FFF:
-//            self.last2xxxReadAddress = 0
-//            self.ppu2xxxConsecutiveReadCount = 0
             self.ppuFetchesThisScanline += 1
             self.upperChrBankSet = self.ppuFetchesThisScanline <= 64 // TODO: is this number right? it seemed like it should be 34 tiles * 16 bytes per tile
             switch self.chrMode
@@ -536,27 +528,6 @@ struct Mapper_MMC5: MapperProtocol
                 return 0
             }
         case 0x2000 ... 0x2FFF:
-            //os_log("Mapper_MMC5 PPU read at address: 0x%04X", aAddress)
-//            self.ppu2xxxConsecutiveReadCount = aAddress == self.last2xxxReadAddress ? self.ppu2xxxConsecutiveReadCount + 1 : 0
-//            self.last2xxxReadAddress = aAddress
-//            if self.ppu2xxxConsecutiveReadCount == 2
-//            {
-//                self.ppuFetchesThisScanline = 0
-//                self.upperChrBankSet = true
-//                if self.inFrameFlag == false
-//                {
-//                    self.inFrameFlag = true
-//                    self.scanline = 0
-//                }
-//                else
-//                {
-//                    self.scanline += 1
-//                    if self.scanline == self.reg5203Value
-//                    {
-//                        self.pendingIRQFlag = true
-//                    }
-//                }
-//            }
 
             let nameTableMapIndex: Int = Int(aAddress - 0x2000) / 0x400
             let offset: Int = Int(aAddress % 0x400)
@@ -564,19 +535,27 @@ struct Mapper_MMC5: MapperProtocol
             switch nameTableModes[nameTableMapIndex]
             {
             case .onboardVRAMPage0:
-                return self.onboardVRamPage0[offset]
+                let result: UInt8 = self.onboardVRamPage0[offset]
+                //os_log("PPU NameTableRead (0x%04X) onboardVRAMPage0 --> %d", aAddress, result)
+                return result
             case .onboardVRAMPage1:
-                return self.onboardVRamPage1[offset]
+                let result: UInt8 = self.onboardVRamPage1[offset]
+                //os_log("PPU NameTableRead (0x%04X) onboardVRAMPage1 --> %d", aAddress, result)
+                return result
             case .internalExpansionRAM:
                 if self.extendedRamMode <= 1
                 {
-                    return self.extendedRam[offset]
+                    let result: UInt8 = self.extendedRam[offset]
+                    //os_log("PPU NameTableRead (0x%04X) internalExpansionRAM --> %d", aAddress, result)
+                    return result
                 }
                 else
                 {
+                    os_log("PPU NameTableRead (0x%04X) internalExpansionRAM (unimplemented): %@", aAddress, UInt8(0).binaryString)
                     return 0
                 }
             case .fillModeData:
+                os_log("PPU NameTableRead (0x%04X) fillModeData (unimplemented): %@", aAddress, UInt8(0).binaryString)
                 return 0
             }
 
@@ -635,11 +614,6 @@ struct Mapper_MMC5: MapperProtocol
             default: break
             }
         case 0x2000 ... 0x2FFF:
-//            if aAddress == 0x2001 && aValue & 0x18 == 0
-//            {
-//                self.inFrameFlag = false
-//                self.last2xxxReadAddress = 0
-//            }
 
             let nameTableMapIndex: Int = Int(aAddress - 0x2000) / 0x400
             let offset: Int = Int(aAddress % 0x400)
@@ -648,19 +622,22 @@ struct Mapper_MMC5: MapperProtocol
             {
             case .onboardVRAMPage0:
                 self.onboardVRamPage0[offset] = aValue
+                //os_log("PPU NameTableWrite (0x%04X) onboardVRAMPage0: %@", aAddress, aValue.binaryString)
             case .onboardVRAMPage1:
                 self.onboardVRamPage1[offset] = aValue
+                //os_log("PPU NameTableWrite (0x%04X) onboardVRAMPage1: %@", aAddress, aValue.binaryString)
             case .internalExpansionRAM:
                 if self.extendedRamMode <= 1
                 {
                     self.extendedRam[offset] = aValue
+                    //os_log("PPU NameTableWrite (0x%04X) internalExpansionRAM: %@", aAddress, aValue.binaryString)
                 }
                 else
                 {
-                    break
+                    os_log("PPU NameTableWrite (0x%04X) internalExpansionRAM (unimplemented): %@", aAddress, aValue.binaryString)
                 }
             case .fillModeData:
-                break
+                os_log("PPU NameTableWrite (0x%04X) fillModeData (unimplemented): %@", aAddress, aValue.binaryString)
             }
         
         default:
@@ -699,36 +676,22 @@ struct Mapper_MMC5: MapperProtocol
     
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-//        if self.ppuIsReading
-//        {
-//            self.idleCount = 0
-//        }
-//        else
-//        {
-//            self.idleCount += 1
-//            if self.idleCount == 3
-//            {
-//                self.inFrameFlag = false
-//                self.last2xxxReadAddress = 0
-//            }
-//        }
-//        self.ppuIsReading = false
-        
-        if aMapperStepInput.ppuScanline != self.lastScanline
+        if aMapperStepInput.ppuCycle == 0
         {
             self.ppuFetchesThisScanline = 0
             self.upperChrBankSet = true
-            if aMapperStepInput.ppuScanline == self.reg5203Value
+            if self.reg5203Value > 0 && aMapperStepInput.ppuScanline == self.reg5203Value
             {
-                self.irqEnableFlag = true
                 self.pendingIRQFlag = true
             }
         }
 
-        self.inFrameFlag = (0 ..< 240).contains(aMapperStepInput.ppuScanline)
+        self.inFrameFlag = (0 ... 240).contains(aMapperStepInput.ppuScanline)
 
-        self.lastScanline = aMapperStepInput.ppuScanline
-        
-        return MapperStepResults(shouldTriggerIRQOnCPU: self.pendingIRQFlag && self.irqEnableFlag)
+        let shouldTriggerIrq: Bool = self.pendingIRQFlag && self.irqEnableFlag
+        let interrupt: Interrupt? = shouldTriggerIrq ? .irq : self.requestedInterrupt
+        self.requestedInterrupt = nil
+    
+        return MapperStepResults(requestedCPUInterrupt: interrupt)
     }
 }

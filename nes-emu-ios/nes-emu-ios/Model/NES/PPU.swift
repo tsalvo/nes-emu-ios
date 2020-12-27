@@ -27,8 +27,7 @@ import Foundation
 
 struct PPUStepResults
 {
-    let shouldTriggerNMIOnCPU: Bool
-    let shouldTriggerIRQOnCPU: Bool
+    let requestedCPUInterrupt: Interrupt?
 }
 
 /// NES Picture Processing Unit
@@ -973,16 +972,16 @@ struct PPU
             self.flagSpriteOverflow = 0
         }
 
-        let shouldTriggerIRQ: Bool
+        let interruptRequestedByMapper: Interrupt?
         if self.mapperHasStep
         {
-            shouldTriggerIRQ = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites))?.shouldTriggerIRQOnCPU ?? false
+            interruptRequestedByMapper = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites))?.requestedCPUInterrupt
         }
         else
         {
-            shouldTriggerIRQ = false
+            interruptRequestedByMapper = nil
         }
         
-        return PPUStepResults(shouldTriggerNMIOnCPU: shouldTriggerNMI, shouldTriggerIRQOnCPU: shouldTriggerIRQ)
+        return PPUStepResults(requestedCPUInterrupt: interruptRequestedByMapper ?? (shouldTriggerNMI ? .nmi : nil))
     }
 }

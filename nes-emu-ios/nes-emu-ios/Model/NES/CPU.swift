@@ -713,13 +713,14 @@ struct CPU
         for _ in 0 ..< aNumCPUCycles * 3
         {
             let ppuStepResults: PPUStepResults = self.ppu.step()
-            if ppuStepResults.shouldTriggerNMIOnCPU
+            if let safeRequestedInterrupt: Interrupt = ppuStepResults.requestedCPUInterrupt
             {
-                self.triggerNMI()
-            }
-            else if ppuStepResults.shouldTriggerIRQOnCPU
-            {
-                self.triggerIRQ()
+                switch safeRequestedInterrupt
+                {
+                case .irq: self.triggerIRQ()
+                case .nmi: self.triggerNMI()
+                case .none: self.interrupt = .none
+                }
             }
         }
         

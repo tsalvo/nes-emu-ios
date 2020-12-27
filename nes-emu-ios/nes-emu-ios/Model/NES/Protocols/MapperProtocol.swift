@@ -28,7 +28,7 @@ import os
 
 struct MapperStepResults
 {
-    let shouldTriggerIRQOnCPU: Bool
+    let requestedCPUInterrupt: Interrupt?
 }
 
 struct MapperStepInput
