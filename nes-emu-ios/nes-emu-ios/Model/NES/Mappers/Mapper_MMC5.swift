@@ -9,7 +9,7 @@
 import Foundation
 import os
 
-/// https://wiki.nesdev.com/w/index.php/MMC5
+/// Some comments on MMC5 functionality and registers are copied from https://wiki.nesdev.com/w/index.php/MMC5
 
 struct Mapper_MMC5: MapperProtocol
 {
@@ -130,7 +130,7 @@ struct Mapper_MMC5: MapperProtocol
     {
         switch aAddress
         {
-        case 0x8000 ... 0xFFFF:
+        case 0x8000 ... 0xFFFF: /// PRG ROM
             if aAddress == 0xFFFA || aAddress == 0xFFFB
             {
                 self.inFrameFlag = false
@@ -172,9 +172,10 @@ struct Mapper_MMC5: MapperProtocol
             default:
                 return 0
             }
-        case 0x5203:
+        case 0x5203: /// Scanline IRQ Compare Value
+            /// All eight bits specify the target scanline number at which to generate a scanline IRQ. Value $00 is a special case that will not produce IRQ pending conditions, though it is possible to get an IRQ while this is set to $00 (due to the pending flag being set already.) You will need to take additional measures to fully suppress the IRQ.
             return self.reg5203Value
-        case 0x5204:
+        case 0x5204: /// Scanline IRQ Status
             /*
              7  bit  0
              ---- ----
@@ -186,16 +187,15 @@ struct Mapper_MMC5: MapperProtocol
             let result: UInt8 = (self.pendingIRQFlag ? 0b10000000 : 0) | (self.inFrameFlag ? 0b01000000 : 0)
             self.pendingIRQFlag = false
             self.requestedInterrupt = Interrupt.none
-//            os_log("CPU Read Scanline IRQ Status (0x5204) -> %@", result.binaryString)
-            return result // 0b11000000 // 0xFF // result // TODO: this is totally wrong but seems to work for Castlevania 3
-        case 0x5C00 ... 0x5FFF:
+            return result
+        case 0x5C00 ... 0x5FFF: /// Extended RAM
             switch self.extendedRamMode
             {
             case 0x02, 0x03:
                 return self.extendedRam[Int(aAddress - 0x5C00)]
-            default: return 0 // self.sram[Int(aAddress)] ?
+            default: return 0
             }
-        case 0x6000 ... 0x7FFF:
+        case 0x6000 ... 0x7FFF: /// SRAM
             return self.sram[(Int(self.sramBank) * 0x2000) + (Int(aAddress) - 0x6000)]
         default:
             os_log("unhandled Mapper_MMC5 CPU read at address: 0x%04X", aAddress)
@@ -207,7 +207,7 @@ struct Mapper_MMC5: MapperProtocol
     {
         switch aAddress
         {
-            case 0x8000 ... 0xFFFF:
+            case 0x8000 ... 0xFFFF: /// PRG ROM
             switch self.prgMode
             {
             case 0:
@@ -245,12 +245,12 @@ struct Mapper_MMC5: MapperProtocol
             default:
                 break
             }
-        case 0x6000 ... 0x7FFF:
+        case 0x6000 ... 0x7FFF: /// SRAM
             self.sram[(Int(self.sramBank) * 0x2000) + (Int(aAddress) - 0x6000)] = aValue
         case 0x5000 ... 0x5015:
-//            os_log("unhandled Mapper_MMC5 CPU write at address (APU?) (unimplemented): 0x%04X -> %@", aAddress,  aValue.binaryString)
+            // TODO: this might be used by Castlevania 3 (for APU-related function?). Investigate
             break
-        case 0x5100:
+        case 0x5100: /// PRG Banking Mode
             /* PRG MODE
              7  bit  0
              ---- ----
@@ -259,9 +259,8 @@ struct Mapper_MMC5: MapperProtocol
                     ++- Select PRG banking mode
              */
             self.prgMode = aValue & 0x03
-//            os_log("PRG Mode: %@ (%d)", aValue.binaryString, self.prgMode)
-        case 0x5101:
-            /* PRG MODE
+        case 0x5101: /// CHR Banking Mode
+            /* CHR MODE
              7  bit  0
              ---- ----
              xxxx xxCC
@@ -270,29 +269,26 @@ struct Mapper_MMC5: MapperProtocol
              */
             
             self.chrMode = aValue & 0x03
-//            os_log("CHR Mode: %@ (%d)", aValue.binaryString, self.chrMode)
-        case 0x5102:
-            /*
+        case 0x5102: /// PRG RAM Protect 1
+            /* PRG RAM Protect 1
             7  bit  0
             ---- ----
             xxxx xxWW
                    ||
                    ++- RAM protect 1
             */
-//            os_log("PRG RAM Protect 1 (unimplemented): %@", aValue.binaryString)
             break
-        case 0x5103:
-            /*
+        case 0x5103: /// PRG RAM Protect 2
+            /* PRG RAM Protect 2
             7  bit  0
             ---- ----
             xxxx xxWW
                    ||
                    ++- RAM protect 2
             */
-//            os_log("PRG RAM Protect 2 (unimplemented): %@", aValue.binaryString)
             break
-        case 0x5104:
-            /*
+        case 0x5104: /// Extended RAM Mode
+            /* Extended RAM mode
             7  bit  0
             ---- ----
             xxxx xxXX
@@ -304,8 +300,7 @@ struct Mapper_MMC5: MapperProtocol
             /// 2 - Use as ordinary RAM
             /// 3 - Use as ordinary RAM, write protected
             self.extendedRamMode = aValue & 0x03
-//            os_log("Extended RAM Mode: %@, (%d)", aValue.binaryString, self.extendedRamMode)
-        case 0x5105:
+        case 0x5105: /// Nametable Mapping
             /*
              7  bit  0
              ---- ----
@@ -325,13 +320,11 @@ struct Mapper_MMC5: MapperProtocol
             self.nameTableModes[1] = NameTableMode.init(rawValue: (aValue >> 2) & 0x03) ?? NameTableMode.onboardVRAMPage0
             self.nameTableModes[2] = NameTableMode.init(rawValue: (aValue >> 4) & 0x03) ?? NameTableMode.onboardVRAMPage0
             self.nameTableModes[3] = NameTableMode.init(rawValue: (aValue >> 6) & 0x03) ?? NameTableMode.onboardVRAMPage0
-//            os_log("NameTable Mapping (0x%04X): %@, 0x2000-23FF = %@, 0x2400-27FF = %@, 0x2800-2BFF = %@, 0x2C00-2FFF = %@", aAddress, aValue.binaryString, String(describing: self.nameTableModes[0]),  String(describing: self.nameTableModes[1]), String(describing: self.nameTableModes[2]), String(describing: self.nameTableModes[3]))
-        case 0x5106:
+        case 0x5106: /// Fill Mode Tile
             /// All eight bits specify the tile number to use for fill-mode nametable
             self.fillModeTile = aValue
-//            os_log("Fill Mode Tile (0x%04X): %@", aAddress, aValue.binaryString)
-        case 0x5107:
-            /*
+        case 0x5107: /// Fill Mode Tile Attributes
+            /* Fill-Mode Nametable Attributes
              7  bit  0
              ---- ----
              xxxx xxAA
@@ -339,104 +332,97 @@ struct Mapper_MMC5: MapperProtocol
                     ++- Specify attribute bits to use for fill-mode nametable
              */
             self.fillModeColor = aValue & 0x03
-//            os_log("Fill Mode Color (0x%04X): %@ (%d)", aAddress, aValue.binaryString, self.fillModeColor)
-            
-        case 0x5113 ... 0x5117:
-            /*
-             7  bit  0
-             ---- ----
-             RAAA AaAA
-             |||| ||||
-             |||| |||+- PRG ROM/RAM A13
-             |||| ||+-- PRG ROM/RAM A14
-             |||| |+--- PRG ROM/RAM A15, also selecting between PRG RAM /CE 0 and 1
-             |||| +---- PRG ROM/RAM A16
-             |||+------ PRG ROM A17
-             ||+------- PRG ROM A18
-             |+-------- PRG ROM A19
-             +--------- RAM/ROM toggle (0: RAM; 1: ROM) (registers $5114-$5116 only)
-             */
-            ///RAM is always mapped at $6000-$7FFF, and the bit $5113.7 is ignored. ROM is always mapped at the bank controlled by register $5117, and the bit $5117.7 is ignored. This makes it impossible to map RAM at interrupt vectors in any mode.
-            ///Modes 0-2 : The bankswitching registers always hold a value of 8kb bank index numbers. When selecting banks of a "larger" size (16 kb or 32kb), the low bits in the bankswitching register are ignored. In other words, the address lines from the CPU are passed through the mapper directly to the PRG-ROM chip.
-            ///Games seem to expect $5117 to be $FF at power on. All games have their reset vector in the last bank of PRG ROM, and the vector points to an address greater than or equal to $E000.
-            switch aAddress
+        /* 0x5113 ... 0x5117: PRG Bank Switching
+         7  bit  0
+         ---- ----
+         RAAA AaAA
+         |||| ||||
+         |||| |||+- PRG ROM/RAM A13
+         |||| ||+-- PRG ROM/RAM A14
+         |||| |+--- PRG ROM/RAM A15, also selecting between PRG RAM /CE 0 and 1
+         |||| +---- PRG ROM/RAM A16
+         |||+------ PRG ROM A17
+         ||+------- PRG ROM A18
+         |+-------- PRG ROM A19
+         +--------- RAM/ROM toggle (0: RAM; 1: ROM) (registers $5114-$5116 only)
+         */
+        ///RAM is always mapped at $6000-$7FFF, and the bit $5113.7 is ignored. ROM is always mapped at the bank controlled by register $5117, and the bit $5117.7 is ignored. This makes it impossible to map RAM at interrupt vectors in any mode.
+        ///Modes 0-2 : The bankswitching registers always hold a value of 8kb bank index numbers. When selecting banks of a "larger" size (16 kb or 32kb), the low bits in the bankswitching register are ignored. In other words, the address lines from the CPU are passed through the mapper directly to the PRG-ROM chip.
+        ///Games seem to expect $5117 to be $FF at power on. All games have their reset vector in the last bank of PRG ROM, and the vector points to an address greater than or equal to $E000.
+        case 0x5113:
+            self.sramBank = aValue & 0x0F // get 4 low bits (0 - 15)
+        case 0x5114:
+            switch self.prgMode
             {
-            case 0x5113:
-                self.sramBank = aValue & 0x7F
-//                os_log("PRG RAM Bank Switch (0x%04X) %d: %@", aAddress, aValue.binaryString)
-            case 0x5114:
-                /// prg mode 2: (unused)
-//                os_log("PRG Bank Switch (0x%04X) (unimplemented) %d: %@", aAddress, aValue.binaryString)
-                break
-            case 0x5115:
-                switch self.prgMode
-                {
-                /// prg mode 2: CPU $8000-$BFFF: 16 KB switchable PRG ROM/RAM bank, indexed from a multiple of 8KB offset
-                case 2:
-                    let bank: Int = Int(aValue & 0x7F) & ~0x1
-                    self.prgOffsets[0] = 8192 * bank
-//                    os_log("PRG Bank Switch (0x%04X) PRG Mode: %d, 16KB bank: %d, %@", aAddress, self.prgMode, bank, aValue.binaryString)
-                default:
-//                    os_log("PRG Bank Switch (0x%04X) (unimplemented) %@", aAddress, aValue.binaryString)
-                    break
-                }
-            case 0x5116:
-                switch self.prgMode
-                {
-                /// prg mode 2: CPU $C000-$DFFF: 8 KB switchable PRG ROM/RAM bank
-                case 2:
-                    let bank: Int = Int(aValue & 0x7F)
-                    self.prgOffsets[1] = 8192 * bank
-//                    os_log("PRG Bank Switch (0x%04X) PRG Mode: %d, 8KB bank: %d, %@", aAddress, self.prgMode, bank, aValue.binaryString)
-                default:
-//                    os_log("PRG Bank Switch (0x%04X) (unimplemented) %@", aAddress, aValue.binaryString)
-                    break
-                }
-            case 0x5117:
-                /// prg mode 2: CPU $E000-$FFFF: 8 KB switchable PRG ROM bank
-                let bank: Int = Int(aValue & 0x7F)
-                self.prgOffsets[2] = 8192 * bank
-//                os_log("PRG Bank Switch (0x%04X) (unimplemented): %@", aAddress, aValue.binaryString)
+            // TODO: implement other PRG modes
+            case 2: break /// prg mode 2: (unused)
             default: break
             }
-            
-        
-        case 0x5120 ... 0x5127:
-            switch self.chrMode
+        case 0x5115:
+            switch self.prgMode
             {
-            case 3:
-                self.chrOffsets[Int(aAddress - 0x5120)] = Int(max(0, min(127, aValue))) * 1024
-//                os_log("CHR Bank Switch (0x%04X) CHR Mode: %d: %@", aAddress, self.chrMode, aValue.binaryString)
+            // TODO: implement other PRG modes
+            case 2: /// prg mode 2: CPU $8000-$BFFF: 16 KB switchable PRG ROM/RAM bank, indexed from an even multiple of 8KB offset
+                let bank: Int = Int(aValue & 0x7F) & ~0x1 // get low 7 bits (0 - 127) and round down to even number
+                self.prgOffsets[0] = 8192 * bank
             default:
-//                os_log("CHR Bank Switch  CHR Mode: %d: (0x%04X) (unimplemented): %@", aAddress, self.chrMode, aValue.binaryString)
                 break
             }
-        case 0x5128 ... 0x512B:
+        case 0x5116:
+            switch self.prgMode
+            {
+            // TODO: implement other PRG modes
+            case 2: /// prg mode 2: CPU $C000-$DFFF: 8 KB switchable PRG ROM/RAM bank
+                let bank: Int = Int(aValue & 0x7F) // get low 7 bits (0 - 127)
+                self.prgOffsets[1] = 8192 * bank
+            default:
+                break
+            }
+        case 0x5117:
+            switch self.prgMode
+            {
+            // TODO: implement other PRG modes
+            case 2: /// prg mode 2: CPU $E000-$FFFF: 8 KB switchable PRG ROM bank
+                let bank: Int = Int(aValue & 0x7F) // get low 7 bits (0 - 127)
+                self.prgOffsets[2] = 8192 * bank
+            default:
+                break
+            }
+        case 0x5120 ... 0x5127: /// CHR Banking
+            switch self.chrMode
+            {
+            // TODO: implement other CHR modes
+            case 3:
+                self.chrOffsets[Int(aAddress - 0x5120)] = Int(aValue) * 1024
+            default:
+                break
+            }
+        case 0x5128 ... 0x512B: /// CHR Banking
             if self.sprite8x16ModeEnable
             {
                 switch self.chrMode
                 {
+                // TODO: implement other CHR modes
                 case 3:
-                    self.chrOffsets[Int(aAddress - 0x5120)] = Int(max(0, min(127, aValue))) * 1024
-//                    os_log("CHR Bank Switch (0x%04X) CHR Mode: %d: %@", aAddress, self.chrMode, aValue.binaryString)
+                    self.chrOffsets[Int(aAddress - 0x5120)] = Int(aValue) * 1024
                 default:
-//                    os_log("CHR Bank Switch (0x%04X) (unimplemented): %@", aAddress, aValue.binaryString)
                     break
                 }
             }
 
         case 0x5130:
-            /*
+            /* Upper CHR Bank Bits (unused by all official games using MMC5)
              7  bit  0
              ---- ----
              xxxx xxBB
                     ||
                     ++- Upper bits for subsequent CHR bank writes
              */
-//            os_log("Upper CHR Bank bits (0x%04X) (unimplemented): %@", aAddress, aValue.binaryString)
+            /// When the MMC5 is using 2KB/1KB CHR banks, only 512KB/256KB of CHR ROM can be selected using the previous registers. To access all 1024KB in those modes, first write the upper bit(s) to register $5130 and then write the lower bits to $5120-$512B. When the Extended RAM mode is set to 1, this selects which 256KB of CHR ROM is to be used for all background tiles on the screen.
+            /// The only ExROM game with CHR ROM larger than 256KB is Metal Slader Glory, which uses 4KB CHR banks and does not use extended attributes. In other words, no official game relies on this register, and most don't even initialize it.
             break
-        case 0x5200:
-            /*
+        case 0x5200: /// Vertical Split Mode
+            /* Vertical Split Mode
              7  bit  0
              ---- ----
              ESxW WWWW
@@ -445,16 +431,15 @@ struct Mapper_MMC5: MapperProtocol
              |+-------- Specify vertical split screen side (0:left; 1:right)
              +--------- Enable vertical split mode
              */
-            
+            /// When vertical split mode is enabled, all VRAM fetches corresponding to the appropriate screen region will be redirected to Extended RAM (as long as its mode is set to 0 or 1).
+            /// Uchuu Keibitai SDF uses split screen mode during the intro, where it shows ship stats. Bandit Kings of Ancient China uses split screen mode during the ending sequence[2].
             self.verticalSplitScreenSide = (aValue >> 6) & 1 == 1
             self.verticalSplitScreenMode = (aValue >> 7) & 1 == 1
             self.verticalSplitStartStopTile = aValue & 0x1F
-//            os_log("Vertical Split Mode (0x%04X): Enabled: %@ %@", aAddress, self.verticalSplitScreenMode ? "true" : "false", aValue.binaryString)
-        case 0x5203:
+        case 0x5203: /// IRQ Scanline Compare Value
             self.reg5203Value = aValue
-//            os_log("IRQ Set Scanline Compare Value (0x%04X): %@ (%d)", aAddress, aValue.binaryString, aValue)
-        case 0x5204:
-            /*
+        case 0x5204: /// IRQ Scanline Enable Flag
+            /* Scanline IRQ Enable
             7  bit  0
             ---- ----
             Exxx xxxx
@@ -462,8 +447,7 @@ struct Mapper_MMC5: MapperProtocol
             +--------- Scanline IRQ Enable flag (1=enable)
             */
             self.irqEnableFlag = (aValue >> 7) & 1 == 1
-//            os_log("IRQ Enable Flag (0x%04X): %@", aAddress, aValue.binaryString)
-        case 0x5C00 ... 0x5FFF:
+        case 0x5C00 ... 0x5FFF: /// Extended RAM Write
             /*
             7  bit  0
             ---- ----
@@ -475,14 +459,12 @@ struct Mapper_MMC5: MapperProtocol
             switch self.extendedRamMode
             {
             case 0x03:
-//                os_log("Extended RAM write (0x%04X): FAIL (extended RAM mode = %d) %@", aAddress, self.extendedRamMode, aValue.binaryString)
-            break
+                break
             default:
-//                os_log("Extended RAM write (0x%04X): extended RAM mode = %d, %@", aAddress, self.extendedRamMode, aValue.binaryString)
                 self.extendedRam[Int(aAddress - 0x5C00)] = aValue
             }
         default:
-//            os_log("unhandled Mapper_MMC5 CPU write at address (unimplemented): 0x%04X", aAddress)
+            os_log("unhandled Mapper_MMC5 CPU write at address (unimplemented): 0x%04X", aAddress)
             break
         }
     }
@@ -548,31 +530,26 @@ struct Mapper_MMC5: MapperProtocol
             {
             case .onboardVRAMPage0:
                 let result: UInt8 = self.onboardVRamPage0[offset]
-                //os_log("PPU NameTableRead (0x%04X) onboardVRAMPage0 --> %d", aAddress, result)
                 return result
             case .onboardVRAMPage1:
                 let result: UInt8 = self.onboardVRamPage1[offset]
-                //os_log("PPU NameTableRead (0x%04X) onboardVRAMPage1 --> %d", aAddress, result)
                 return result
             case .internalExpansionRAM:
                 if self.extendedRamMode <= 1
                 {
                     let result: UInt8 = self.extendedRam[offset]
-                    //os_log("PPU NameTableRead (0x%04X) internalExpansionRAM --> %d", aAddress, result)
                     return result
                 }
                 else
                 {
-//                    os_log("PPU NameTableRead (0x%04X) internalExpansionRAM (unimplemented): %@", aAddress, UInt8(0).binaryString)
                     return 0
                 }
             case .fillModeData:
-//                os_log("PPU NameTableRead (0x%04X) fillModeData (unimplemented): %@", aAddress, UInt8(0).binaryString)
-                return 0
+                return 0 // TODO: use fillModeTile and / or fillModeColor bytes?
             }
 
         default:
-//            os_log("unhandled Mapper_MMC5 PPU read at address (unimplemented): 0x%04X", aAddress)
+            os_log("unhandled Mapper_MMC5 PPU read at address (unimplemented): 0x%04X", aAddress)
             return 0
         }
     }
@@ -634,28 +611,23 @@ struct Mapper_MMC5: MapperProtocol
             {
             case .onboardVRAMPage0:
                 self.onboardVRamPage0[offset] = aValue
-                //os_log("PPU NameTableWrite (0x%04X) onboardVRAMPage0: %@", aAddress, aValue.binaryString)
             case .onboardVRAMPage1:
                 self.onboardVRamPage1[offset] = aValue
-                //os_log("PPU NameTableWrite (0x%04X) onboardVRAMPage1: %@", aAddress, aValue.binaryString)
             case .internalExpansionRAM:
                 if self.extendedRamMode <= 1
                 {
                     self.extendedRam[offset] = aValue
-                    //os_log("PPU NameTableWrite (0x%04X) internalExpansionRAM: %@", aAddress, aValue.binaryString)
                 }
                 else
                 {
-//                    os_log("PPU NameTableWrite (0x%04X) internalExpansionRAM (unimplemented): %@", aAddress, aValue.binaryString)
                     break
                 }
             case .fillModeData:
-//                os_log("PPU NameTableWrite (0x%04X) fillModeData (unimplemented): %@", aAddress, aValue.binaryString)
                 break
             }
         
         default:
-//            os_log("unhandled Mapper_MMC5 PPU write at address (unimplemented): 0x%04X", aAddress)
+            os_log("unhandled Mapper_MMC5 PPU write at address (unimplemented): 0x%04X", aAddress)
             break
         }
     }
