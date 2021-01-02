@@ -27,6 +27,7 @@ The following mappers have been implemented:
 -  UNROM (2)
 -  CNROM (3)
 -  MMC3 (4)
+-  MMC5 (5) 
 -  AxROM (7)
 -  MMC2 (9)
 -  ColorDreams (11)
@@ -45,7 +46,6 @@ For best performance, build the app for **release** mode instead of debug.  Or, 
 
 
 ## Near Future Plans
-- Add support for MMC5 mapper.
 - Performance improvements (look for low hanging fruit in areas of the app that are taking the longest).
 - On-screen control improvements (bigger tap areas, better layout).
 - Improvements to tvOS app target (full-screen layout, mechanism to load new ROMs after installation)

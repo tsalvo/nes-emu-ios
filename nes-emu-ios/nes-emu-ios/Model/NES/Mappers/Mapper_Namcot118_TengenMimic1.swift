@@ -30,6 +30,8 @@ struct Mapper_Namcot118_TengenMimic1: MapperProtocol
 {
     let hasStep: Bool = false
     
+    let hasExtendedNametableMapping: Bool = false
+    
     var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
@@ -180,6 +182,16 @@ struct Mapper_Namcot118_TengenMimic1: MapperProtocol
         let bank = aAddress / 0x0400
         let offset = aAddress % 0x0400
         self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
+    }
+    
+    mutating func ppuControl(value aValue: UInt8)
+    {
+        
+    }
+    
+    mutating func ppuMask(value aValue: UInt8)
+    {
+    
     }
     
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?

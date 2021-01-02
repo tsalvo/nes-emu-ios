@@ -30,6 +30,8 @@ struct Mapper_MMC3: MapperProtocol
 {
     let hasStep: Bool = true
     
+    let hasExtendedNametableMapping: Bool = false
+    
     var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
@@ -189,26 +191,36 @@ struct Mapper_MMC3: MapperProtocol
         self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
     }
     
+    mutating func ppuControl(value aValue: UInt8)
+    {
+        
+    }
+    
+    mutating func ppuMask(value aValue: UInt8)
+    {
+    
+    }
+    
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
         if aMapperStepInput.ppuCycle != 280 // TODO: this *should* be 260
         {
-            return MapperStepResults(shouldTriggerIRQOnCPU: false)
+            return MapperStepResults(requestedCPUInterrupt: nil)
         }
         
         if aMapperStepInput.ppuScanline > 239 && aMapperStepInput.ppuScanline < 261
         {
-            return MapperStepResults(shouldTriggerIRQOnCPU: false)
+            return MapperStepResults(requestedCPUInterrupt: nil)
         }
         
         if !aMapperStepInput.ppuShowBackground && !aMapperStepInput.ppuShowSprites
         {
-            return MapperStepResults(shouldTriggerIRQOnCPU: false)
+            return MapperStepResults(requestedCPUInterrupt: nil)
         }
         
         let shouldTriggerIRQ = self.handleScanline()
         
-        return MapperStepResults(shouldTriggerIRQOnCPU: shouldTriggerIRQ)
+        return MapperStepResults(requestedCPUInterrupt: shouldTriggerIRQ ? .irq : nil)
     }
 
     private mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)

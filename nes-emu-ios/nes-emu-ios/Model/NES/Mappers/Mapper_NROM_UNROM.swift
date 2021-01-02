@@ -30,6 +30,8 @@ struct Mapper_NROM_UNROM: MapperProtocol
 {
     let hasStep: Bool = false
     
+    let hasExtendedNametableMapping: Bool = false
+    
     let mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
@@ -134,6 +136,16 @@ struct Mapper_NROM_UNROM: MapperProtocol
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
         self.chr[Int(aAddress)] = aValue
+    }
+    
+    mutating func ppuControl(value aValue: UInt8)
+    {
+        
+    }
+    
+    mutating func ppuMask(value aValue: UInt8)
+    {
+        
     }
     
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?

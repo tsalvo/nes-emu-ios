@@ -30,6 +30,8 @@ struct Mapper_MMC1: MapperProtocol
 {
     let hasStep: Bool = false
     
+    let hasExtendedNametableMapping: Bool = false
+    
     var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
@@ -192,6 +194,16 @@ struct Mapper_MMC1: MapperProtocol
         let bank = aAddress / 0x1000
         let offset = aAddress % 0x1000
         self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
+    }
+    
+    mutating func ppuControl(value aValue: UInt8)
+    {
+        
+    }
+    
+    mutating func ppuMask(value aValue: UInt8)
+    {
+    
     }
 
     private mutating func loadRegister(address aAddress: UInt16, value aValue: UInt8)

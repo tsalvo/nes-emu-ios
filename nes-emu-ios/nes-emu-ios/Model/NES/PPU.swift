@@ -27,8 +27,7 @@ import Foundation
 
 struct PPUStepResults
 {
-    let shouldTriggerNMIOnCPU: Bool
-    let shouldTriggerIRQOnCPU: Bool
+    let requestedCPUInterrupt: Interrupt?
 }
 
 /// NES Picture Processing Unit
@@ -39,6 +38,7 @@ struct PPU
     
     /// an optimization to prevent unnecessary Mapper object type lookups and mapper step calls during frequent PPU.step() calls
     private let mapperHasStep: Bool
+    private let mapperHasExtendedNametableMapping: Bool
     
     var mapper: MapperProtocol
     private var paletteData: [UInt8] = [UInt8].init(repeating: 0, count: 32)
@@ -172,6 +172,7 @@ struct PPU
     {
         self.mapper = aMapper
         self.mapperHasStep = aMapper.hasStep
+        self.mapperHasExtendedNametableMapping = aMapper.hasExtendedNametableMapping
         if let safePPUState = aState
         {
             self.cycle = Int(safePPUState.cycle)
@@ -231,11 +232,20 @@ struct PPU
     {
         let address = aAddress % 0x4000
         switch address {
-        case 0x0000 ..< 0x2000:
+        case 0x0000 ... 0x1FFF:
             return self.mapper.ppuRead(address: address)
-        case 0x2000 ..< 0x3F00:
+        case 0x2000 ... 0x2FFF:
+            if self.mapperHasExtendedNametableMapping
+            {
+                return self.mapper.ppuRead(address: aAddress)
+            }
+            else
+            {
+                return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)]
+            }
+        case 0x3000 ... 0x3EFF:
             return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)]
-        case 0x3F00 ..< 0x4000:
+        case 0x3F00 ... 0x3FFF:
             return self.readPalette(address: (address % 32))
         default:
             return 0
@@ -246,11 +256,20 @@ struct PPU
     {
         let address = aAddress % 0x4000
         switch address {
-        case 0x0000 ..< 0x2000:
+        case 0x0000 ... 0x1FFF:
             self.mapper.ppuWrite(address: address, value: aValue)
-        case 0x2000 ..< 0x3F00:
+        case 0x2000 ... 0x2FFF:
+            if self.mapperHasExtendedNametableMapping
+            {
+                self.mapper.ppuWrite(address: address, value: aValue)
+            }
+            else
+            {
+                self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)] = aValue
+            }
+        case 0x3000 ... 0x3EFF:
             self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)] = aValue
-        case 0x3F00 ..< 0x4000:
+        case 0x3F00 ... 0x3FFF:
             self.writePalette(address: (address % 32), value: aValue)
         default:
             break
@@ -342,6 +361,7 @@ struct PPU
         self.nmiChange()
         // t: ....BA.. ........ = d: ......BA
         self.t = (self.t & 0xF3FF) | ((UInt16(aValue) & 0x03) << 10)
+        self.mapper.ppuControl(value: aValue)
     }
 
     // $2001: PPUMASK
@@ -355,6 +375,7 @@ struct PPU
         self.flagRedTint = ((aValue >> 5) & 1) == 1
         self.flagGreenTint = ((aValue >> 6) & 1) == 1
         self.flagBlueTint = ((aValue >> 7) & 1) == 1
+        self.mapper.ppuMask(value: aValue)
     }
     
     // $2002: PPUSTATUS
@@ -951,16 +972,16 @@ struct PPU
             self.flagSpriteOverflow = 0
         }
 
-        let shouldTriggerIRQ: Bool
+        let interruptRequestedByMapper: Interrupt?
         if self.mapperHasStep
         {
-            shouldTriggerIRQ = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites))?.shouldTriggerIRQOnCPU ?? false
+            interruptRequestedByMapper = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites))?.requestedCPUInterrupt
         }
         else
         {
-            shouldTriggerIRQ = false
+            interruptRequestedByMapper = nil
         }
         
-        return PPUStepResults(shouldTriggerNMIOnCPU: shouldTriggerNMI, shouldTriggerIRQOnCPU: shouldTriggerIRQ)
+        return PPUStepResults(requestedCPUInterrupt: interruptRequestedByMapper ?? (shouldTriggerNMI ? .nmi : nil))
     }
 }

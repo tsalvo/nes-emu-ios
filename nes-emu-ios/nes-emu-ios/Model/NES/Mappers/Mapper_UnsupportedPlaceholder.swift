@@ -29,6 +29,8 @@ struct Mapper_UnsupportedPlaceholder: MapperProtocol
 {
     let hasStep: Bool = false
     
+    let hasExtendedNametableMapping: Bool = false
+    
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
         if let safeState = aState
@@ -76,6 +78,16 @@ struct Mapper_UnsupportedPlaceholder: MapperProtocol
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
         
+    }
+    
+    mutating func ppuControl(value aValue: UInt8)
+    {
+        
+    }
+    
+    mutating func ppuMask(value aValue: UInt8)
+    {
+    
     }
     
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
