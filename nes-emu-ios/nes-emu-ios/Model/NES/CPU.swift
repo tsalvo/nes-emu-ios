@@ -478,10 +478,10 @@ struct CPU
             return self.controllers[0].read()
         case 0x4017:
             return self.controllers[1].read()
-        case 0x4000 ..< 0x6000:
+        case 0x4000 ..< 0x5000:
             return 0
             // TODO: I/O registers
-        case 0x6000 ... 0xFFFF:
+        case 0x5000 ... 0xFFFF:
             return self.ppu.mapper.cpuRead(address: aAddress)
         default:
             return 0
@@ -508,10 +508,10 @@ struct CPU
             self.controllers[1].write(value: aValue)
         case 0x4017:
             self.apu.writeRegister(address: aAddress, value: aValue)
-        case 0x4000 ..< 0x6000:
+        case 0x4000 ..< 0x5000:
             // TODO: I/O registers
             break
-        case 0x6000 ... 0xFFFF:
+        case 0x5000 ... 0xFFFF:
             self.ppu.mapper.cpuWrite(address: aAddress, value: aValue)
         default:
             break
@@ -713,13 +713,14 @@ struct CPU
         for _ in 0 ..< aNumCPUCycles * 3
         {
             let ppuStepResults: PPUStepResults = self.ppu.step()
-            if ppuStepResults.shouldTriggerNMIOnCPU
+            if let safeRequestedInterrupt: Interrupt = ppuStepResults.requestedCPUInterrupt
             {
-                self.triggerNMI()
-            }
-            else if ppuStepResults.shouldTriggerIRQOnCPU
-            {
-                self.triggerIRQ()
+                switch safeRequestedInterrupt
+                {
+                case .irq: self.triggerIRQ()
+                case .nmi: self.triggerNMI()
+                case .none: self.interrupt = .none
+                }
             }
         }
         

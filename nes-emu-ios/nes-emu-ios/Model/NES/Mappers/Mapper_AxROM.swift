@@ -30,6 +30,8 @@ struct Mapper_AxROM: MapperProtocol
 {
     let hasStep: Bool = false
     
+    let hasExtendedNametableMapping: Bool = false
+    
     var mirroringMode: MirroringMode
     
     private var prgBank: Int
@@ -132,6 +134,16 @@ struct Mapper_AxROM: MapperProtocol
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
         self.chr[Int(aAddress)] = aValue
+    }
+    
+    mutating func ppuControl(value aValue: UInt8)
+    {
+        
+    }
+    
+    mutating func ppuMask(value aValue: UInt8)
+    {
+    
     }
 
     func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?

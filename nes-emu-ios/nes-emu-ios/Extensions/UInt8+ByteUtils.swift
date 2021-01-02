@@ -27,6 +27,17 @@ import Foundation
 
 extension UInt8
 {
+    /// returns a string of 0s and 1s representing the UInt8 value.  bits are in big endian order (most significant bits first)
+    var binaryString: String
+    {
+        var result: String = ""
+        for i in (0 ... 7).reversed()
+        {
+            result.append(self >> i & 1 == 1 ? "1" : "0")
+        }
+        return result
+    }
+    
     /// Returns a UInt8 value from an array of 8 boolean values in big endian order (more significant, or "higher", bits first)
     init(fromBigEndianBitArray aBigEndianBitArray: [Bool])
     {
