@@ -123,7 +123,7 @@ struct Cartridge: CartridgeProtocol
         case .ColorDreams, .GxROM:
             return Mapper_ColorDreams_GxROM(withCartridge: self, state: aState)
         case .MMC5:
-            return Mapper_MMC5(withCartridge: self)
+            return Mapper_MMC5(withCartridge: self, state: aState)
         case .Namcot118_TengenMimic1:
             return Mapper_Namcot118_TengenMimic1(withCartridge: self, state: aState)
         case .NTDEC_2722:

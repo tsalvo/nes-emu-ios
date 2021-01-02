@@ -109,35 +109,113 @@ struct Mapper_MMC5: MapperProtocol
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        // TODO: implement restoration from MapperState once MMC5 mapper is working correctly
-        self.mirroringMode = aCartridge.header.mirroringMode
+        if let safeState: MapperState = aState
+        {
+            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.prgOffsets = [Int](safeState.ints[0 ..< self.prgOffsets.count])
+            self.chrOffsets = [Int](safeState.ints[self.prgOffsets.count ..< self.prgOffsets.count + self.chrOffsets.count])
+            self.ppuFetchesThisScanline = safeState.ints[self.prgOffsets.count + self.chrOffsets.count]
+            self.verticalSplitScreenSide = safeState.bools[0]
+            self.verticalSplitScreenMode = safeState.bools[1]
+            self.inFrameFlag = safeState.bools[2]
+            self.irqEnableFlag = safeState.bools[3]
+            self.upperChrBankSet = safeState.bools[4]
+            self.sprite8x16ModeEnable = safeState.bools[5]
+            self.pendingIRQFlag = safeState.bools[6]
+            self.sram = [UInt8](safeState.uint8s[0 ..< self.sram.count])
+            self.extendedRam = [UInt8](safeState.uint8s[self.sram.count ..< self.sram.count + self.extendedRam.count])
+            self.onboardVRamPage0 = [UInt8](safeState.uint8s[self.sram.count + self.extendedRam.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count])
+            self.onboardVRamPage1 = [UInt8](safeState.uint8s[self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count])
+            let ntModesU8: [UInt8] = [UInt8](safeState.uint8s[self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count + self.nameTableModes.count])
+            self.nameTableModes = ntModesU8.map({ NameTableMode(rawValue: $0) ?? .onboardVRAMPage0 })
+            let offsetToIndividualUInt8s: Int = self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count + self.nameTableModes.count
+            self.prgMode = safeState.uint8s[offsetToIndividualUInt8s]
+            self.chrMode = safeState.uint8s[offsetToIndividualUInt8s + 1]
+            self.extendedRamMode = safeState.uint8s[offsetToIndividualUInt8s + 2]
+            self.fillModeTile = safeState.uint8s[offsetToIndividualUInt8s + 3]
+            self.fillModeColor = safeState.uint8s[offsetToIndividualUInt8s + 4]
+            self.verticalSplitStartStopTile = safeState.uint8s[offsetToIndividualUInt8s + 5]
+            self.sramBank = safeState.uint8s[offsetToIndividualUInt8s + 6]
+            self.requestedInterrupt = Interrupt(rawValue: safeState.uint8s[offsetToIndividualUInt8s + 7])
+            self.chr = safeState.chr
+        }
+        else
+        {
+            self.mirroringMode = aCartridge.header.mirroringMode
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
+            self.prgOffsets[0] = (aCartridge.prgBlocks.count - 1) * 16384
+            self.prgOffsets[1] = (aCartridge.prgBlocks.count - 1) * 16384 + 8192
+            self.prgOffsets[2] = (aCartridge.prgBlocks.count - 1) * 16384 + 8192
+            self.prgOffsets[3] = (aCartridge.prgBlocks.count - 1) * 16384
+        }
+        
         for p in aCartridge.prgBlocks
         {
             self.prg.append(contentsOf: p)
         }
-
-        for c in aCartridge.chrBlocks
-        {
-            self.chr.append(contentsOf: c)
-        }
-        
-        self.prgOffsets[0] = (aCartridge.prgBlocks.count - 1) * 16384
-        self.prgOffsets[1] = (aCartridge.prgBlocks.count - 1) * 16384 + 8192
-        self.prgOffsets[2] = (aCartridge.prgBlocks.count - 1) * 16384 + 8192
-        self.prgOffsets[3] = (aCartridge.prgBlocks.count - 1) * 16384
     }
     
-    // TODO: implement retrieval of MapperState, and restoration from MapperState, once MMC5 mapper is working correctly
     var mapperState: MapperState
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [], uint8s: [], chr: self.chr)
+            let ntModesU8: [UInt8] = self.nameTableModes.map({ $0.rawValue })
+            var u8: [UInt8] = []
+            u8.append(contentsOf: self.sram)
+            u8.append(contentsOf: self.extendedRam)
+            u8.append(contentsOf: self.onboardVRamPage0)
+            u8.append(contentsOf: self.onboardVRamPage1)
+            u8.append(contentsOf: ntModesU8)
+            u8.append(self.prgMode)
+            u8.append(self.chrMode)
+            u8.append(self.extendedRamMode)
+            u8.append(self.fillModeTile)
+            u8.append(self.fillModeColor)
+            u8.append(self.verticalSplitStartStopTile)
+            u8.append(self.sramBank)
+            u8.append(self.requestedInterrupt?.rawValue ?? UInt8.max)
+            u8.append(self.reg5203Value)
+            u8.append(self.ppuCtrl)
+            u8.append(self.ppuMask)
+            
+            return MapperState(mirroringMode: self.mirroringMode.rawValue,
+                        ints:
+                            self.prgOffsets + self.chrOffsets + [self.ppuFetchesThisScanline],
+                        bools:
+                            [self.verticalSplitScreenSide, self.verticalSplitScreenMode, self.inFrameFlag, self.irqEnableFlag, self.upperChrBankSet, self.sprite8x16ModeEnable, self.pendingIRQFlag],
+                        uint8s: u8, chr: self.chr)
         }
         set
         {
             self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
-            
+            self.prgOffsets = [Int](newValue.ints[0 ..< self.prgOffsets.count])
+            self.chrOffsets = [Int](newValue.ints[self.prgOffsets.count ..< self.prgOffsets.count + self.chrOffsets.count])
+            self.ppuFetchesThisScanline = newValue.ints[self.prgOffsets.count + self.chrOffsets.count]
+            self.verticalSplitScreenSide = newValue.bools[0]
+            self.verticalSplitScreenMode = newValue.bools[1]
+            self.inFrameFlag = newValue.bools[2]
+            self.irqEnableFlag = newValue.bools[3]
+            self.upperChrBankSet = newValue.bools[4]
+            self.sprite8x16ModeEnable = newValue.bools[5]
+            self.pendingIRQFlag = newValue.bools[6]
+            self.sram = [UInt8](newValue.uint8s[0 ..< self.sram.count])
+            self.extendedRam = [UInt8](newValue.uint8s[self.sram.count ..< self.sram.count + self.extendedRam.count])
+            self.onboardVRamPage0 = [UInt8](newValue.uint8s[self.sram.count + self.extendedRam.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count])
+            self.onboardVRamPage1 = [UInt8](newValue.uint8s[self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count])
+            let ntModesU8: [UInt8] = [UInt8](newValue.uint8s[self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count + self.nameTableModes.count])
+            self.nameTableModes = ntModesU8.map({ NameTableMode(rawValue: $0) ?? .onboardVRAMPage0 })
+            let offsetToIndividualUInt8s: Int = self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count + self.nameTableModes.count
+            self.prgMode = newValue.uint8s[offsetToIndividualUInt8s]
+            self.chrMode = newValue.uint8s[offsetToIndividualUInt8s + 1]
+            self.extendedRamMode = newValue.uint8s[offsetToIndividualUInt8s + 2]
+            self.fillModeTile = newValue.uint8s[offsetToIndividualUInt8s + 3]
+            self.fillModeColor = newValue.uint8s[offsetToIndividualUInt8s + 4]
+            self.verticalSplitStartStopTile = newValue.uint8s[offsetToIndividualUInt8s + 5]
+            self.sramBank = newValue.uint8s[offsetToIndividualUInt8s + 6]
+            self.requestedInterrupt = Interrupt(rawValue: newValue.uint8s[offsetToIndividualUInt8s + 7])
             self.chr = newValue.chr
         }
     }
