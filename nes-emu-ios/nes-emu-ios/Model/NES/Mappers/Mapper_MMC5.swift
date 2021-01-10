@@ -742,7 +742,7 @@ struct Mapper_MMC5: MapperProtocol
         }
 
         self.sprite8x16ModeEnable = aMapperStepInput.ppuSpriteSize
-        self.hBlank = (240 ... 320).contains(aMapperStepInput.ppuCycle) //  (257 ... 340) (240 ... 320) works pretty well
+        self.hBlank = (256 ... 320).contains(aMapperStepInput.ppuCycle)
         self.inFrameFlag = (0 ... 240).contains(aMapperStepInput.ppuScanline)
 
         let shouldTriggerIrq: Bool = self.pendingIRQFlag && self.irqEnableFlag
