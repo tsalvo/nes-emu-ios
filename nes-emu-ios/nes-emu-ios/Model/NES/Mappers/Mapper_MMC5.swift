@@ -91,7 +91,6 @@ struct Mapper_MMC5: MapperProtocol
     private var extendedRam: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
     private var onboardVRamPage0: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
     private var onboardVRamPage1: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
-    private var requestedInterrupt: Interrupt?
     private var reg5203Value: UInt8 = 0
     private var inFrameFlag: Bool = false
     private var irqEnableFlag: Bool = false
@@ -136,7 +135,9 @@ struct Mapper_MMC5: MapperProtocol
             self.fillModeColor = safeState.uint8s[offsetToIndividualUInt8s + 4]
             self.verticalSplitStartStopTile = safeState.uint8s[offsetToIndividualUInt8s + 5]
             self.sramBank = safeState.uint8s[offsetToIndividualUInt8s + 6]
-            self.requestedInterrupt = Interrupt(rawValue: safeState.uint8s[offsetToIndividualUInt8s + 7])
+            self.reg5203Value = safeState.uint8s[offsetToIndividualUInt8s + 7]
+            self.ppuCtrl = safeState.uint8s[offsetToIndividualUInt8s + 8]
+            self.ppuMask = safeState.uint8s[offsetToIndividualUInt8s + 9]
             self.chr = safeState.chr
         }
         else
@@ -176,7 +177,6 @@ struct Mapper_MMC5: MapperProtocol
             u8.append(self.fillModeColor)
             u8.append(self.verticalSplitStartStopTile)
             u8.append(self.sramBank)
-            u8.append(self.requestedInterrupt?.rawValue ?? UInt8.max)
             u8.append(self.reg5203Value)
             u8.append(self.ppuCtrl)
             u8.append(self.ppuMask)
@@ -215,7 +215,9 @@ struct Mapper_MMC5: MapperProtocol
             self.fillModeColor = newValue.uint8s[offsetToIndividualUInt8s + 4]
             self.verticalSplitStartStopTile = newValue.uint8s[offsetToIndividualUInt8s + 5]
             self.sramBank = newValue.uint8s[offsetToIndividualUInt8s + 6]
-            self.requestedInterrupt = Interrupt(rawValue: newValue.uint8s[offsetToIndividualUInt8s + 7])
+            self.reg5203Value = newValue.uint8s[offsetToIndividualUInt8s + 7]
+            self.ppuCtrl = newValue.uint8s[offsetToIndividualUInt8s + 8]
+            self.ppuMask = newValue.uint8s[offsetToIndividualUInt8s + 9]
             self.chr = newValue.chr
         }
     }
@@ -281,7 +283,6 @@ struct Mapper_MMC5: MapperProtocol
              */
             let result: UInt8 = (self.pendingIRQFlag ? 0b10000000 : 0) | (self.inFrameFlag ? 0b01000000 : 0)
             self.pendingIRQFlag = false
-            self.requestedInterrupt = Interrupt.none
             return result
         case 0x5C00 ... 0x5FFF: /// Extended RAM
             switch self.extendedRamMode
@@ -770,9 +771,7 @@ struct Mapper_MMC5: MapperProtocol
         self.inFrameFlag = (0 ... 240).contains(aMapperStepInput.ppuScanline)
 
         let shouldTriggerIrq: Bool = self.pendingIRQFlag && self.irqEnableFlag
-        let interrupt: Interrupt? = shouldTriggerIrq ? .irq : self.requestedInterrupt
-        self.requestedInterrupt = nil
     
-        return MapperStepResults(requestedCPUInterrupt: interrupt)
+        return MapperStepResults(requestedCPUInterrupt: shouldTriggerIrq ? .irq : nil)
     }
 }
