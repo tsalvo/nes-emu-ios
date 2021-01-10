@@ -138,16 +138,6 @@ struct Mapper_NROM_UNROM: MapperProtocol
         self.chr[Int(aAddress)] = aValue
     }
     
-    mutating func ppuControl(value aValue: UInt8)
-    {
-        
-    }
-    
-    mutating func ppuMask(value aValue: UInt8)
-    {
-        
-    }
-    
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
         return nil

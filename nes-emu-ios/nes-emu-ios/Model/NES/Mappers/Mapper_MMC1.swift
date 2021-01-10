@@ -195,16 +195,6 @@ struct Mapper_MMC1: MapperProtocol
         let offset = aAddress % 0x1000
         self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
     }
-    
-    mutating func ppuControl(value aValue: UInt8)
-    {
-        
-    }
-    
-    mutating func ppuMask(value aValue: UInt8)
-    {
-    
-    }
 
     private mutating func loadRegister(address aAddress: UInt16, value aValue: UInt8)
     {

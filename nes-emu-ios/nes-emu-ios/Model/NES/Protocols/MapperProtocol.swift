@@ -37,6 +37,7 @@ struct MapperStepInput
     let ppuCycle: Int
     let ppuShowBackground: Bool
     let ppuShowSprites: Bool
+    let ppuSpriteSize: Bool /// false = 8x8 sprites, true = 8x16 sprites
 }
 
 protocol MapperProtocol
@@ -63,12 +64,6 @@ protocol MapperProtocol
     
     /// write to a given mapper address from the PPU (must be an address in the range 0x0000 ... 0x1FFF, or 0x0000 ... 0x2FFF if the mapper supports extended nametable mapping)
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF, or 0x0000 ... 0x2FFF if extended nametable mapping is supported
-    
-    /// relay a PPU write of address 0x2000 (PPUCTRL) to the mapper
-    mutating func ppuControl(value aValue: UInt8) // 0x2000
-    
-    /// relay a PPU write of address 0x2001 (PPUMASK) to the mapper
-    mutating func ppuMask(value aValue: UInt8) // 0x2001
     
     /// run a single cycle on the mapper, corresponding with a PPU cycle, if the mapper needs to interface with the CPU or PPU
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?

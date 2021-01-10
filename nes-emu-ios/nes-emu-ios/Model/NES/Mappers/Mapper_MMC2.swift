@@ -171,16 +171,6 @@ struct Mapper_MMC2: MapperProtocol
         
     }
     
-    mutating func ppuControl(value aValue: UInt8)
-    {
-        
-    }
-    
-    mutating func ppuMask(value aValue: UInt8)
-    {
-    
-    }
-    
     func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
         return nil
