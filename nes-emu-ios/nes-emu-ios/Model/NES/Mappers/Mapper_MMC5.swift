@@ -96,8 +96,6 @@ struct Mapper_MMC5: MapperProtocol
     private var irqEnableFlag: Bool = false
     private var upperChrBankSet: Bool = true
     private var sprite8x16ModeEnable: Bool = false
-    private var ppuCtrl: UInt8 = 0
-    private var ppuMask: UInt8 = 0
     private var hBlank: Bool = false
     
     /// becomes set at any time that the internal scanline counter matches the value written to register $5203
@@ -135,8 +133,6 @@ struct Mapper_MMC5: MapperProtocol
             self.verticalSplitStartStopTile = safeState.uint8s[offsetToIndividualUInt8s + 5]
             self.sramBank = safeState.uint8s[offsetToIndividualUInt8s + 6]
             self.reg5203Value = safeState.uint8s[offsetToIndividualUInt8s + 7]
-            self.ppuCtrl = safeState.uint8s[offsetToIndividualUInt8s + 8]
-            self.ppuMask = safeState.uint8s[offsetToIndividualUInt8s + 9]
             self.chr = safeState.chr
         }
         else
@@ -177,8 +173,6 @@ struct Mapper_MMC5: MapperProtocol
             u8.append(self.verticalSplitStartStopTile)
             u8.append(self.sramBank)
             u8.append(self.reg5203Value)
-            u8.append(self.ppuCtrl)
-            u8.append(self.ppuMask)
             
             return MapperState(mirroringMode: self.mirroringMode.rawValue,
                         ints:
@@ -214,8 +208,6 @@ struct Mapper_MMC5: MapperProtocol
             self.verticalSplitStartStopTile = newValue.uint8s[offsetToIndividualUInt8s + 5]
             self.sramBank = newValue.uint8s[offsetToIndividualUInt8s + 6]
             self.reg5203Value = newValue.uint8s[offsetToIndividualUInt8s + 7]
-            self.ppuCtrl = newValue.uint8s[offsetToIndividualUInt8s + 8]
-            self.ppuMask = newValue.uint8s[offsetToIndividualUInt8s + 9]
             self.chr = newValue.chr
         }
     }
