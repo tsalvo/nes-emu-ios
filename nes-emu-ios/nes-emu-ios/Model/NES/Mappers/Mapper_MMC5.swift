@@ -91,15 +91,12 @@ struct Mapper_MMC5: MapperProtocol
     private var extendedRam: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
     private var onboardVRamPage0: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
     private var onboardVRamPage1: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
-    private var requestedInterrupt: Interrupt?
     private var reg5203Value: UInt8 = 0
     private var inFrameFlag: Bool = false
     private var irqEnableFlag: Bool = false
     private var upperChrBankSet: Bool = true
-    private var ppuFetchesThisScanline: Int = 0
     private var sprite8x16ModeEnable: Bool = false
-    private var ppuCtrl: UInt8 = 0
-    private var ppuMask: UInt8 = 0
+    private var hBlank: Bool = false
     
     /// becomes set at any time that the internal scanline counter matches the value written to register $5203
     private var pendingIRQFlag: Bool = false
@@ -114,7 +111,6 @@ struct Mapper_MMC5: MapperProtocol
             self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
             self.prgOffsets = [Int](safeState.ints[0 ..< self.prgOffsets.count])
             self.chrOffsets = [Int](safeState.ints[self.prgOffsets.count ..< self.prgOffsets.count + self.chrOffsets.count])
-            self.ppuFetchesThisScanline = safeState.ints[self.prgOffsets.count + self.chrOffsets.count]
             self.verticalSplitScreenSide = safeState.bools[0]
             self.verticalSplitScreenMode = safeState.bools[1]
             self.inFrameFlag = safeState.bools[2]
@@ -136,7 +132,7 @@ struct Mapper_MMC5: MapperProtocol
             self.fillModeColor = safeState.uint8s[offsetToIndividualUInt8s + 4]
             self.verticalSplitStartStopTile = safeState.uint8s[offsetToIndividualUInt8s + 5]
             self.sramBank = safeState.uint8s[offsetToIndividualUInt8s + 6]
-            self.requestedInterrupt = Interrupt(rawValue: safeState.uint8s[offsetToIndividualUInt8s + 7])
+            self.reg5203Value = safeState.uint8s[offsetToIndividualUInt8s + 7]
             self.chr = safeState.chr
         }
         else
@@ -176,14 +172,11 @@ struct Mapper_MMC5: MapperProtocol
             u8.append(self.fillModeColor)
             u8.append(self.verticalSplitStartStopTile)
             u8.append(self.sramBank)
-            u8.append(self.requestedInterrupt?.rawValue ?? UInt8.max)
             u8.append(self.reg5203Value)
-            u8.append(self.ppuCtrl)
-            u8.append(self.ppuMask)
             
             return MapperState(mirroringMode: self.mirroringMode.rawValue,
                         ints:
-                            self.prgOffsets + self.chrOffsets + [self.ppuFetchesThisScanline],
+                            self.prgOffsets + self.chrOffsets,
                         bools:
                             [self.verticalSplitScreenSide, self.verticalSplitScreenMode, self.inFrameFlag, self.irqEnableFlag, self.upperChrBankSet, self.sprite8x16ModeEnable, self.pendingIRQFlag],
                         uint8s: u8, chr: self.chr)
@@ -193,7 +186,6 @@ struct Mapper_MMC5: MapperProtocol
             self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
             self.prgOffsets = [Int](newValue.ints[0 ..< self.prgOffsets.count])
             self.chrOffsets = [Int](newValue.ints[self.prgOffsets.count ..< self.prgOffsets.count + self.chrOffsets.count])
-            self.ppuFetchesThisScanline = newValue.ints[self.prgOffsets.count + self.chrOffsets.count]
             self.verticalSplitScreenSide = newValue.bools[0]
             self.verticalSplitScreenMode = newValue.bools[1]
             self.inFrameFlag = newValue.bools[2]
@@ -215,7 +207,7 @@ struct Mapper_MMC5: MapperProtocol
             self.fillModeColor = newValue.uint8s[offsetToIndividualUInt8s + 4]
             self.verticalSplitStartStopTile = newValue.uint8s[offsetToIndividualUInt8s + 5]
             self.sramBank = newValue.uint8s[offsetToIndividualUInt8s + 6]
-            self.requestedInterrupt = Interrupt(rawValue: newValue.uint8s[offsetToIndividualUInt8s + 7])
+            self.reg5203Value = newValue.uint8s[offsetToIndividualUInt8s + 7]
             self.chr = newValue.chr
         }
     }
@@ -281,7 +273,6 @@ struct Mapper_MMC5: MapperProtocol
              */
             let result: UInt8 = (self.pendingIRQFlag ? 0b10000000 : 0) | (self.inFrameFlag ? 0b01000000 : 0)
             self.pendingIRQFlag = false
-            self.requestedInterrupt = Interrupt.none
             return result
         case 0x5C00 ... 0x5FFF: /// Extended RAM
             switch self.extendedRamMode
@@ -484,6 +475,10 @@ struct Mapper_MMC5: MapperProtocol
                 break
             }
         case 0x5120 ... 0x5127: /// CHR Banking
+            if self.sprite8x16ModeEnable
+            {
+                self.upperChrBankSet = false
+            }
             switch self.chrMode
             {
             // TODO: implement other CHR modes
@@ -493,16 +488,17 @@ struct Mapper_MMC5: MapperProtocol
                 break
             }
         case 0x5128 ... 0x512B: /// CHR Banking
-            if self.sprite8x16ModeEnable
+            if !self.sprite8x16ModeEnable
             {
-                switch self.chrMode
-                {
-                // TODO: implement other CHR modes
-                case 3:
-                    self.chrOffsets[Int(aAddress - 0x5120)] = Int(aValue) * 1024
-                default:
-                    break
-                }
+                self.upperChrBankSet = true
+            }
+            switch self.chrMode
+            {
+            // TODO: implement other CHR modes
+            case 3:
+                self.chrOffsets[Int(aAddress - 0x5120)] = Int(aValue) * 1024
+            default:
+                break
             }
 
         case 0x5130:
@@ -569,8 +565,10 @@ struct Mapper_MMC5: MapperProtocol
         switch aAddress
         {
         case 0x0000 ...  0x1FFF:
-            self.ppuFetchesThisScanline += 1
-            self.upperChrBankSet = self.ppuFetchesThisScanline <= 64 // TODO: is this number right? it seemed like it should be 34 tiles * 16 bytes per tile
+            if self.sprite8x16ModeEnable
+            {
+                self.upperChrBankSet = !self.hBlank
+            }
             switch self.chrMode
             {
             case 0:
@@ -591,7 +589,7 @@ struct Mapper_MMC5: MapperProtocol
                 let offset: Int = Int(aAddress % 0x0800)
                 return self.chr[self.chrOffsets[bank] + offset]
             case 3:
-                if self.upperChrBankSet && self.sprite8x16ModeEnable
+                if self.upperChrBankSet// && self.sprite8x16ModeEnable
                 {
                     let adjustedAddress: UInt16 = aAddress % 0x1000
                     let bank: Int = 8 + Int(adjustedAddress / 0x0400)
@@ -617,7 +615,6 @@ struct Mapper_MMC5: MapperProtocol
                 return 0
             }
         case 0x2000 ... 0x2FFF:
-
             let nameTableMapIndex: Int = Int(aAddress - 0x2000) / 0x400
             let offset: Int = Int(aAddress % 0x400)
             
@@ -674,7 +671,7 @@ struct Mapper_MMC5: MapperProtocol
                 let offset: Int = Int(aAddress % 0x0800)
                 self.chr[self.chrOffsets[bank] + offset] = aValue
             case 3:
-                if self.upperChrBankSet && self.sprite8x16ModeEnable
+                if self.upperChrBankSet// && self.sprite8x16ModeEnable
                 {
                     let adjustedAddress: UInt16 = aAddress % 0x1000
                     let bank: Int = 8 + Int(adjustedAddress / 0x0400)
@@ -727,52 +724,21 @@ struct Mapper_MMC5: MapperProtocol
         }
     }
     
-    mutating func ppuControl(value aValue: UInt8)
-    {
-        self.ppuCtrl = aValue
-        if (self.ppuCtrl >> 5) & 1 == 1,
-            (self.ppuMask >> 3) & 1 == 1 || (self.ppuMask >> 4) & 1 == 1
-        {
-            self.sprite8x16ModeEnable = true
-        }
-        else
-        {
-            self.sprite8x16ModeEnable = false
-        }
-    }
-    
-    mutating func ppuMask(value aValue: UInt8)
-    {
-        self.ppuMask = aValue
-        if (self.ppuCtrl >> 5) & 1 == 1,
-            (self.ppuMask >> 3) & 1 == 1 || (self.ppuMask >> 4) & 1 == 1
-        {
-            self.sprite8x16ModeEnable = true
-        }
-        else
-        {
-            self.sprite8x16ModeEnable = false
-        }
-    }
-    
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        if aMapperStepInput.ppuCycle == 0
+        if aMapperStepInput.ppuCycle == 0,
+           aMapperStepInput.ppuScanline == self.reg5203Value,
+           self.reg5203Value > 0
         {
-            self.ppuFetchesThisScanline = 0
-            self.upperChrBankSet = true
-            if self.reg5203Value > 0 && aMapperStepInput.ppuScanline == self.reg5203Value
-            {
-                self.pendingIRQFlag = true
-            }
+            self.pendingIRQFlag = true
         }
 
+        self.sprite8x16ModeEnable = aMapperStepInput.ppuSpriteSize
+        self.hBlank = (256 ... 320).contains(aMapperStepInput.ppuCycle)
         self.inFrameFlag = (0 ... 240).contains(aMapperStepInput.ppuScanline)
 
         let shouldTriggerIrq: Bool = self.pendingIRQFlag && self.irqEnableFlag
-        let interrupt: Interrupt? = shouldTriggerIrq ? .irq : self.requestedInterrupt
-        self.requestedInterrupt = nil
     
-        return MapperStepResults(requestedCPUInterrupt: interrupt)
+        return MapperStepResults(requestedCPUInterrupt: shouldTriggerIrq ? .irq : nil)
     }
 }

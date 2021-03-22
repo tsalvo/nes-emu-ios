@@ -362,7 +362,6 @@ struct PPU
         self.nmiChange()
         // t: ....BA.. ........ = d: ......BA
         self.t = (self.t & 0xF3FF) | ((UInt16(aValue) & 0x03) << 10)
-        self.mapper.ppuControl(value: aValue)
     }
 
     // $2001: PPUMASK
@@ -376,7 +375,6 @@ struct PPU
         self.flagRedTint = ((aValue >> 5) & 1) == 1
         self.flagGreenTint = ((aValue >> 6) & 1) == 1
         self.flagBlueTint = ((aValue >> 7) & 1) == 1
-        self.mapper.ppuMask(value: aValue)
     }
     
     // $2002: PPUSTATUS
@@ -982,7 +980,7 @@ struct PPU
         let interruptRequestedByMapper: Interrupt?
         if self.mapperHasStep
         {
-            interruptRequestedByMapper = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites))?.requestedCPUInterrupt
+            interruptRequestedByMapper = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites, ppuSpriteSize: self.flagSpriteSize))?.requestedCPUInterrupt
         }
         else
         {

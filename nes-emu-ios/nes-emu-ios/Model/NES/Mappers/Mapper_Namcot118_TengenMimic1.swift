@@ -184,16 +184,6 @@ struct Mapper_Namcot118_TengenMimic1: MapperProtocol
         self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
     }
     
-    mutating func ppuControl(value aValue: UInt8)
-    {
-        
-    }
-    
-    mutating func ppuMask(value aValue: UInt8)
-    {
-    
-    }
-    
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
         return nil
