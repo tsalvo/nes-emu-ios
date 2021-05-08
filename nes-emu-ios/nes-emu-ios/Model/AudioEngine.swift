@@ -28,7 +28,7 @@ import os
 
 enum AudioEngineState { case stopped, started, paused, playing }
 
-protocol AudioEngineProtocol: class
+protocol AudioEngineProtocol: AnyObject
 {
     func schedule(buffer aBuffer: [Float32], withSampleRate aSampleRate: SampleRate)
 }
