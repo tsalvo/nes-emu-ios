@@ -27,14 +27,14 @@ import UIKit
 import GameController
 import CoreData
 
-protocol EmulatorProtocol: class
+protocol EmulatorProtocol: AnyObject
 {
     var cartridge: Cartridge? { get set }
     func pauseEmulation()
     func resumeEmulation()
 }
 
-protocol ConsoleSaveStateSelectionDelegate: class
+protocol ConsoleSaveStateSelectionDelegate: AnyObject
 {
     func saveCurrentStateSelected()
     func consoleStateSelected(consoleState aConsoleState: ConsoleState)

@@ -25,7 +25,7 @@
 
 import UIKit
 
-protocol SettingsConfirmationDelegate: class
+protocol SettingsConfirmationDelegate: AnyObject
 {
     func confirmationButtonPressed(forKey aKey: String, message aMessage: String, confirmationBlock aConfirmationBlock: (() -> Void)?)
 }
