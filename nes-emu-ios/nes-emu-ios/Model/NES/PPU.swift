@@ -573,7 +573,7 @@ struct PPU
         {
             // TODO: this fixes some games but the delay shouldn't have to be so
             // long, so the timings are off somewhere
-            self.nmiDelay = 15
+            self.nmiDelay = 16
         }
         self.nmiPrevious = nmi
     }
