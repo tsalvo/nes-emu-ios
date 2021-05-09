@@ -25,7 +25,7 @@
 
 import UIKit
 
-protocol NesRomNavigationControllerProtocol: class
+protocol NesRomNavigationControllerProtocol: AnyObject
 {
     var document: NesRomDocument? { get set }
     func pauseEmulation()

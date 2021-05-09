@@ -50,11 +50,11 @@ class ConsoleStateTableViewController: UITableViewController
             self.consoleStates = try? CoreDataController.consoleStates(forMD5: safeMD5)
         }
         
+        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 21.0, weight: .semibold)
+        
 #if targetEnvironment(macCatalyst)
-        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 24.0, weight: .semibold)
         let closeButtonName: String = "xmark"
 #else
-        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 21.0, weight: .semibold)
         let closeButtonName: String = "chevron.down"
 #endif
         

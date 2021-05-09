@@ -13,6 +13,8 @@ struct Mapper_NTDEC2722: MapperProtocol
 {
     let hasStep: Bool = true
     
+    let hasExtendedNametableMapping: Bool = false
+    
     var mirroringMode: MirroringMode
     
     private var prgBank: Int
@@ -120,10 +122,10 @@ struct Mapper_NTDEC2722: MapperProtocol
     {
         self.chr[Int(aAddress)] = aValue
     }
-    
+
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        guard self.cycles >= 0 else { return MapperStepResults(shouldTriggerIRQOnCPU: false)  }
+        guard self.cycles >= 0 else { return MapperStepResults(requestedCPUInterrupt: nil)  }
         
         let shouldIRQ: Bool
         self.cycles += 1
@@ -137,6 +139,6 @@ struct Mapper_NTDEC2722: MapperProtocol
             shouldIRQ = false
         }
         
-        return MapperStepResults(shouldTriggerIRQOnCPU: shouldIRQ)
+        return MapperStepResults(requestedCPUInterrupt: shouldIRQ ? .irq : nil)
     }
 }

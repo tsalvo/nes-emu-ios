@@ -27,14 +27,14 @@ import UIKit
 import GameController
 import CoreData
 
-protocol EmulatorProtocol: class
+protocol EmulatorProtocol: AnyObject
 {
     var cartridge: Cartridge? { get set }
     func pauseEmulation()
     func resumeEmulation()
 }
 
-protocol ConsoleSaveStateSelectionDelegate: class
+protocol ConsoleSaveStateSelectionDelegate: AnyObject
 {
     func saveCurrentStateSelected()
     func consoleStateSelected(consoleState aConsoleState: ConsoleState)
@@ -733,12 +733,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     
     private func setupButtons()
     {
-#if targetEnvironment(macCatalyst)
-        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 24.0, weight: .semibold)
-#else
         let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 21.0, weight: .semibold)
-#endif
-            
         let resetButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "power", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(resetButtonPressed(_:)))
         let saveStateButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "bookmark", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(saveStateButtonPressed(_:)))
         let controller1Button: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gamecontroller", withConfiguration: symbolConfig), style: .plain, target: self, action: nil)
