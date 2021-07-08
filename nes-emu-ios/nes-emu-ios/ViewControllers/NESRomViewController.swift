@@ -122,6 +122,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     private var displayLink: CADisplayLink?
     private var audioEngine: AudioEngine = AudioEngine()
     
+    // MARK: - Appearance
+    override var prefersHomeIndicatorAutoHidden: Bool { return true }
+    
     // MARK: - UIResponder
     override var canBecomeFirstResponder: Bool
     {
