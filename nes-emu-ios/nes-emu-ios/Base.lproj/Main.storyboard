@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
-    <device id="retina5_9" orientation="portrait" appearance="light"/>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina4_0" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -13,7 +13,7 @@
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="DocumentBrowserViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <viewLayoutGuide key="safeArea" id="0fo-ii-Aj5"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -33,7 +33,7 @@
             <objects>
                 <tableViewController id="hmr-eV-lPG" customClass="SettingsTableViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="LMx-Ai-N2b">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="758"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <connections>
@@ -55,7 +55,7 @@
             <objects>
                 <tableViewController id="jSo-Gi-y31" customClass="SettingsInfoViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="wqf-Je-dwM">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="758"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <connections>
@@ -74,7 +74,7 @@
             <objects>
                 <navigationController modalPresentationStyle="fullScreen" id="5BT-EE-k8e" customClass="NesRomNavigationController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="ue3-zN-qSd">
-                        <rect key="frame" x="0.0" y="44" width="375" height="44"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="tintColor" systemColor="systemRedColor"/>
                     </navigationBar>
@@ -91,14 +91,14 @@
             <objects>
                 <viewController modalPresentationStyle="fullScreen" id="tG2-AL-uMa" customClass="NesRomViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="iZl-zf-zL1">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="t5P-yH-839" userLabel="Screen Container">
-                                <rect key="frame" x="0.0" y="88" width="375" height="542"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="t5P-yH-839" userLabel="Screen Container">
+                                <rect key="frame" x="0.0" y="44" width="320" height="376"/>
                                 <subviews>
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="f8W-xa-Q3Q" customClass="NESScreenView" customModule="nes_emu_ios" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="107" width="375" height="328"/>
+                                    <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="f8W-xa-Q3Q" customClass="NESScreenView" customModule="nes_emu_ios" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="48" width="320" height="280"/>
                                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="f8W-xa-Q3Q" secondAttribute="height" multiplier="16:14" id="KLC-9d-tlh"/>
@@ -106,6 +106,7 @@
                                     </view>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <gestureRecognizers/>
                                 <constraints>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" secondItem="t5P-yH-839" secondAttribute="top" priority="750" id="89m-W4-57r"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="centerY" secondItem="t5P-yH-839" secondAttribute="centerY" id="CIm-tP-dXS"/>
@@ -114,19 +115,22 @@
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="centerX" secondItem="t5P-yH-839" secondAttribute="centerX" id="jUz-mx-pLS"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="t5P-yH-839" secondAttribute="leading" id="vNr-dw-50t"/>
                                 </constraints>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="Wfi-3b-1LU" appends="YES" id="4uG-I1-G8p"/>
+                                </connections>
                             </view>
                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="pP6-r1-1gz">
-                                <rect key="frame" x="4" y="632" width="130" height="130"/>
+                                <rect key="frame" x="4" y="422" width="130" height="130"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="JqW-Op-bh5">
-                                        <rect key="frame" x="0.0" y="0.0" width="43.333333333333336" height="130"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="43.5" height="130"/>
                                         <subviews>
                                             <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ake-Wc-Eaj">
-                                                <rect key="frame" x="0.0" y="0.0" width="43.333333333333336" height="35.666666666666664"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="43.5" height="36"/>
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             </view>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KF5-e2-XF4">
-                                                <rect key="frame" x="0.0" y="35.666666666666629" width="43.333333333333336" height="58.666666666666657"/>
+                                                <rect key="frame" x="0.0" y="36" width="43.5" height="58.5"/>
                                                 <color key="tintColor" systemColor="systemGrayColor"/>
                                                 <state key="normal" image="arrow.left.square.fill" catalog="system">
                                                     <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="40" weight="semibold"/>
@@ -138,7 +142,7 @@
                                                 </connections>
                                             </button>
                                             <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="G32-Xf-BQQ">
-                                                <rect key="frame" x="0.0" y="94.333333333333371" width="43.333333333333336" height="35.666666666666657"/>
+                                                <rect key="frame" x="0.0" y="94.5" width="43.5" height="35.5"/>
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             </view>
                                         </subviews>
@@ -148,10 +152,10 @@
                                         </constraints>
                                     </stackView>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="YuE-bb-DBt">
-                                        <rect key="frame" x="43.333333333333329" y="0.0" width="43.333333333333329" height="130"/>
+                                        <rect key="frame" x="43.5" y="0.0" width="43" height="130"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qL6-1K-g4H">
-                                                <rect key="frame" x="0.0" y="0.0" width="43.333333333333336" height="58.666666666666664"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="43" height="58.5"/>
                                                 <color key="tintColor" systemColor="systemGrayColor"/>
                                                 <state key="normal" image="arrow.up.square.fill" catalog="system">
                                                     <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="40" weight="semibold"/>
@@ -163,11 +167,11 @@
                                                 </connections>
                                             </button>
                                             <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="r1Z-gx-pq7">
-                                                <rect key="frame" x="0.0" y="58.666666666666629" width="43.333333333333336" height="13"/>
+                                                <rect key="frame" x="0.0" y="58.5" width="43" height="13"/>
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             </view>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="syR-bg-qE6">
-                                                <rect key="frame" x="0.0" y="71.666666666666629" width="43.333333333333336" height="58.333333333333343"/>
+                                                <rect key="frame" x="0.0" y="71.5" width="43" height="58.5"/>
                                                 <color key="tintColor" systemColor="systemGrayColor"/>
                                                 <state key="normal" image="arrow.down.square.fill" catalog="system">
                                                     <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="40" weight="semibold"/>
@@ -185,14 +189,14 @@
                                         </constraints>
                                     </stackView>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="TRA-PX-x9F">
-                                        <rect key="frame" x="86.666666666666671" y="0.0" width="43.333333333333329" height="130"/>
+                                        <rect key="frame" x="86.5" y="0.0" width="43.5" height="130"/>
                                         <subviews>
                                             <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="laZ-RV-ec2">
-                                                <rect key="frame" x="0.0" y="0.0" width="43.333333333333336" height="35.666666666666664"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="43.5" height="36"/>
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             </view>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bqs-F1-1KH">
-                                                <rect key="frame" x="0.0" y="35.666666666666629" width="43.333333333333336" height="58.666666666666657"/>
+                                                <rect key="frame" x="0.0" y="36" width="43.5" height="58.5"/>
                                                 <color key="tintColor" systemColor="systemGrayColor"/>
                                                 <state key="normal" image="arrow.right.square.fill" catalog="system">
                                                     <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="40" weight="semibold"/>
@@ -204,7 +208,7 @@
                                                 </connections>
                                             </button>
                                             <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Zbd-oA-3Bl">
-                                                <rect key="frame" x="0.0" y="94.333333333333371" width="43.333333333333336" height="35.666666666666657"/>
+                                                <rect key="frame" x="0.0" y="94.5" width="43.5" height="35.5"/>
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             </view>
                                         </subviews>
@@ -220,7 +224,7 @@
                                 </constraints>
                             </stackView>
                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="oq8-Zg-vo9">
-                                <rect key="frame" x="245" y="635.66666666666663" width="130" height="123"/>
+                                <rect key="frame" x="190" y="425.5" width="130" height="123"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="cRG-tO-gpk">
                                         <rect key="frame" x="0.0" y="0.0" width="65" height="123"/>
@@ -340,6 +344,11 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="g06-vX-JML" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <tapGestureRecognizer id="Wfi-3b-1LU">
+                    <connections>
+                        <action selector="handleTap:" destination="tG2-AL-uMa" id="9WJ-kR-POA"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="1879" y="375"/>
         </scene>
@@ -348,7 +357,7 @@
             <objects>
                 <tableViewController id="KAg-fP-qjG" customClass="ConsoleStateTableViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="lIf-lE-wa4">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="758"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <connections>
@@ -368,7 +377,7 @@
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="UiQ-dc-SHc" customClass="SettingsNavigationController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="KzW-dK-72Q">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="56"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="56"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -386,7 +395,7 @@
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="OpZ-uS-3HC" customClass="ConsoleStateNavigationController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="tWA-hC-Pmp">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="56"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="56"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="tintColor" systemColor="systemRedColor"/>
                     </navigationBar>
