@@ -299,11 +299,6 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         self.performSegue(withIdentifier: "showSaveStates", sender: md5)
     }
     
-    @IBAction private func screenAreaTapped(_ sender: AnyObject?)
-    {
-        print("screen area tapped")
-    }
-    
     @IBAction private func startButtonPressed(_ sender: AnyObject?)
     {
         self.consoleQueue.async { [weak self] in
