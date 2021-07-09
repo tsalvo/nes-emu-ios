@@ -402,7 +402,19 @@ struct PPU
     // $2004: OAMDATA (read)
     private mutating func readOAMData() -> UInt8
     {
-        return self.oamData[Int(self.oamAddress)]
+        let result: UInt8
+        if (self.oamAddress & 0x03) == 0x02 // if sprite byte 2 of 0...3
+        {
+            // bits 2...4 should always come back as zero
+            // (see http://wiki.nesdev.com/w/index.php/PPU_OAM )
+            result = self.oamData[Int(self.oamAddress)] & 0xE3
+        }
+        else
+        {
+            result = self.oamData[Int(self.oamAddress)]
+        }
+        
+        return result
     }
 
     // $2004: OAMDATA (write)
