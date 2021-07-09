@@ -123,7 +123,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     private var audioEngine: AudioEngine = AudioEngine()
     
     // MARK: - Appearance
+#if !os(tvOS)
     override var prefersHomeIndicatorAutoHidden: Bool { return true }
+#endif
     
     // MARK: - UIResponder
     override var canBecomeFirstResponder: Bool
@@ -230,6 +232,13 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         self.resumeEmulation()
     }
     
+    // MARK: - Gesture Recognizers
+    @IBAction func handleTap(_ gesture: UITapGestureRecognizer)
+    {
+        guard let isHidden = self.navigationController?.navigationBar.isHidden else { return }
+        self.navigationController?.setNavigationBarHidden(!isHidden, animated: true)
+    }
+    
     // MARK: - Button Actions
     @objc private func dismissButtonPressed(_ sender: AnyObject?)
     {
@@ -288,6 +297,11 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         guard let md5 = self.cartridge?.md5 else { return }
         self.pauseEmulation()
         self.performSegue(withIdentifier: "showSaveStates", sender: md5)
+    }
+    
+    @IBAction private func screenAreaTapped(_ sender: AnyObject?)
+    {
+        print("screen area tapped")
     }
     
     @IBAction private func startButtonPressed(_ sender: AnyObject?)
