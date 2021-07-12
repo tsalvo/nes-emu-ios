@@ -37,6 +37,7 @@ class Settings
     static let autoSaveKey: String = "autoSaveKey"
     static let loadLastSaveKey: String = "loadLastSaveKey"
     static let sampleRateKey: String = "sampleRateKey"
+    static let audioEnabledKey: String = "audioEnabledKey"
     static let audioFiltersEnabledKey: String = "audioFiltersEnabledKey"
     static let audioSessionNotifyOthersOnDeactivationKey: String = "audioSessionNotifyOthersOnDeactivationKey"
     static let saveDataExistsKey: String = "saveDataExistsKey"
@@ -48,6 +49,7 @@ class Settings
     // MARK: - Default Values
     static let defaultSampleRate: SampleRate = SampleRate._22050Hz
     static let defaultAudioSessionNotifyOthersOnDeactivation = true
+    static let defaultAudioEnabled: Bool = true
     static let defaultAudioFiltersEnabled: Bool = true
     static let defaultAutoSaveKey: Bool = true
     static let defaultLoadLastSaveKey: Bool = true
@@ -63,6 +65,7 @@ class Settings
             Settings.loadLastSaveKey: Settings.defaultLoadLastSaveKey,
             Settings.autoSaveKey: Settings.defaultAutoSaveKey,
             Settings.sampleRateKey: Settings.defaultSampleRate.rawValue,
+            Settings.audioEnabledKey: Settings.defaultAudioEnabled,
             Settings.audioFiltersEnabledKey: Settings.defaultAudioFiltersEnabled,
             Settings.audioSessionNotifyOthersOnDeactivationKey: Settings.defaultAudioSessionNotifyOthersOnDeactivation,
             Settings.saveDataExistsKey: Settings.defaultSaveDataExistsKey,

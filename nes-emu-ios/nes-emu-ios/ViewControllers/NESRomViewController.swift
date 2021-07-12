@@ -74,12 +74,13 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         {
             guard let safeCartridge = self.cartridge else { return }
             let sampleRate: SampleRate = SampleRate.init(rawValue: UserDefaults.standard.integer(forKey: Settings.sampleRateKey)) ?? Settings.defaultSampleRate
+            let audioEnabled: Bool = UserDefaults.standard.bool(forKey: Settings.audioEnabledKey)
             let audioFiltersEnabled: Bool = UserDefaults.standard.bool(forKey: Settings.audioFiltersEnabledKey)
             let autoLoadSave: Bool = UserDefaults.standard.bool(forKey: Settings.loadLastSaveKey)
             let mostRecentState: ConsoleState? = autoLoadSave ? CoreDataController.mostRecentConsoleState(forMD5: safeCartridge.md5) : nil
             self.consoleQueue.async { [weak self] in
                 self?.console = Console(withCartridge: safeCartridge, sampleRate: sampleRate, audioFiltersEnabled: audioFiltersEnabled, state: mostRecentState)
-                self?.console?.set(audioEngineDelegate: self?.audioEngine)
+                self?.console?.set(audioEngineDelegate: audioEnabled ? self?.audioEngine : nil)
                 if mostRecentState == nil
                 {
                     self?.console?.reset()
@@ -120,7 +121,7 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     
     private var console: Console?
     private var displayLink: CADisplayLink?
-    private var audioEngine: AudioEngine = AudioEngine()
+    private let audioEngine: AudioEngine = AudioEngine()
     
     // MARK: - Appearance
 #if !os(tvOS)
