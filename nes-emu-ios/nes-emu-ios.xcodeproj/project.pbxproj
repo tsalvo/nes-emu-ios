@@ -1042,6 +1042,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "nes-emu-ios/nes-emu-ios.entitlements";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 354MRHL389;
 				INFOPLIST_FILE = "nes-emu-ios/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
@@ -1065,6 +1066,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "nes-emu-ios/nes-emu-ios.entitlements";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 354MRHL389;
 				INFOPLIST_FILE = "nes-emu-ios/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
@@ -1087,6 +1089,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 354MRHL389;
 				INFOPLIST_FILE = "nes-thumbnail-provider/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
@@ -1107,6 +1110,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 354MRHL389;
 				INFOPLIST_FILE = "nes-thumbnail-provider/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
