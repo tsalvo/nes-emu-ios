@@ -32,6 +32,7 @@
 "settings-item-audio-sample-rate-description" = "(kHz)";
 "settings-item-resume-other-audio" = "Resume other audio";
 "settings-item-resume-other-audio-description" = "when exiting game";
+"settings-item-audio-enable" = "Enable audio";
 "settings-item-audio-filtering" = "Audio filtering";
 "settings-item-audio-filtering-description" = "(low pass / high pass)";
 "settings-section-general" = "General";

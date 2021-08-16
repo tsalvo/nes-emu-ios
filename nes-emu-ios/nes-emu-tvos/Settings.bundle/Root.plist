@@ -118,6 +118,20 @@
 			<key>Title</key>
 			<string>settings-section-audio</string>
 		</dict>
+        <dict>
+            <key>Type</key>
+            <string>PSToggleSwitchSpecifier</string>
+            <key>Title</key>
+            <string>settings-item-audio-enable</string>
+            <key>Key</key>
+            <string>audioEnabledKey</string>
+            <key>DefaultValue</key>
+            <true/>
+            <key>TrueValue</key>
+            <string>YES</string>
+            <key>FalseValue</key>
+            <string>NO</string>
+        </dict>
 		<dict>
 			<key>Type</key>
 			<string>PSMultiValueSpecifier</string>

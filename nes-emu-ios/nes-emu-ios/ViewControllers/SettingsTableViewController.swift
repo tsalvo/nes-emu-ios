@@ -81,6 +81,11 @@ class SettingsTableViewController: UITableViewController, SettingsConfirmationDe
             sectionName: NSLocalizedString("settings-section-audio", comment: "Audio"),
             cells: [
                 Settings.Cell(
+                    key: Settings.audioEnabledKey,
+                    title: NSLocalizedString("settings-item-audio-enable", comment: "Enable audio"),
+                    description: nil,
+                    type: Settings.CellType.Toggle),
+                Settings.Cell(
                     key: Settings.sampleRateKey,
                     title: NSLocalizedString("settings-item-audio-sample-rate", comment: "Sample Rate"),
                     description: NSLocalizedString("settings-item-audio-sample-rate-description", comment: "(kHz)"),

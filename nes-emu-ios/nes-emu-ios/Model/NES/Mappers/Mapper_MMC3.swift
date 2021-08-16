@@ -106,12 +106,12 @@ struct Mapper_MMC3: MapperProtocol
             self.chrMode = 0
             self.reload = 0
             self.counter = 0
+            
+            self.prgOffsets[0] = self.prgBankOffset(index: 0)
+            self.prgOffsets[1] = self.prgBankOffset(index: 1)
+            self.prgOffsets[2] = self.prgBankOffset(index: -2)
+            self.prgOffsets[3] = self.prgBankOffset(index: -1)
         }
-        
-        self.prgOffsets[0] = self.prgBankOffset(index: 0)
-        self.prgOffsets[1] = self.prgBankOffset(index: 1)
-        self.prgOffsets[2] = self.prgBankOffset(index: -2)
-        self.prgOffsets[3] = self.prgBankOffset(index: -1)
     }
     
     var mapperState: MapperState
@@ -150,12 +150,11 @@ struct Mapper_MMC3: MapperProtocol
         switch aAddress
         {
         case 0x8000 ... 0xFFFF:
-            var address = aAddress
-            address = address - 0x8000
+            let address = aAddress - 0x8000
             let bank = address / 0x2000
             let offset = address % 0x2000
             return self.prg[self.prgOffsets[Int(bank)] + Int(offset)]
-        case 0x6000 ..< 0x8000:
+        case 0x6000 ... 0x7FFF:
             return self.sram[Int(aAddress) - 0x6000]
         default:
             os_log("unhandled Mapper_MMC3 read at address: 0x%04X", aAddress)
@@ -169,7 +168,7 @@ struct Mapper_MMC3: MapperProtocol
         {
         case 0x8000 ... 0xFFFF:
             self.writeRegister(address: aAddress, value: aValue)
-        case 0x6000 ..< 0x8000:
+        case 0x6000 ... 0x7FFF:
             self.sram[Int(aAddress) - 0x6000] = aValue
         default:
             os_log("unhandled Mapper_MMC3 write at address: 0x%04X", aAddress)
@@ -217,7 +216,7 @@ struct Mapper_MMC3: MapperProtocol
     {
         switch aAddress
         {
-        case 0x8000 ..< 0xA000:
+        case 0x8000 ... 0x9FFF:
             if aAddress % 2 == 0
             {
                 self.writeBankSelect(value: aValue)
@@ -226,33 +225,26 @@ struct Mapper_MMC3: MapperProtocol
             {
                 self.writeBankData(value: aValue)
             }
-        case 0xA000 ..< 0xC000:
+        case 0xA000 ... 0xBFFF:
             if aAddress % 2 == 0
             {
                 self.writeMirror(value: aValue)
             }
             else
             {
-                self.writeProtect(value: aValue)
+                self.writeProtect()
             }
-        case 0xC000 ..< 0xE000:
+        case 0xC000 ... 0xDFFF:
             if aAddress % 2 == 0
             {
                 self.writeIRQLatch(value: aValue)
             }
             else
             {
-                self.writeIRQReload(value: aValue)
+                self.writeIRQReload()
             }
         case 0xE000 ... 0xFFFF:
-            if aAddress % 2 == 0
-            {
-                self.writeIRQDisable(value: aValue)
-            }
-            else
-            {
-                self.writeIRQEnable(value: aValue)
-            }
+            self.irqEnable = aAddress % 2 == 1
         default: break
         }
     }
@@ -273,17 +265,10 @@ struct Mapper_MMC3: MapperProtocol
 
     private mutating func writeMirror(value aValue: UInt8)
     {
-        switch aValue & 1
-        {
-        case 0:
-            self.mirroringMode = .vertical
-        case 1:
-            self.mirroringMode = .horizontal
-        default: break
-        }
+        self.mirroringMode = aValue & 1 == 0 ? .vertical : .horizontal
     }
 
-    private func writeProtect(value aValue: UInt8)
+    private func writeProtect()
     {
         
     }
@@ -293,17 +278,17 @@ struct Mapper_MMC3: MapperProtocol
         self.reload = aValue
     }
 
-    private mutating func writeIRQReload(value aValue: UInt8)
+    private mutating func writeIRQReload()
     {
         self.counter = 0
     }
 
-    private mutating func writeIRQDisable(value aValue: UInt8)
+    private mutating func writeIRQDisable()
     {
         self.irqEnable = false
     }
 
-    private mutating func writeIRQEnable(value aValue: UInt8)
+    private mutating func writeIRQEnable()
     {
         self.irqEnable = true
     }
@@ -335,7 +320,7 @@ struct Mapper_MMC3: MapperProtocol
         {
             index -= 0x100
         }
-        index %= self.chr.count / 0x0400
+        index %= (self.chr.count / 0x0400)
         var offset = index * 0x0400
         if offset < 0
         {

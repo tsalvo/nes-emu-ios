@@ -921,17 +921,17 @@ struct APU
     struct DMC
     {
         var enabled: Bool
-        var value: UInt8
-        var sampleAddress: UInt16
-        var sampleLength: UInt16
         var currentAddress: UInt16
         var currentLength: UInt16
-        var shiftRegister: UInt8
-        var bitCount: UInt8
-        var tickPeriod: UInt8
-        var tickValue: UInt8
-        var loop: Bool
-        var irq: Bool
+        private var value: UInt8
+        private var sampleAddress: UInt16
+        private var sampleLength: UInt16
+        private var shiftRegister: UInt8
+        private var bitCount: UInt8
+        private var tickPeriod: UInt8
+        private var tickValue: UInt8
+        private var loop: Bool
+        private var irq: Bool
         
         static let dmcTable: [UInt8] = [214, 190, 170, 160, 143, 127, 113, 107, 95, 80, 71, 64, 53, 42, 36, 27]
         
@@ -995,7 +995,7 @@ struct APU
         mutating func writeLength(value aValue: UInt8)
         {
             // Sample length = %0000LLLL.LLLL0001
-            self.sampleLength = (UInt16(value) << 4) | 1
+            self.sampleLength = (UInt16(aValue) << 4) | 1
         }
 
         mutating func restart()
