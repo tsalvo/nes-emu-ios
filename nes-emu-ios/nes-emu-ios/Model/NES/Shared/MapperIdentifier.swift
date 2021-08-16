@@ -300,6 +300,7 @@ enum MapperIdentifier: UInt8
              .GxROM,
              .Namcot118_TengenMimic1,
              .MMC5,
+             .VRC4b_VRC4d,
              .NTDEC_2722:
             return true
         default: return false
