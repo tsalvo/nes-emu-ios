@@ -3,7 +3,7 @@
 //  nes-emu-ios
 //
 //  Created by Tom Salvo on 10/15/20.
-//  Copyright © 2020 Tom Salvo. All rights reserved.
+//  Copyright © 2020 Tom Salvo.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
