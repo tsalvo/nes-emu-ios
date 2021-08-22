@@ -28,7 +28,8 @@ import os
 
 struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
 {
-    static private let scalerPreset: Int = 341
+    static private let scalerPreset: Int = 341 * 3 // TODO: this should be 341
+    static private let scalerDelta: Int = 3
     
     let hasStep: Bool = true
     
@@ -362,7 +363,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
         }
         else
         {
-            self.irqScaler -= 3
+            self.irqScaler -= Mapper_VRC2c_VRC4b_VRC4d.scalerDelta
             
             if self.irqScaler <= 0
             {
