@@ -28,6 +28,8 @@ import os
 
 struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
 {
+    static private let scalerPreset: Int = 341
+    
     let hasStep: Bool = true
     
     let hasExtendedNametableMapping: Bool = false
@@ -40,13 +42,15 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     /// linear 1D array of all CHR blocks
     private var chr: [UInt8] = []
     
-    /// low 4 bytes and high 5 bytes for each of the 8 banks
-    private var chrBanks: [UInt8] = [UInt8](repeating: 0, count: 16)
     
-    /// CHR array index offsets for each of the 8x 1KB banks
-    private var chrOffsets: [Int] = [Int](repeating: 0, count: 8)
+    /// CHR bank offsets (in 1 KiB)
+    private var chrBankOffsets: [Int] = [Int](repeating: 0, count: 8)
+    
+    private var chrBankLowHigh: [UInt8] = [UInt8](repeating: 0, count: 16)
     
     private var prgOffsets: [Int] = [Int](repeating: 0, count: 4)
+    
+    private var prgBank800XRegOffset: Int = 0
     
     private var sram: [UInt8] = [UInt8](repeating: 0, count: 8192)
     
@@ -58,11 +62,18 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     
     private var irqCycleMode: Bool = false
     
-    private var irqLatchReloadValue: UInt8 = 0
+    /// IRQ Latch Reload Value
+    private var irqLatch: UInt8 = 0
     
     private var irqCounter: UInt8 = 0
     
-    private var prescaler: Int = 341
+    private var irqScaler: Int = Mapper_VRC2c_VRC4b_VRC4d.scalerPreset
+    
+    private var irqLine: Bool = false
+    
+    private let prgBankMask: UInt8
+    
+    private let chrBankMask: UInt8
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
@@ -80,6 +91,9 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
         
         self.prgOffsets[2] = max(0, self.prg.count - 0x4000) // 16KB from end
         self.prgOffsets[3] = max(0, self.prg.count - 0x2000) // 8KB from end
+        
+        self.prgBankMask = self.prg.count > 256 * 1024 ? 0x1F : 0x0F
+        self.chrBankMask = self.chr.count > 256 * 1024 ? 0x1F : self.chr.count > 128 * 1024 ? 0x0F : 0x07
     }
     
     var mapperState: MapperState
@@ -112,28 +126,41 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     
     mutating func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
+        // account for VRC variants
+        let adjustedAddress: UInt16
+        
         switch aAddress
         {
+        case 0x8000 ... 0xFFFF:
+            let A0 = ((aAddress >> 1) | (aAddress >> 3)) & 1
+            let A1 = (aAddress | (aAddress >> 2)) & 1
+            let translatedAddress = (aAddress & 0xFF00) | (A1 << 1) | A0
+            adjustedAddress = translatedAddress & 0xF00F
+        default: adjustedAddress = aAddress
+        }
+        
+        switch adjustedAddress
+        {
         case 0x6000 ... 0x7FFF:
-            self.sram[Int(aAddress - 0x6000)] = aValue
+            self.sram[Int(adjustedAddress - 0x6000)] = aValue
         case 0x8000 ... 0x8003:
             /*
-            7  bit  0
-            ---------
-            ...P PPPP
-               | ||||
-               +-++++- Select 8 KiB PRG bank at $8000 or $C000 depending on Swap Mode
-            */
-            let prgBankIndex = self.swapMode ? 2 : 0
-            self.prgOffsets[prgBankIndex] = Int(aValue & 0x0F) * 0x2000 // TODO: 0x1F for larger PRG ROMs?
-        case 0x9000 ... 0x9001, 0x9003:
+             7  bit  0
+             ---------
+             ...P PPPP
+                | ||||
+                +-++++- Select 8 KiB PRG bank at $8000 or $C000 depending on Swap Mode
+             */
+            self.prgBank800XRegOffset = Int(aValue & self.prgBankMask) * 0x2000
+            self.prgOffsets[self.swapMode ? 2 : 0] = self.prgBank800XRegOffset
+        case 0x9000:
             /*
-            7  bit  0
-            ---------
-            .... ..MM
-                   ||
-                   ++- Mirroring (0: vertical; 1: horizontal; 2: one-screen, lower bank; 3: one-screen, upper bank)
-            */
+             7  bit  0
+             ---------
+             .... ..MM
+                    ||
+                    ++- Mirroring (0: vertical; 1: horizontal; 2: one-screen, lower bank; 3: one-screen, upper bank)
+             */
             switch aValue & 0x03
             {
             case 0: self.mirroringMode = .vertical
@@ -156,213 +183,114 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
              When 'M' is set:
              the 8 KiB page at $8000 is fixed to the second last 8 KiB in the ROM
              the 8 KiB page at $C000 is controlled by the $800x register
-            */
+             */
             self.swapMode = (aValue >> 1) & 1 == 1
+            
+            self.prgOffsets[self.swapMode ? 0 : 2] = max(0, self.prg.count - 0x4000)
+            self.prgOffsets[self.swapMode ? 2 : 0] = self.prgBank800XRegOffset
+
         case 0xA000 ... 0xA003:
             /*
-            7  bit  0
-            ---------
-            ...P PPPP
-               | ||||
-               +-++++- Select 8 KiB PRG bank at $A000
-            */
-            self.prgOffsets[1] = Int(aValue & 0x0F) * 0x2000 // TODO: 0x1F for larger PRG ROMs?
+             7  bit  0
+             ---------
+             ...P PPPP
+                | ||||
+                +-++++- Select 8 KiB PRG bank at $A000
+             */
+            self.prgOffsets[1] = Int(aValue & self.prgBankMask) * 0x2000
+            
         case 0xB000:
-            /*
-              $B000
-              7  bit  0
-              ---------
-              .... LLLL
-                   ||||
-                   ++++--- Low 4 bits of 1 KiB CHR bank at PPU $0000
-            */
-            self.chrBanks[0] = aValue & 0x0F
-            self.chrOffsets[0] = Int(UInt16(self.chrBanks[0]) | (UInt16(self.chrBanks[1]) << 4)) * 0x0400
+            let low: UInt8 = aValue & 0x0F
+            self.chrBankLowHigh[0] = low
+            self.chrBankOffsets[0] = Int((self.chrBankLowHigh[1] & 0xF0) | low) * 0x0400
         case 0xB001:
-            /*
-              $B001
-              7  bit  0
-              ---------
-              ...H HHHH
-                 | ||||
-                 +-++++-- High 5 bits of 1 KiB CHR bank at PPU $0000
-            */
-            self.chrBanks[1] = aValue & 0x1F
-            self.chrOffsets[0] = Int(UInt16(self.chrBanks[0]) | (UInt16(self.chrBanks[1]) << 4)) * 0x0400
+            let hi: UInt8 = ((aValue & 0x1F) << 4)
+            self.chrBankLowHigh[1] = hi
+            self.chrBankOffsets[0] = Int(hi | self.chrBankLowHigh[0]) * 0x0400
+            
         case 0xB002:
-            /*
-              $B002
-              7  bit  0
-              ---------
-              .... LLLL
-                   ||||
-                   ++++--- Low 4 bits of 1 KiB CHR bank at PPU $0400
-            */
-            self.chrBanks[2] = aValue & 0x0F
-            self.chrOffsets[1] = Int(UInt16(self.chrBanks[2]) | (UInt16(self.chrBanks[3]) << 4)) * 0x0400
+            let low: UInt8 = aValue & 0x0F
+            self.chrBankLowHigh[2] = low
+            self.chrBankOffsets[1] = Int((self.chrBankLowHigh[3] & 0xF0) | low) * 0x0400
         case 0xB003:
-            /*
-              $B003
-              7  bit  0
-              ---------
-              ...H HHHH
-                 | ||||
-                 +-++++-- High 5 bits of 1 KiB CHR bank at PPU $0400
-            */
-            self.chrBanks[3] = aValue & 0x1F
-            self.chrOffsets[1] = Int(UInt16(self.chrBanks[2]) | (UInt16(self.chrBanks[3]) << 4)) * 0x0400
+            let hi: UInt8 = ((aValue & 0x1F) << 4)
+            self.chrBankLowHigh[3] = hi
+            self.chrBankOffsets[1] = Int(hi | self.chrBankLowHigh[2]) * 0x0400
+            
         case 0xC000:
-            /*
-              $C000
-              7  bit  0
-              ---------
-              .... LLLL
-                   ||||
-                   ++++--- Low 4 bits of 1 KiB CHR bank at PPU $0800
-            */
-            self.chrBanks[4] = aValue & 0x0F
-            self.chrOffsets[2] = Int(UInt16(self.chrBanks[4]) | (UInt16(self.chrBanks[5]) << 4)) * 0x0400
+            let low: UInt8 = aValue & 0x0F
+            self.chrBankLowHigh[4] = low
+            self.chrBankOffsets[2] = Int((self.chrBankLowHigh[5] & 0xF0) | low) * 0x0400
         case 0xC001:
-            /*
-              $C001
-              7  bit  0
-              ---------
-              ...H HHHH
-                 | ||||
-                 +-++++-- High 5 bits of 1 KiB CHR bank at PPU $0800
-            */
-            self.chrBanks[5] = aValue & 0x1F
-            self.chrOffsets[2] = Int(UInt16(self.chrBanks[4]) | (UInt16(self.chrBanks[5]) << 4)) * 0x0400
+            let hi: UInt8 = ((aValue & 0x1F) << 4)
+            self.chrBankLowHigh[5] = hi
+            self.chrBankOffsets[2] = Int(hi | self.chrBankLowHigh[4]) * 0x0400
+            
         case 0xC002:
-            /*
-              $C002
-              7  bit  0
-              ---------
-              .... LLLL
-                   ||||
-                   ++++--- Low 4 bits of 1 KiB CHR bank at PPU $0C00
-            */
-            self.chrBanks[6] = aValue & 0x0F
-            self.chrOffsets[3] = Int(UInt16(self.chrBanks[6]) | (UInt16(self.chrBanks[7]) << 4)) * 0x0400
+            let low: UInt8 = aValue & 0x0F
+            self.chrBankLowHigh[6] = low
+            self.chrBankOffsets[3] = Int((self.chrBankLowHigh[7] & 0xF0) | low) * 0x0400
         case 0xC003:
-            /*
-              $C003
-              7  bit  0
-              ---------
-              ...H HHHH
-                 | ||||
-                 +-++++-- High 5 bits of 1 KiB CHR bank at PPU $0C00
-            */
-            self.chrBanks[7] = aValue & 0x1F
-            self.chrOffsets[3] = Int(UInt16(self.chrBanks[6]) | (UInt16(self.chrBanks[7]) << 4)) * 0x0400
+            let hi: UInt8 = ((aValue & 0x1F) << 4)
+            self.chrBankLowHigh[7] = hi
+            self.chrBankOffsets[3] = Int(hi | self.chrBankLowHigh[6]) * 0x0400
+            
         case 0xD000:
-            /*
-              $D000
-              7  bit  0
-              ---------
-              .... LLLL
-                   ||||
-                   ++++--- Low 4 bits of 1 KiB CHR bank at PPU $1000
-            */
-            self.chrBanks[8] = aValue & 0x0F
-            self.chrOffsets[4] = Int(UInt16(self.chrBanks[8]) | (UInt16(self.chrBanks[9]) << 4)) * 0x0400
+            let low: UInt8 = aValue & 0x0F
+            self.chrBankLowHigh[8] = low
+            self.chrBankOffsets[4] = Int((self.chrBankLowHigh[9] & 0xF0) | low) * 0x0400
         case 0xD001:
-            /*
-              $D001
-              7  bit  0
-              ---------
-              ...H HHHH
-                 | ||||
-                 +-++++-- High 5 bits of 1 KiB CHR bank at PPU $1000
-            */
-            self.chrBanks[9] = aValue & 0x1F
-            self.chrOffsets[4] = Int(UInt16(self.chrBanks[8]) | (UInt16(self.chrBanks[9]) << 4)) * 0x0400
+            let hi: UInt8 = ((aValue & 0x1F) << 4)
+            self.chrBankLowHigh[9] = hi
+            self.chrBankOffsets[4] = Int(hi | self.chrBankLowHigh[8]) * 0x0400
+            
         case 0xD002:
-            /*
-              $D002
-              7  bit  0
-              ---------
-              .... LLLL
-                   ||||
-                   ++++--- Low 4 bits of 1 KiB CHR bank at PPU $1400
-            */
-            self.chrBanks[10] = aValue & 0x0F
-            self.chrOffsets[5] = Int(UInt16(self.chrBanks[10]) | (UInt16(self.chrBanks[11]) << 4)) * 0x0400
+            let low: UInt8 = aValue & 0x0F
+            self.chrBankLowHigh[10] = low
+            self.chrBankOffsets[5] = Int((self.chrBankLowHigh[11] & 0xF0) | low) * 0x0400
         case 0xD003:
-            /*
-              $D003
-              7  bit  0
-              ---------
-              ...H HHHH
-                 | ||||
-                 +-++++-- High 5 bits of 1 KiB CHR bank at PPU $1400
-            */
-            self.chrBanks[11] = aValue & 0x1F
-            self.chrOffsets[5] = Int(UInt16(self.chrBanks[10]) | (UInt16(self.chrBanks[11]) << 4)) * 0x0400
+            let hi: UInt8 = ((aValue & 0x1F) << 4)
+            self.chrBankLowHigh[11] = hi
+            self.chrBankOffsets[5] = Int(hi | self.chrBankLowHigh[10]) * 0x0400
+            
         case 0xE000:
-            /*
-              $E000
-              7  bit  0
-              ---------
-              .... LLLL
-                   ||||
-                   ++++--- Low 4 bits of 1 KiB CHR bank at PPU $1800
-            */
-            self.chrBanks[12] = aValue & 0x0F
-            self.chrOffsets[6] = Int(UInt16(self.chrBanks[12]) | (UInt16(self.chrBanks[13]) << 4)) * 0x0400
+            let low: UInt8 = aValue & 0x0F
+            self.chrBankLowHigh[12] = low
+            self.chrBankOffsets[6] = Int((self.chrBankLowHigh[13] & 0xF0) | low) * 0x0400
         case 0xE001:
-            /*
-              $E001
-              7  bit  0
-              ---------
-              ...H HHHH
-                 | ||||
-                 +-++++-- High 5 bits of 1 KiB CHR bank at PPU $1800
-            */
-            self.chrBanks[13] = aValue & 0x1F
-            self.chrOffsets[6] = Int(UInt16(self.chrBanks[12]) | (UInt16(self.chrBanks[13]) << 4)) * 0x0400
+            let hi: UInt8 = ((aValue & 0x1F) << 4)
+            self.chrBankLowHigh[13] = hi
+            self.chrBankOffsets[6] = Int(hi | self.chrBankLowHigh[12]) * 0x0400
+            
         case 0xE002:
-            /*
-              $E002
-              7  bit  0
-              ---------
-              .... LLLL
-                   ||||
-                   ++++--- Low 4 bits of 1 KiB CHR bank at PPU $1C00
-            */
-            self.chrBanks[14] = aValue & 0x0F
-            self.chrOffsets[7] = Int(UInt16(self.chrBanks[14]) | (UInt16(self.chrBanks[15]) << 4)) * 0x0400
+            let low: UInt8 = aValue & 0x0F
+            self.chrBankLowHigh[14] = low
+            self.chrBankOffsets[7] = Int((self.chrBankLowHigh[15] & 0xF0) | low) * 0x0400
         case 0xE003:
-            /*
-              $E003
-              7  bit  0
-              ---------
-              ...H HHHH
-                 | ||||
-                 +-++++-- High 5 bits of 1 KiB CHR bank at PPU $1C00
-            */
-            self.chrBanks[15] = aValue & 0x1F
-            self.chrOffsets[7] = Int(UInt16(self.chrBanks[14]) | (UInt16(self.chrBanks[15]) << 4)) * 0x0400
+            let hi: UInt8 = ((aValue & 0x1F) << 4)
+            self.chrBankLowHigh[15] = hi
+            self.chrBankOffsets[7] = Int(hi | self.chrBankLowHigh[14]) * 0x0400
+            
         case 0xF000:
             // $F000:  IRQ Latch, low 4 bits
             /*
-            7  bit  0
-            ---------
-            .... LLLL
-                 ||||
-                 ++++- IRQ Latch (reload value)
-            */
-            self.irqLatchReloadValue = (aValue & 0x0F) | (self.irqLatchReloadValue & 0xF0)
+             7  bit  0
+             ---------
+             .... LLLL
+                  ||||
+                  ++++- IRQ Latch (reload value)
+             */
+            self.irqLatch = (aValue & 0x0F) | (self.irqLatch & 0xF0)
         case 0xF001:
             // $F001:  IRQ Latch, high 4 bits
             /*
-            7  bit  0
-            ---------
-            LLLL ....
-            ||||
-            ++++------ IRQ Latch (reload value)
-            */
-            self.irqLatchReloadValue = (aValue & 0xF0) | (self.irqLatchReloadValue & 0x0F)
+             7  bit  0
+             ---------
+             LLLL ....
+             ||||
+             ++++------ IRQ Latch (reload value)
+             */
+            self.irqLatch = ((aValue & 0x0F) << 4) | (self.irqLatch & 0x0F)
         case 0xF002:
             // $F002:  IRQ Control
             /*
@@ -374,11 +302,19 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
                    |+-- IRQ Enable (1 = enabled)
                    +--- IRQ Mode (1 = cycle mode, 0 = scanline mode)
              */
-            self.irqEnableAfterAcknowledgement = (aValue >> 0) & 1 == 1
+            self.irqEnableAfterAcknowledgement = aValue & 1 == 1
             self.irqEnable = (aValue >> 1) & 1 == 1
             self.irqCycleMode = (aValue >> 2) & 1 == 1
+            self.irqLine = false
+            if self.irqEnable
+            {
+                self.irqCounter = self.irqLatch
+                self.irqScaler = Mapper_VRC2c_VRC4b_VRC4d.scalerPreset
+            }
+
         case 0xF003:
             // $F003:  IRQ Acknowledge
+            self.irqLine = false
             self.irqEnable = self.irqEnableAfterAcknowledgement
         default:
             os_log("unhandled Mapper_VRC2c_VRC4b_VRC4d CPU write at address: 0x%04X", aAddress)
@@ -389,9 +325,9 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     {
         switch aAddress {
         case 0x0000 ... 0x1FFF:
-            let bank = aAddress / 0x0400
-            let offset = aAddress % 0x0400
-            return self.chr[self.chrOffsets[Int(bank)] + Int(offset)]
+            let bankOffset: Int = self.chrBankOffsets[Int(aAddress / 0x0400)]
+            let offset = Int(aAddress) % 0x0400
+            return self.chr[bankOffset + offset]
         default:
             os_log("unhandled Mapper_VRC2c_VRC4b_VRC4d PPU read at address: 0x%04X", aAddress)
             return 0
@@ -403,10 +339,6 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     {
         switch aAddress
         {
-        case 0x0000 ... 0x1FFF:
-            let bank = aAddress / 0x0400
-            let offset = aAddress % 0x0400
-            self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
         default:
             os_log("unhandled Mapper_VRC2c_VRC4b_VRC4d PPU write at address: 0x%04X", aAddress)
         }
@@ -414,45 +346,40 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        let shouldTriggerIRQ: Bool
+        guard self.irqEnable else { return MapperStepResults(requestedCPUInterrupt: nil) }
+        
         if self.irqCycleMode
         {
-            self.irqCounter += 1
-            
             if self.irqCounter == 0xFF
             {
-                self.irqCounter = self.irqLatchReloadValue
-                shouldTriggerIRQ = true
+                self.irqCounter = self.irqLatch
+                self.irqLine = true
             }
             else
             {
-                shouldTriggerIRQ = false
+                self.irqCounter += 1
             }
         }
         else
         {
-            self.prescaler -= 3
+            self.irqScaler -= 3
             
-            if prescaler <= 0
+            if self.irqScaler <= 0
             {
-                self.irqCounter += 1
+                self.irqScaler += Mapper_VRC2c_VRC4b_VRC4d.scalerPreset
                 
                 if self.irqCounter == 0xFF
                 {
-                    self.irqCounter = self.irqLatchReloadValue
-                    shouldTriggerIRQ = true
+                    self.irqCounter = self.irqLatch
+                    self.irqLine = true
                 }
                 else
                 {
-                    shouldTriggerIRQ = false
+                    self.irqCounter += 1
                 }
-            }
-            else
-            {
-                shouldTriggerIRQ = false
             }
         }
         
-        return MapperStepResults(requestedCPUInterrupt: shouldTriggerIRQ ? .irq : nil)
+        return MapperStepResults(requestedCPUInterrupt: self.irqLine ? .irq : nil)
     }
 }
