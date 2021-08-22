@@ -192,7 +192,7 @@ struct Mapper_MMC3: MapperProtocol
     
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        if aMapperStepInput.ppuCycle != 280 // TODO: this *should* be 260
+        if aMapperStepInput.ppuCycle != 280 // TODO: this should be 260
         {
             return MapperStepResults(requestedCPUInterrupt: nil)
         }

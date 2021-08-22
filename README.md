@@ -31,6 +31,7 @@ The following mappers have been implemented:
 -  AxROM (7)
 -  MMC2 (9)
 -  ColorDreams (11)
+-  VRC2b / VRC4b / VRC4d (25)
 -  NTDEC2722 (40)
 -  GxROM (66)
 -  Namcot 118 / Tengen Mimic 1 (206)
