@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
-    <device id="retina4_0" orientation="portrait" appearance="light"/>
+    <device id="retina4_0" orientation="landscape" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
@@ -13,7 +13,7 @@
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="DocumentBrowserViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <viewLayoutGuide key="safeArea" id="0fo-ii-Aj5"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -33,7 +33,7 @@
             <objects>
                 <tableViewController id="hmr-eV-lPG" customClass="SettingsTableViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="LMx-Ai-N2b">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="548"/>
+                        <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <connections>
@@ -55,7 +55,7 @@
             <objects>
                 <tableViewController id="jSo-Gi-y31" customClass="SettingsInfoViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="wqf-Je-dwM">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="548"/>
+                        <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <connections>
@@ -74,7 +74,7 @@
             <objects>
                 <navigationController modalPresentationStyle="fullScreen" id="5BT-EE-k8e" customClass="NesRomNavigationController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="ue3-zN-qSd">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <rect key="frame" x="0.0" y="0.0" width="568" height="32"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="tintColor" systemColor="systemRedColor"/>
                     </navigationBar>
@@ -91,14 +91,21 @@
             <objects>
                 <viewController modalPresentationStyle="fullScreen" id="tG2-AL-uMa" customClass="NesRomViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="iZl-zf-zL1">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="t5P-yH-839" userLabel="Screen Container">
-                                <rect key="frame" x="0.0" y="44" width="320" height="376"/>
+                                <rect key="frame" x="0.0" y="32" width="568" height="288"/>
                                 <subviews>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Nns-0n-xu1" userLabel="Screen Tap Area">
+                                        <rect key="frame" x="164" y="0.0" width="244" height="288"/>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <connections>
+                                            <outletCollection property="gestureRecognizers" destination="Wfi-3b-1LU" appends="YES" id="xw7-5Q-r0I"/>
+                                        </connections>
+                                    </view>
                                     <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="f8W-xa-Q3Q" customClass="NESScreenView" customModule="nes_emu_ios" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="48" width="320" height="280"/>
+                                        <rect key="frame" x="119.5" y="0.0" width="329" height="288"/>
                                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="f8W-xa-Q3Q" secondAttribute="height" multiplier="16:14" id="KLC-9d-tlh"/>
@@ -108,19 +115,20 @@
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <gestureRecognizers/>
                                 <constraints>
+                                    <constraint firstItem="Nns-0n-xu1" firstAttribute="top" secondItem="t5P-yH-839" secondAttribute="top" id="4gm-dV-jjd"/>
+                                    <constraint firstItem="Nns-0n-xu1" firstAttribute="bottom" secondItem="f8W-xa-Q3Q" secondAttribute="bottom" priority="250" id="6tR-MQ-mHq"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" secondItem="t5P-yH-839" secondAttribute="top" priority="750" id="89m-W4-57r"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="centerY" secondItem="t5P-yH-839" secondAttribute="centerY" id="CIm-tP-dXS"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="leading" secondItem="t5P-yH-839" secondAttribute="leading" priority="750" id="EsP-jf-Ba1"/>
+                                    <constraint firstItem="Nns-0n-xu1" firstAttribute="trailing" secondItem="f8W-xa-Q3Q" secondAttribute="trailing" priority="250" id="MDw-uv-GnK"/>
+                                    <constraint firstItem="Nns-0n-xu1" firstAttribute="leading" secondItem="f8W-xa-Q3Q" secondAttribute="leading" priority="250" id="R88-6E-tDb"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" relation="greaterThanOrEqual" secondItem="t5P-yH-839" secondAttribute="top" id="WkX-KZ-q3B"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="centerX" secondItem="t5P-yH-839" secondAttribute="centerX" id="jUz-mx-pLS"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="t5P-yH-839" secondAttribute="leading" id="vNr-dw-50t"/>
                                 </constraints>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="Wfi-3b-1LU" appends="YES" id="4uG-I1-G8p"/>
-                                </connections>
                             </view>
                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="pP6-r1-1gz">
-                                <rect key="frame" x="4" y="422" width="130" height="130"/>
+                                <rect key="frame" x="4" y="174" width="130" height="130"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="JqW-Op-bh5">
                                         <rect key="frame" x="0.0" y="0.0" width="43.5" height="130"/>
@@ -224,7 +232,7 @@
                                 </constraints>
                             </stackView>
                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="oq8-Zg-vo9">
-                                <rect key="frame" x="190" y="425.5" width="130" height="123"/>
+                                <rect key="frame" x="438" y="177.5" width="130" height="123"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="cRG-tO-gpk">
                                         <rect key="frame" x="0.0" y="0.0" width="65" height="123"/>
@@ -305,6 +313,7 @@
                         <viewLayoutGuide key="safeArea" id="vZj-GA-yrE"/>
                         <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="Nns-0n-xu1" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="pP6-r1-1gz" secondAttribute="trailing" constant="30" id="5j7-yw-UYJ"/>
                             <constraint firstItem="pP6-r1-1gz" firstAttribute="leading" secondItem="vZj-GA-yrE" secondAttribute="leading" constant="4" id="FCA-OU-TSh"/>
                             <constraint firstItem="vZj-GA-yrE" firstAttribute="trailing" secondItem="oq8-Zg-vo9" secondAttribute="trailing" id="Fja-ag-YmM"/>
                             <constraint firstItem="vZj-GA-yrE" firstAttribute="trailing" secondItem="t5P-yH-839" secondAttribute="trailing" priority="750" id="FrY-aQ-I2y"/>
@@ -314,17 +323,29 @@
                             <constraint firstItem="vZj-GA-yrE" firstAttribute="bottom" secondItem="t5P-yH-839" secondAttribute="bottom" id="XDT-ca-S0s"/>
                             <constraint firstItem="t5P-yH-839" firstAttribute="top" secondItem="vZj-GA-yrE" secondAttribute="top" id="ZrB-A7-M6A"/>
                             <constraint firstItem="t5P-yH-839" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="vZj-GA-yrE" secondAttribute="leading" id="npI-NY-Lem"/>
+                            <constraint firstItem="pP6-r1-1gz" firstAttribute="top" relation="greaterThanOrEqual" secondItem="Nns-0n-xu1" secondAttribute="bottom" constant="30" id="q8C-UT-rIQ"/>
                             <constraint firstItem="t5P-yH-839" firstAttribute="centerX" secondItem="vZj-GA-yrE" secondAttribute="centerX" id="wMy-4l-uh5"/>
                             <constraint firstItem="pP6-r1-1gz" firstAttribute="top" secondItem="t5P-yH-839" secondAttribute="bottom" constant="2" id="wqm-V6-hjb"/>
+                            <constraint firstItem="oq8-Zg-vo9" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Nns-0n-xu1" secondAttribute="trailing" constant="30" id="yaU-5s-cMi"/>
                         </constraints>
                         <variation key="default">
                             <mask key="constraints">
+                                <exclude reference="5j7-yw-UYJ"/>
+                                <exclude reference="q8C-UT-rIQ"/>
                                 <exclude reference="wqm-V6-hjb"/>
+                                <exclude reference="yaU-5s-cMi"/>
+                            </mask>
+                        </variation>
+                        <variation key="heightClass=compact-widthClass=compact">
+                            <mask key="constraints">
+                                <include reference="5j7-yw-UYJ"/>
+                                <include reference="yaU-5s-cMi"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=regular-widthClass=compact">
                             <mask key="constraints">
                                 <exclude reference="XDT-ca-S0s"/>
+                                <include reference="q8C-UT-rIQ"/>
                                 <include reference="wqm-V6-hjb"/>
                             </mask>
                         </variation>
@@ -337,6 +358,9 @@
                         <outlet property="leftButton" destination="KF5-e2-XF4" id="Kvh-Xa-Jn0"/>
                         <outlet property="rightButton" destination="bqs-F1-1KH" id="XUm-ym-l7n"/>
                         <outlet property="screen" destination="f8W-xa-Q3Q" id="LeF-d8-C8t"/>
+                        <outlet property="screenTapAreaBottomToButtons" destination="q8C-UT-rIQ" id="dgm-dp-Gho"/>
+                        <outlet property="screenTapAreaLeadingToButtons" destination="5j7-yw-UYJ" id="NPj-yj-kWc"/>
+                        <outlet property="screenTapAreaTrailingToButtons" destination="yaU-5s-cMi" id="8aj-v2-gj7"/>
                         <outlet property="selectButton" destination="uLW-yG-SzU" id="LfM-T3-PP9"/>
                         <outlet property="startButton" destination="wui-H7-WCo" id="RrK-eh-ddm"/>
                         <outlet property="upButton" destination="qL6-1K-g4H" id="Hhp-bY-9Jb"/>
@@ -357,7 +381,7 @@
             <objects>
                 <tableViewController id="KAg-fP-qjG" customClass="ConsoleStateTableViewController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="lIf-lE-wa4">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="548"/>
+                        <rect key="frame" x="0.0" y="0.0" width="568" height="320"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <connections>
@@ -377,7 +401,7 @@
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="UiQ-dc-SHc" customClass="SettingsNavigationController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="KzW-dK-72Q">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="56"/>
+                        <rect key="frame" x="0.0" y="0.0" width="568" height="32"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -395,7 +419,7 @@
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="OpZ-uS-3HC" customClass="ConsoleStateNavigationController" customModule="nes_emu_ios" customModuleProvider="target" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="tWA-hC-Pmp">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="56"/>
+                        <rect key="frame" x="0.0" y="0.0" width="568" height="32"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="tintColor" systemColor="systemRedColor"/>
                     </navigationBar>
