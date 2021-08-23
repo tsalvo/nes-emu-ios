@@ -745,9 +745,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
             }
         }
 
-        self.screenTapAreaBottomToButtons?.isActive = !hidden
-        self.screenTapAreaLeadingToButtons?.isActive = !hidden
-        self.screenTapAreaTrailingToButtons?.isActive = !hidden
+        self.screenTapAreaBottomToButtons?.isActive = !hidden && self.traitCollection.horizontalSizeClass == .compact && self.traitCollection.verticalSizeClass == .regular
+        self.screenTapAreaLeadingToButtons?.isActive = !hidden && self.traitCollection.horizontalSizeClass == .compact && self.traitCollection.verticalSizeClass == .compact
+        self.screenTapAreaTrailingToButtons?.isActive = !hidden && self.traitCollection.horizontalSizeClass == .compact && self.traitCollection.verticalSizeClass == .compact
 #endif
     }
     
