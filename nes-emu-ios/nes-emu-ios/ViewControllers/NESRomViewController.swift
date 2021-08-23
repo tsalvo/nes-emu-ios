@@ -57,6 +57,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     @IBOutlet weak private var rightButton: UIButton!
     @IBOutlet weak private var selectButton: UIButton!
     @IBOutlet weak private var startButton: UIButton!
+    @IBOutlet weak private var screenTapAreaLeadingToButtons: NSLayoutConstraint?
+    @IBOutlet weak private var screenTapAreaTrailingToButtons: NSLayoutConstraint?
+    @IBOutlet weak private var screenTapAreaBottomToButtons: NSLayoutConstraint?
 #endif
     
     // MARK: - Private Variables
@@ -741,6 +744,10 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
                 b.isHidden = hidden
             }
         }
+
+        self.screenTapAreaBottomToButtons?.isActive = !hidden && self.traitCollection.horizontalSizeClass == .compact && self.traitCollection.verticalSizeClass == .regular
+        self.screenTapAreaLeadingToButtons?.isActive = !hidden && self.traitCollection.horizontalSizeClass == .compact && self.traitCollection.verticalSizeClass == .compact
+        self.screenTapAreaTrailingToButtons?.isActive = !hidden && self.traitCollection.horizontalSizeClass == .compact && self.traitCollection.verticalSizeClass == .compact
 #endif
     }
     

@@ -97,6 +97,13 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="t5P-yH-839" userLabel="Screen Container">
                                 <rect key="frame" x="0.0" y="44" width="320" height="376"/>
                                 <subviews>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Nns-0n-xu1" userLabel="Screen Tap Area">
+                                        <rect key="frame" x="0.0" y="0.0" width="320" height="328"/>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <connections>
+                                            <outletCollection property="gestureRecognizers" destination="Wfi-3b-1LU" appends="YES" id="xw7-5Q-r0I"/>
+                                        </connections>
+                                    </view>
                                     <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="f8W-xa-Q3Q" customClass="NESScreenView" customModule="nes_emu_ios" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="48" width="320" height="280"/>
                                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -108,16 +115,17 @@
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <gestureRecognizers/>
                                 <constraints>
+                                    <constraint firstItem="Nns-0n-xu1" firstAttribute="top" secondItem="t5P-yH-839" secondAttribute="top" id="4gm-dV-jjd"/>
+                                    <constraint firstItem="Nns-0n-xu1" firstAttribute="bottom" secondItem="f8W-xa-Q3Q" secondAttribute="bottom" priority="250" id="6tR-MQ-mHq"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" secondItem="t5P-yH-839" secondAttribute="top" priority="750" id="89m-W4-57r"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="centerY" secondItem="t5P-yH-839" secondAttribute="centerY" id="CIm-tP-dXS"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="leading" secondItem="t5P-yH-839" secondAttribute="leading" priority="750" id="EsP-jf-Ba1"/>
+                                    <constraint firstItem="Nns-0n-xu1" firstAttribute="trailing" secondItem="f8W-xa-Q3Q" secondAttribute="trailing" priority="250" id="MDw-uv-GnK"/>
+                                    <constraint firstItem="Nns-0n-xu1" firstAttribute="leading" secondItem="f8W-xa-Q3Q" secondAttribute="leading" priority="250" id="R88-6E-tDb"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="top" relation="greaterThanOrEqual" secondItem="t5P-yH-839" secondAttribute="top" id="WkX-KZ-q3B"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="centerX" secondItem="t5P-yH-839" secondAttribute="centerX" id="jUz-mx-pLS"/>
                                     <constraint firstItem="f8W-xa-Q3Q" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="t5P-yH-839" secondAttribute="leading" id="vNr-dw-50t"/>
                                 </constraints>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="Wfi-3b-1LU" appends="YES" id="4uG-I1-G8p"/>
-                                </connections>
                             </view>
                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="pP6-r1-1gz">
                                 <rect key="frame" x="4" y="422" width="130" height="130"/>
@@ -305,6 +313,7 @@
                         <viewLayoutGuide key="safeArea" id="vZj-GA-yrE"/>
                         <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="Nns-0n-xu1" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="pP6-r1-1gz" secondAttribute="trailing" constant="30" id="5j7-yw-UYJ"/>
                             <constraint firstItem="pP6-r1-1gz" firstAttribute="leading" secondItem="vZj-GA-yrE" secondAttribute="leading" constant="4" id="FCA-OU-TSh"/>
                             <constraint firstItem="vZj-GA-yrE" firstAttribute="trailing" secondItem="oq8-Zg-vo9" secondAttribute="trailing" id="Fja-ag-YmM"/>
                             <constraint firstItem="vZj-GA-yrE" firstAttribute="trailing" secondItem="t5P-yH-839" secondAttribute="trailing" priority="750" id="FrY-aQ-I2y"/>
@@ -314,17 +323,29 @@
                             <constraint firstItem="vZj-GA-yrE" firstAttribute="bottom" secondItem="t5P-yH-839" secondAttribute="bottom" id="XDT-ca-S0s"/>
                             <constraint firstItem="t5P-yH-839" firstAttribute="top" secondItem="vZj-GA-yrE" secondAttribute="top" id="ZrB-A7-M6A"/>
                             <constraint firstItem="t5P-yH-839" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="vZj-GA-yrE" secondAttribute="leading" id="npI-NY-Lem"/>
+                            <constraint firstItem="pP6-r1-1gz" firstAttribute="top" relation="greaterThanOrEqual" secondItem="Nns-0n-xu1" secondAttribute="bottom" constant="30" id="q8C-UT-rIQ"/>
                             <constraint firstItem="t5P-yH-839" firstAttribute="centerX" secondItem="vZj-GA-yrE" secondAttribute="centerX" id="wMy-4l-uh5"/>
                             <constraint firstItem="pP6-r1-1gz" firstAttribute="top" secondItem="t5P-yH-839" secondAttribute="bottom" constant="2" id="wqm-V6-hjb"/>
+                            <constraint firstItem="oq8-Zg-vo9" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Nns-0n-xu1" secondAttribute="trailing" constant="30" id="yaU-5s-cMi"/>
                         </constraints>
                         <variation key="default">
                             <mask key="constraints">
+                                <exclude reference="5j7-yw-UYJ"/>
+                                <exclude reference="q8C-UT-rIQ"/>
                                 <exclude reference="wqm-V6-hjb"/>
+                                <exclude reference="yaU-5s-cMi"/>
+                            </mask>
+                        </variation>
+                        <variation key="heightClass=compact-widthClass=compact">
+                            <mask key="constraints">
+                                <include reference="5j7-yw-UYJ"/>
+                                <include reference="yaU-5s-cMi"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=regular-widthClass=compact">
                             <mask key="constraints">
                                 <exclude reference="XDT-ca-S0s"/>
+                                <include reference="q8C-UT-rIQ"/>
                                 <include reference="wqm-V6-hjb"/>
                             </mask>
                         </variation>
@@ -337,6 +358,9 @@
                         <outlet property="leftButton" destination="KF5-e2-XF4" id="Kvh-Xa-Jn0"/>
                         <outlet property="rightButton" destination="bqs-F1-1KH" id="XUm-ym-l7n"/>
                         <outlet property="screen" destination="f8W-xa-Q3Q" id="LeF-d8-C8t"/>
+                        <outlet property="screenTapAreaBottomToButtons" destination="q8C-UT-rIQ" id="dgm-dp-Gho"/>
+                        <outlet property="screenTapAreaLeadingToButtons" destination="5j7-yw-UYJ" id="NPj-yj-kWc"/>
+                        <outlet property="screenTapAreaTrailingToButtons" destination="yaU-5s-cMi" id="8aj-v2-gj7"/>
                         <outlet property="selectButton" destination="uLW-yG-SzU" id="LfM-T3-PP9"/>
                         <outlet property="startButton" destination="wui-H7-WCo" id="RrK-eh-ddm"/>
                         <outlet property="upButton" destination="qL6-1K-g4H" id="Hhp-bY-9Jb"/>
