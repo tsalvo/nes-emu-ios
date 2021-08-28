@@ -43,7 +43,6 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     /// linear 1D array of all CHR blocks
     private var chr: [UInt8] = []
     
-    
     /// CHR bank offsets (in 1 KiB)
     private var chrBankOffsets: [Int] = [Int](repeating: 0, count: 8)
     
@@ -101,11 +100,55 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [], uint8s: [], chr: self.chr)
+            var u8: [UInt8] = []
+            u8.append(contentsOf: self.chrBankLowHigh)
+            u8.append(contentsOf: self.sram)
+            u8.append(self.irqLatch)
+            u8.append(self.irqCounter)
+ 
+            var b: [Bool] = []
+            b.append(self.swapMode)
+            b.append(self.irqEnableAfterAcknowledgement)
+            b.append(self.irqEnable)
+            b.append(self.irqCycleMode)
+            b.append(self.irqLine)
+            
+            var i: [Int] = []
+            i.append(contentsOf: self.chrBankOffsets)
+            i.append(contentsOf: self.prgOffsets)
+            i.append(self.irqScaler)
+            i.append(self.prgBank800XRegOffset)
+            
+            return MapperState(mirroringMode: self.mirroringMode.rawValue, ints: i, bools: b, uint8s: u8, chr: self.chr)
         }
         set
         {
+            let offsetToIndividualUInt8s: Int = self.chrBankLowHigh.count + self.sram.count
+            let offsetToIndividualInts: Int = self.chrBankOffsets.count + self.prgOffsets.count
+            
+            guard newValue.uint8s.count >= offsetToIndividualUInt8s + 2,
+                  newValue.ints.count >= offsetToIndividualInts + 2,
+                  newValue.bools.count >= 5
+            else { return }
+            
             self.chr = newValue.chr
+            self.mirroringMode = MirroringMode(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            
+            self.chrBankLowHigh = [UInt8](newValue.uint8s[0 ..< self.chrBankLowHigh.count])
+            self.sram = [UInt8](newValue.uint8s[self.chrBankLowHigh.count ..< offsetToIndividualUInt8s])
+            self.irqLatch = newValue.uint8s[offsetToIndividualUInt8s]
+            self.irqCounter = newValue.uint8s[offsetToIndividualUInt8s + 1]
+            
+            self.swapMode = newValue.bools[0]
+            self.irqEnableAfterAcknowledgement = newValue.bools[1]
+            self.irqEnable = newValue.bools[2]
+            self.irqCycleMode = newValue.bools[3]
+            self.irqLine = newValue.bools[4]
+            
+            self.chrBankOffsets = [Int](newValue.ints[0 ..< self.chrBankOffsets.count])
+            self.prgOffsets = [Int](newValue.ints[self.chrBankOffsets.count ..< offsetToIndividualInts])
+            self.irqScaler = newValue.ints[offsetToIndividualInts]
+            self.prgBank800XRegOffset = newValue.ints[offsetToIndividualInts + 1]
         }
     }
     
