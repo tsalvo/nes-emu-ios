@@ -60,8 +60,7 @@ class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocument
     
     func documentBrowser(_ controller: UIDocumentBrowserViewController, didImportDocumentAt sourceURL: URL, toDestinationURL destinationURL: URL)
     {
-        // Present the Document View Controller for the new newly created document
-        self.presentDocument(at: destinationURL)
+        // Do nothing here.  only open the ROM if the user has picked it from the Document Browser ViewController
     }
     
     func documentBrowser(_ controller: UIDocumentBrowserViewController, failedToImportDocumentAt documentURL: URL, error: Error?)
