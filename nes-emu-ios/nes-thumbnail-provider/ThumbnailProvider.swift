@@ -104,7 +104,6 @@ class ThumbnailProvider: QLThumbnailProvider
             context.setFillColor(cartridgeLabelInnerColor)
             context.fill(cartridgeLabelInnerRect)
             
-            
             let bodyFont: UIFont = UIFont.systemFont(ofSize: 8.0, weight: .heavy)
             let bodyAttrs: [NSAttributedString.Key : Any] = [.font: bodyFont, .foregroundColor: UIColor.white]
             

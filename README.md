@@ -5,7 +5,7 @@ An NES emulator written in Swift for iOS / iPadOS / macOS / tvOS.  The NES emula
 ### Screenshots
 ![NesRomViewController](/screenshots/screenshot01.png?raw=true) ![UIDocumentBrowserViewController](/screenshots/screenshot02.png?raw=true) ![ConsoleStateViewController](/screenshots/screenshot03.png?raw=true) ![SettingsViewController](/screenshots/screenshot04.png?raw=true)
 
-This app uses the UIDocumentBrowserViewController for easy NES ROM (.nes) file browsing using the native Files app interface.  During emulation, PPU output frames are converted to CIImages and rendered to a Metal Texture (MTLTexture) within a MetalKit View (MTKView).  The app uses AVAudioEngine for sound, with buffers scheduled periodically from the APU output.  Save states are persisted using CoreData.  Everything is done using native iOS frameworks, and no third-party libraries.
+This app uses the `UIDocumentBrowserViewController` for easy NES ROM (`.nes`) file browsing using the native Files app interface.  During emulation, PPU output frames are converted to a `CIImage` and rendered to a Metal Texture (`MTLTexture`) within a MetalKit View (`MTKView`).  The app uses `AVAudioEngine` for sound, with buffers scheduled periodically from the APU output.  Save states are persisted using `CoreData`.  Everything is done using native iOS frameworks, and no third-party libraries.
 
 
 ## Current Features
@@ -15,8 +15,8 @@ This app uses the UIDocumentBrowserViewController for easy NES ROM (.nes) file b
 - Mapper emulation for several common mappers
 - Touchscreen controls
 - Save states with autosave on exit, and automatic loading of most recent save on game start.  Automatic saving and loading can be enabled or disabled in the settings.
-- Gamepad controls using built-in GameController framework and extendedGamepad profile.  MFi controllers, Sony DualShock 4, or Xbox One controllers should all work.  Touchscreen controls auto-hide when a controller is paired for player 1, and auto-show when the player 1 controller disconnects.  Whenever a second controller is paired, it should be mapped automatically for player 2.
-- Builds successfully for iOS 14.5+, iPadOS 14.5+, tvOS 14.5+, or Mac Catalyst (macOS 11.3 Big Sur or newer).  The Mac Catalyst version of the app still needs some Mac-specific tweaks.  The tvOS version does not include the UIDocumentBrowserViewController for ROM browsing, because it is unavailable on the tvOS platform.  For now, ROMs must be included directly in the tvOS app bundle before building and installing onto a device (copied to /nes-emu-tvos/Resources/, and added to the nes-emu-tvos build target).
+- Gamepad controls using built-in `GameController` framework and `extendedGamepad` profile.  MFi controllers, Sony DualSense / DualShock 4, or Xbox Wireless controllers should all work.  Touchscreen controls auto-hide when a controller is paired for player 1, and auto-show when the player 1 controller disconnects.  Whenever a second controller is paired, it should be mapped automatically for player 2.
+- Builds successfully for iOS 14.7+, iPadOS 14.7+, tvOS 14.5+, or Mac Catalyst (macOS 11.3 Big Sur or newer).  The Mac Catalyst version of the app still needs some Mac-specific tweaks.  The tvOS version does not include the `UIDocumentBrowserViewController` for ROM browsing, because it is unavailable on the tvOS platform.  For now, ROMs must be included directly in the tvOS app bundle before building and installing onto a device (copied to `/nes-emu-tvos/Resources/`, and added to the `nes-emu-tvos` build target).
 
 
 ## Game Compatibility 
