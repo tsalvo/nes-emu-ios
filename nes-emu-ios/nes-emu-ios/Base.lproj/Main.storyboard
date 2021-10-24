@@ -314,7 +314,7 @@
                         <viewLayoutGuide key="safeArea" id="vZj-GA-yrE"/>
                         <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="Nns-0n-xu1" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="pP6-r1-1gz" secondAttribute="trailing" constant="30" id="5j7-yw-UYJ"/>
+                            <constraint firstItem="Nns-0n-xu1" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="pP6-r1-1gz" secondAttribute="trailing" priority="750" constant="30" id="5j7-yw-UYJ"/>
                             <constraint firstItem="pP6-r1-1gz" firstAttribute="leading" secondItem="vZj-GA-yrE" secondAttribute="leading" constant="4" id="FCA-OU-TSh"/>
                             <constraint firstItem="vZj-GA-yrE" firstAttribute="trailing" secondItem="oq8-Zg-vo9" secondAttribute="trailing" id="Fja-ag-YmM"/>
                             <constraint firstItem="vZj-GA-yrE" firstAttribute="trailing" secondItem="t5P-yH-839" secondAttribute="trailing" priority="750" id="FrY-aQ-I2y"/>
@@ -327,7 +327,7 @@
                             <constraint firstItem="pP6-r1-1gz" firstAttribute="top" relation="greaterThanOrEqual" secondItem="Nns-0n-xu1" secondAttribute="bottom" constant="30" id="q8C-UT-rIQ"/>
                             <constraint firstItem="t5P-yH-839" firstAttribute="centerX" secondItem="vZj-GA-yrE" secondAttribute="centerX" id="wMy-4l-uh5"/>
                             <constraint firstItem="pP6-r1-1gz" firstAttribute="top" secondItem="t5P-yH-839" secondAttribute="bottom" constant="2" id="wqm-V6-hjb"/>
-                            <constraint firstItem="oq8-Zg-vo9" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Nns-0n-xu1" secondAttribute="trailing" constant="30" id="yaU-5s-cMi"/>
+                            <constraint firstItem="oq8-Zg-vo9" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Nns-0n-xu1" secondAttribute="trailing" priority="750" constant="30" id="yaU-5s-cMi"/>
                         </constraints>
                         <variation key="default">
                             <mask key="constraints">
