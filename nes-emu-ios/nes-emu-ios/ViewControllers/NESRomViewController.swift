@@ -45,6 +45,8 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
 {
     // MARK: - Constants
     private static let defaultFrameQueueSize: Int = 3
+    private static let analogDeadZoneLeftRight: Float = 0.23
+    private static let analogDeadZoneUpDown: Float = 0.3
     
     // MARK: - UI Outlets
     @IBOutlet weak private var screen: NESScreenView!
@@ -509,10 +511,15 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     // MARK - Display Link Frame Update
     @objc private func updateFrame()
     {
-        if let extendedPad = self.controller1?.capture().extendedGamepad
+        for (index, controller) in [self.controller1, self.controller2].enumerated()
         {
+            guard let extendedPad = controller?.capture().extendedGamepad else { continue }
+            let isUp: Bool = extendedPad.dpad.up.isPressed || extendedPad.leftThumbstick.yAxis.value > NesRomViewController.analogDeadZoneUpDown
+            let isDown: Bool = extendedPad.dpad.down.isPressed || extendedPad.leftThumbstick.yAxis.value < (-1.0 * NesRomViewController.analogDeadZoneUpDown)
+            let isLeft: Bool = extendedPad.dpad.left.isPressed || extendedPad.leftThumbstick.xAxis.value < (-1.0 * NesRomViewController.analogDeadZoneLeftRight)
+            let isRight: Bool = extendedPad.dpad.right.isPressed || extendedPad.leftThumbstick.xAxis.value > NesRomViewController.analogDeadZoneLeftRight
             self.consoleQueue.async { [weak self] in
-                self?.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 0)
+                self?.console?.set(buttonUpPressed: isUp, buttonDownPressed: isDown, buttonLeftPressed: isLeft, buttonRightPressed: isRight, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: index)
             }
             
             if (extendedPad.leftThumbstickButton ?? extendedPad.leftTrigger).isPressed && (extendedPad.rightThumbstickButton ?? extendedPad.rightTrigger).isPressed
@@ -521,22 +528,9 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
                 self.dismissButtonPressed(nil)
                 return
             }
-        }
-        
-        if let extendedPad = self.controller2?.capture().extendedGamepad
-        {
-            self.consoleQueue.async { [weak self] in
-                self?.console?.set(buttonUpPressed: extendedPad.dpad.up.isPressed, buttonDownPressed: extendedPad.dpad.down.isPressed, buttonLeftPressed: extendedPad.dpad.left.isPressed, buttonRightPressed: extendedPad.dpad.right.isPressed, buttonSelectPressed: extendedPad.buttonOptions?.isPressed ?? extendedPad.buttonY.isPressed, buttonStartPressed: extendedPad.buttonMenu.isPressed, buttonBPressed: extendedPad.buttonX.isPressed, buttonAPressed: extendedPad.buttonA.isPressed, forControllerAtIndex: 1)
-            }
             
-            if (extendedPad.leftThumbstickButton ?? extendedPad.leftTrigger).isPressed && (extendedPad.rightThumbstickButton ?? extendedPad.rightTrigger).isPressed
-            {
-                self.pauseEmulation()
-                self.dismissButtonPressed(nil)
-                return
-            }
         }
-        
+
         guard self.consoleFramesQueued <= self.consoleFrameQueueSize else { return }
         self.consoleFramesQueued += 1
         
