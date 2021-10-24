@@ -207,8 +207,6 @@ class AudioEngine: AudioEngineProtocol
         {
         case .stopped:
             
-            self.engine.mainMixerNode.volume = 1.0
-            
             self.attachNodesToEngineIfNeeded(withAudioFormat: aAudioFormat)
     
             do
@@ -244,7 +242,7 @@ class AudioEngine: AudioEngineProtocol
     {
         guard self.engine.attachedNodes.compactMap({ $0 as? AVAudioPlayerNode }).isEmpty else { return }
         self.engine.attach(self.playerNode)
-        self.engine.connect(self.playerNode, to: self.engine.mainMixerNode, format: aAudioFormat)
+        self.engine.connect(self.playerNode, to: self.engine.outputNode, format: aAudioFormat)
     }
     
     private func setPlaybackCategory()
