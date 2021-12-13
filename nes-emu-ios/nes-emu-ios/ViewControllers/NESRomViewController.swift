@@ -747,7 +747,12 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     
     private func setupButtons()
     {
-        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 21.0, weight: .semibold)
+#if targetEnvironment(macCatalyst)
+        let symbolPointSize: CGFloat = 17
+#else
+        let symbolPointSize: CGFloat = 21
+#endif
+        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: symbolPointSize, weight: .semibold)
         let resetButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "power", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(resetButtonPressed(_:)))
         let saveStateButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "bookmark", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(saveStateButtonPressed(_:)))
         let controller1Button: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gamecontroller", withConfiguration: symbolConfig), style: .plain, target: self, action: nil)
@@ -755,6 +760,8 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         let closeButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(dismissButtonPressed(_:)))
         controller1Button.isEnabled = false
         controller2Button.isEnabled = false
+        
+
         
         self.resetBarButtonItem = resetButton
         self.saveStateBarButtonItem = saveStateButton
@@ -765,6 +772,10 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         self.navigationItem.setLeftBarButtonItems([resetButton, saveStateButton, controller1Button, controller2Button], animated: false)
         
 #if targetEnvironment(macCatalyst)
+//        resetButton.width = 64
+//        saveStateButton.width = 64
+//        controller1Button.width = 64
+//        controller2Button.width = 64
 #else
         self.navigationItem.setRightBarButtonItems([closeButton], animated: false)
 #endif
