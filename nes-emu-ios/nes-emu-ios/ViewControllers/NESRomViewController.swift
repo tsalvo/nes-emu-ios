@@ -761,8 +761,6 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         controller1Button.isEnabled = false
         controller2Button.isEnabled = false
         
-
-        
         self.resetBarButtonItem = resetButton
         self.saveStateBarButtonItem = saveStateButton
         self.controller1BarButtonItem = controller1Button
@@ -772,10 +770,6 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
         self.navigationItem.setLeftBarButtonItems([resetButton, saveStateButton, controller1Button, controller2Button], animated: false)
         
 #if targetEnvironment(macCatalyst)
-//        resetButton.width = 64
-//        saveStateButton.width = 64
-//        controller1Button.width = 64
-//        controller2Button.width = 64
 #else
         self.navigationItem.setRightBarButtonItems([closeButton], animated: false)
 #endif
