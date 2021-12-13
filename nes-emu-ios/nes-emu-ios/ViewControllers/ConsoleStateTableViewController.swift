@@ -69,12 +69,6 @@ class ConsoleStateTableViewController: UITableViewController
         self.tableView.rowHeight = UITableView.automaticDimension
         self.tableView.register(UINib.init(nibName: ConsoleStateCell.reuseIdentifier, bundle: nil), forCellReuseIdentifier: ConsoleStateCell.reuseIdentifier)
         self.tableView.register(UINib.init(nibName: AddConsoleStateCell.reuseIdentifier, bundle: nil), forCellReuseIdentifier: AddConsoleStateCell.reuseIdentifier)
-        
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
     
     override func viewDidDisappear(_ animated: Bool)

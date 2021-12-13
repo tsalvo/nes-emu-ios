@@ -180,10 +180,8 @@ class SettingsTableViewController: UITableViewController, SettingsConfirmationDe
         label.text = (self.tableData[section].sectionName ?? "")
         label.textColor = UIColor.label
         view.addSubview(label)
-        
-        view.addConstraints([
-            NSLayoutConstraint(item: label, attribute: .centerY, relatedBy: .equal, toItem: view, attribute: .centerY, multiplier: 1.0, constant: 0),
-            NSLayoutConstraint(item: label, attribute: .leadingMargin, relatedBy: .equal, toItem: view, attribute: .leadingMargin, multiplier: 1.0, constant: 8)])
+        label.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        label.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8).isActive = true
         
         return view
     }
@@ -254,6 +252,11 @@ class SettingsTableViewController: UITableViewController, SettingsConfirmationDe
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat
     {
         return 30
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat
+    {
+        return CGFloat.leastNormalMagnitude
     }
     
     // MARK: - Navigation

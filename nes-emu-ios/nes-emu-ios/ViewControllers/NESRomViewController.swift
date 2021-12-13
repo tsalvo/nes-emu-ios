@@ -747,7 +747,12 @@ class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSave
     
     private func setupButtons()
     {
-        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: 21.0, weight: .semibold)
+#if targetEnvironment(macCatalyst)
+        let symbolPointSize: CGFloat = 17
+#else
+        let symbolPointSize: CGFloat = 21
+#endif
+        let symbolConfig = UIImage.SymbolConfiguration.init(pointSize: symbolPointSize, weight: .semibold)
         let resetButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "power", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(resetButtonPressed(_:)))
         let saveStateButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "bookmark", withConfiguration: symbolConfig), style: .plain, target: self, action: #selector(saveStateButtonPressed(_:)))
         let controller1Button: UIBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gamecontroller", withConfiguration: symbolConfig), style: .plain, target: self, action: nil)

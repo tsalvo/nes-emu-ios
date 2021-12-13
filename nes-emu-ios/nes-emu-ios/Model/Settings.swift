@@ -54,7 +54,7 @@ class Settings
     static let defaultAutoSaveKey: Bool = true
     static let defaultLoadLastSaveKey: Bool = true
     static let defaultSaveDataExistsKey: Bool = false
-    static let defaultNearestNeighborRenderingKey: Bool = false
+    static let defaultNearestNeighborRenderingKey: Bool = true
     static let defaultCheckForRedundantFramesKey: Bool = false
     static let defaultIntegerScalingKey: Bool = false
     static let defaultScanlinesKey: Scanlines = Scanlines.off
