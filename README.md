@@ -16,7 +16,7 @@ This app uses the `UIDocumentBrowserViewController` for easy NES ROM (`.nes`) fi
 - Touchscreen controls
 - Save states with autosave on exit, and automatic loading of most recent save on game start.  Automatic saving and loading can be enabled or disabled in the settings.
 - Gamepad controls using built-in `GameController` framework and `extendedGamepad` profile.  MFi controllers, Sony DualSense / DualShock 4, or Xbox Wireless controllers should all work.  Touchscreen controls auto-hide when a controller is paired for player 1, and auto-show when the player 1 controller disconnects.  Whenever a second controller is paired, it should be mapped automatically for player 2.
-- Builds successfully for iOS 14.7+, iPadOS 14.7+, tvOS 14.5+, or Mac Catalyst (macOS 11.3 Big Sur or newer).  The Mac Catalyst version of the app still needs some Mac-specific tweaks.  The tvOS version does not include the `UIDocumentBrowserViewController` for ROM browsing, because it is unavailable on the tvOS platform.  For now, ROMs must be included directly in the tvOS app bundle before building and installing onto a device (copied to `/nes-emu-tvos/Resources/`, and added to the `nes-emu-tvos` build target).
+- Builds successfully for iOS 14.7+, iPadOS 14.7+, tvOS 14.7+, or Mac Catalyst (macOS 11.5 Big Sur or newer).  The Mac Catalyst version of the app still needs some Mac-specific tweaks.  The tvOS version does not include the `UIDocumentBrowserViewController` for ROM browsing, because it is unavailable on the tvOS platform.  For now, ROMs must be included directly in the tvOS app bundle before building and installing onto a device (copied to `/nes-emu-tvos/Resources/`, and added to the `nes-emu-tvos` build target).
 
 
 ## Game Compatibility 
