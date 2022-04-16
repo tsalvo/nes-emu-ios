@@ -25,7 +25,7 @@
 
 import UIKit
 
-class SettingsTableViewController: UITableViewController, SettingsConfirmationDelegate
+final class SettingsTableViewController: UITableViewController, SettingsConfirmationDelegate
 {
     // MARK: - Private Variables
     

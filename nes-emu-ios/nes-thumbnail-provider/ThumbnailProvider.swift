@@ -27,9 +27,9 @@ import UIKit
 import QuickLookThumbnailing
 import os
 
-class ThumbnailProvider: QLThumbnailProvider
+final class ThumbnailProvider: QLThumbnailProvider
 {
-    private class ThumbnailView: UIView
+    private final class ThumbnailView: UIView
     {
         static private let bgColorCG: CGColor = UIColor.init(white: 0.7, alpha: 1.0).cgColor
         static private let cartridgeColorCG: CGColor = UIColor.init(white: 0.3, alpha: 1.0).cgColor

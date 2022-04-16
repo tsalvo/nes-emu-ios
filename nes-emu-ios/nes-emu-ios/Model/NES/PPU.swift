@@ -898,7 +898,6 @@ struct PPU
         let preLine: Bool = self.scanline == 261
         let visibleLine: Bool = self.scanline < 240
         let safeAreaLine: Bool = self.scanline >= 8 && self.scanline < 232
-        let renderLine: Bool = preLine || visibleLine
         let preFetchCycle: Bool = self.cycle >= 321 && self.cycle <= 336
         let visibleCycle: Bool = self.cycle >= 1 && self.cycle <= 256
         let fetchCycle: Bool = preFetchCycle || visibleCycle
@@ -906,6 +905,8 @@ struct PPU
         // background logic
         if renderingEnabled
         {
+            let renderLine: Bool = preLine || visibleLine
+            
             if safeAreaLine && visibleCycle
             {
                 self.renderPixel()

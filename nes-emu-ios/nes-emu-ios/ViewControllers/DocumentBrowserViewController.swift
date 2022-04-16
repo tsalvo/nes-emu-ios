@@ -25,7 +25,7 @@
 
 import UIKit
 
-class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocumentBrowserViewControllerDelegate, UIPopoverPresentationControllerDelegate
+final class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDocumentBrowserViewControllerDelegate, UIPopoverPresentationControllerDelegate
 {
     
 #if targetEnvironment(macCatalyst)

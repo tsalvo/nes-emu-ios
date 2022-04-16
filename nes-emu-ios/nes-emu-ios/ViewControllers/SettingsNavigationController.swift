@@ -25,7 +25,7 @@
 
 import UIKit
 
-class SettingsNavigationController: UINavigationController
+final class SettingsNavigationController: UINavigationController
 {
     // MARK: - Life Cycle
     

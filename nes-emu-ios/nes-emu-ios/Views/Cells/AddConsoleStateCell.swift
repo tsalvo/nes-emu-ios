@@ -25,7 +25,7 @@
 
 import UIKit
 
-class AddConsoleStateCell: UITableViewCell
+final class AddConsoleStateCell: UITableViewCell
 {
 
     // MARK: - UI Outlets

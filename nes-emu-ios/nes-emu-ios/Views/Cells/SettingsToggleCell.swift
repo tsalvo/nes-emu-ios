@@ -25,7 +25,7 @@
 
 import UIKit
 
-class SettingsToggleCell: UITableViewCell
+final class SettingsToggleCell: UITableViewCell
 {
     // MARK: - UI Outlets
     

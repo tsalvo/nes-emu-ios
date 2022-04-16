@@ -27,7 +27,7 @@ import UIKit
 import MetalKit
 import os
 
-class NESScreenView: MTKView, MTKViewDelegate
+final class NESScreenView: MTKView, MTKViewDelegate
 {
     private let queue: DispatchQueue = DispatchQueue.init(label: "renderQueue", qos: .userInteractive)
     private var hasSuspended: Bool = false

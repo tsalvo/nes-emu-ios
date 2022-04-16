@@ -25,7 +25,7 @@
 
 import UIKit
 
-class ConsoleStateCell: UITableViewCell
+final class ConsoleStateCell: UITableViewCell
 {
     private let rgbColorSpace: CGColorSpace = CGColorSpaceCreateDeviceRGB()
     static private let elementLength: Int = 4

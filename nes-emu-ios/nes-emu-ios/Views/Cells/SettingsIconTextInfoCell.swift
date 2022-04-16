@@ -25,7 +25,7 @@
 
 import UIKit
 
-class SettingsIconTextInfoCell: UITableViewCell
+final class SettingsIconTextInfoCell: UITableViewCell
 {
     // MARK: - UI Outlets
     

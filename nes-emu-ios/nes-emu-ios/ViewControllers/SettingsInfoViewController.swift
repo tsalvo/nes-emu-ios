@@ -25,7 +25,7 @@
 
 import UIKit
 
-class SettingsInfoViewController: UITableViewController
+final class SettingsInfoViewController: UITableViewController
 {
     var tableData: [Settings.HelpEntry] = []
     
