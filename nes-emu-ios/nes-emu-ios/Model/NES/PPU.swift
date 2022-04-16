@@ -852,29 +852,27 @@ struct PPU
     /// Updates Cycle, ScanLine and Frame counters.
     private mutating func tick()
     {
-        if self.flagShowBackground || self.flagShowSprites
-        {
-            if self.f == true && self.scanline == 261 && self.cycle == 339
-            {
-                self.cycle = 0
-                self.scanline = 0
-                self.frame += 1
-                self.f.toggle()
-                return
-            }
-        }
-        
-        self.cycle += 1
-        if self.cycle > 340
+        if self.cycle == 339 && self.scanline == 261 && (self.flagShowBackground || self.flagShowSprites) && self.f
         {
             self.cycle = 0
-            self.scanline += 1
-            
-            if self.scanline > 261
+            self.scanline = 0
+            self.frame += 1
+            self.f.toggle()
+        }
+        else
+        {
+            self.cycle += 1
+            if self.cycle > 340
             {
-                self.scanline = 0
-                self.frame += 1
-                self.f.toggle()
+                self.cycle = 0
+                self.scanline += 1
+                
+                if self.scanline > 261
+                {
+                    self.scanline = 0
+                    self.frame += 1
+                    self.f.toggle()
+                }
             }
         }
     }
