@@ -818,9 +818,10 @@ struct PPU
         
         for i in 0 ..< 64
         {
-            let y = self.oamData[(i * 4) + 0]
-            let a = self.oamData[(i * 4) + 2]
-            let x = self.oamData[(i * 4) + 3]
+            let i4: Int = i * 4
+            let y = self.oamData[i4 + 0]
+            let a = self.oamData[i4 + 2]
+            let x = self.oamData[i4 + 3]
             let row = self.scanline - Int(y)
             
             if row < 0 || row >= h
