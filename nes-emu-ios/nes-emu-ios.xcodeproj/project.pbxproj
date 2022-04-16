@@ -1052,6 +1052,7 @@
 				DEVELOPMENT_TEAM = 354MRHL389;
 				INFOPLIST_FILE = "nes-emu-ios/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.7;
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1076,6 +1077,7 @@
 				DEVELOPMENT_TEAM = 354MRHL389;
 				INFOPLIST_FILE = "nes-emu-ios/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.7;
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
