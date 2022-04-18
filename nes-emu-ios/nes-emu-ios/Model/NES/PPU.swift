@@ -54,6 +54,8 @@ struct PPU
         [0, 1024, 2048, 3072]
     ]
     
+    private static let nmiMaximumDelay: UInt8 = 16
+    
     // MARK: PPU Registers
     
     /// current vram address (15 bit)
@@ -74,9 +76,17 @@ struct PPU
     private var register: UInt8 = 0
     
     // MARK: NMI flags
-    private var nmiOccurred: Bool = false
+    private var nmiOccurred: Bool = false {
+        didSet {
+            guard self.nmiOccurred,
+                  !oldValue,
+                  self.nmiOutput
+            else { return }
+            
+            self.nmiDelay = PPU.nmiMaximumDelay
+        }
+    }
     private var nmiOutput: Bool = false
-    private var nmiPrevious: Bool = false
     private var nmiDelay: UInt8 = 0
     
     // MARK: Background temporary variables
@@ -188,7 +198,6 @@ struct PPU
             self.register = safePPUState.register
             self.nmiOccurred = safePPUState.nmiOccurred
             self.nmiOutput = safePPUState.nmiOutput
-            self.nmiPrevious = safePPUState.nmiPrevious
             self.nmiDelay = safePPUState.nmiDelay
             self.nameTableByte = safePPUState.nameTableByte
             self.attributeTableByte = safePPUState.attributeTableByte
@@ -225,7 +234,7 @@ struct PPU
     
     var ppuState: PPUState
     {
-        return PPUState.init(cycle: UInt16(self.cycle), scanline: UInt16(self.scanline), frame: self.frame, paletteData: self.paletteData, nameTableData: self.nameTableData, oamData: self.oamData, v: self.v, t: self.t, x: self.x, w: self.w, f: self.f, register: self.register, nmiOccurred: self.nmiOccurred, nmiOutput: self.nmiOutput, nmiPrevious: self.nmiPrevious, nmiDelay: self.nmiDelay, nameTableByte: self.nameTableByte, attributeTableByte: self.attributeTableByte, lowTileByte: self.lowTileByte, highTileByte: self.highTileByte, tileData: self.tileData, spriteCount: UInt8(self.spriteCount), spritePatterns: self.spritePatterns, spritePositions: self.spritePositions, spritePriorities: self.spritePriorities, spriteIndexes: self.spriteIndexes, flagNameTable: self.flagNameTable, flagIncrement: self.flagIncrement, flagSpriteTable: self.flagSpriteTable, flagBackgroundTable: self.flagBackgroundTable, flagSpriteSize: self.flagSpriteSize, flagMasterSlave: self.flagMasterSlave, flagGrayscale: self.flagGrayscale, flagShowLeftBackground: self.flagShowLeftBackground, flagShowLeftSprites: self.flagShowLeftSprites, flagShowBackground: self.flagShowBackground, flagShowSprites: self.flagShowSprites, flagRedTint: self.flagRedTint, flagGreenTint: self.flagGreenTint, flagBlueTint: self.flagBlueTint, flagSpriteZeroHit: self.flagSpriteZeroHit, flagSpriteOverflow: self.flagSpriteOverflow, oamAddress: self.oamAddress, bufferedData: self.bufferedData, frontBuffer: self.frontBuffer)
+        return PPUState.init(cycle: UInt16(self.cycle), scanline: UInt16(self.scanline), frame: self.frame, paletteData: self.paletteData, nameTableData: self.nameTableData, oamData: self.oamData, v: self.v, t: self.t, x: self.x, w: self.w, f: self.f, register: self.register, nmiOccurred: self.nmiOccurred, nmiOutput: self.nmiOutput, nmiPrevious: false, nmiDelay: self.nmiDelay, nameTableByte: self.nameTableByte, attributeTableByte: self.attributeTableByte, lowTileByte: self.lowTileByte, highTileByte: self.highTileByte, tileData: self.tileData, spriteCount: UInt8(self.spriteCount), spritePatterns: self.spritePatterns, spritePositions: self.spritePositions, spritePriorities: self.spritePriorities, spriteIndexes: self.spriteIndexes, flagNameTable: self.flagNameTable, flagIncrement: self.flagIncrement, flagSpriteTable: self.flagSpriteTable, flagBackgroundTable: self.flagBackgroundTable, flagSpriteSize: self.flagSpriteSize, flagMasterSlave: self.flagMasterSlave, flagGrayscale: self.flagGrayscale, flagShowLeftBackground: self.flagShowLeftBackground, flagShowLeftSprites: self.flagShowLeftSprites, flagShowBackground: self.flagShowBackground, flagShowSprites: self.flagShowSprites, flagRedTint: self.flagRedTint, flagGreenTint: self.flagGreenTint, flagBlueTint: self.flagBlueTint, flagSpriteZeroHit: self.flagSpriteZeroHit, flagSpriteOverflow: self.flagSpriteOverflow, oamAddress: self.oamAddress, bufferedData: self.bufferedData, frontBuffer: self.frontBuffer)
     }
     
     mutating func read(address aAddress: UInt16) -> UInt8
@@ -358,7 +367,7 @@ struct PPU
         self.flagSpriteSize = ((aValue >> 5) & 1) == 1
         self.flagMasterSlave = ((aValue >> 6) & 1) == 1
         self.nmiOutput = ((aValue >> 7) & 1) == 1
-        self.nmiChange()
+        // TODO: should we set NMI Delay (self.nmiDelay) here if self.nmiOutput is true?
         // t: ....BA.. ........ = d: ......BA
         self.t = (self.t & 0xF3FF) | ((UInt16(aValue) & 0x03) << 10)
     }
@@ -387,7 +396,6 @@ struct PPU
             result |= 1 << 7
         }
         self.nmiOccurred = false
-        self.nmiChange()
         // w:                   = 0
         self.w = false
         return result
@@ -578,29 +586,15 @@ struct PPU
         self.v = (self.v & 0x841F) | (self.t & 0x7BE0)
     }
 
-    private mutating func nmiChange()
-    {
-        let nmi = self.nmiOutput && self.nmiOccurred
-        if nmi && !self.nmiPrevious
-        {
-            // TODO: this fixes some games but the delay shouldn't have to be so
-            // long, so the timings are off somewhere
-            self.nmiDelay = 16
-        }
-        self.nmiPrevious = nmi
-    }
-
     private mutating func setVerticalBlank()
     {
         swap(&self.frontBuffer, &self.backBuffer)
         self.nmiOccurred = true
-        self.nmiChange()
     }
 
     private mutating func clearVerticalBlank()
     {
         self.nmiOccurred = false
-        self.nmiChange()
     }
 
     private mutating func fetchNameTableByte()
@@ -857,7 +851,7 @@ struct PPU
             self.cycle = 0
             self.scanline = 0
             self.frame += 1
-            self.f.toggle()
+            self.f = false
         }
         else
         {
@@ -895,18 +889,19 @@ struct PPU
 
         let renderingEnabled: Bool = self.flagShowBackground || self.flagShowSprites
         let preLine: Bool = self.scanline == 261
-        let visibleLine: Bool = self.scanline < 240
-        let safeAreaLine: Bool = self.scanline >= 8 && self.scanline < 232
-        let preFetchCycle: Bool = self.cycle >= 321 && self.cycle <= 336
-        let visibleCycle: Bool = self.cycle >= 1 && self.cycle <= 256
-        let fetchCycle: Bool = preFetchCycle || visibleCycle
-
-        // background logic
+        
         if renderingEnabled
         {
-            let renderLine: Bool = preLine || visibleLine
+            let visibleCycle: Bool = self.cycle >= 1 && self.cycle <= 256
+            let preFetchCycle: Bool = self.cycle >= 321 && self.cycle <= 336
+            let fetchCycle: Bool = preFetchCycle || visibleCycle
             
-            if safeAreaLine && visibleCycle
+            let visibleLine: Bool = self.scanline < 240
+            let renderLine: Bool = preLine || visibleLine
+            let safeAreaScanline: Bool = self.scanline >= 8 && self.scanline < 232
+            
+            // background logic
+            if safeAreaScanline && visibleCycle
             {
                 self.renderPixel()
             }
@@ -951,11 +946,8 @@ struct PPU
                     self.copyX()
                 }
             }
-        }
-
-        // sprite logic
-        if renderingEnabled
-        {
+            
+            // sprite logic
             if self.cycle == 257
             {
                 if visibleLine

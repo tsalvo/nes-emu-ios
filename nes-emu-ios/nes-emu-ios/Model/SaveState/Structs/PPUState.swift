@@ -56,7 +56,7 @@ struct PPUState
     // MARK: NMI flags
     let nmiOccurred: Bool
     let nmiOutput: Bool
-    let nmiPrevious: Bool
+    let nmiPrevious: Bool // TODO: remove (unused)
     let nmiDelay: UInt8
     
     // MARK: Background temporary variables
