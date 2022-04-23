@@ -36,13 +36,18 @@ final class DocumentBrowserViewController: UIDocumentBrowserViewController, UIDo
     
     // MARK: - Life Cycle
     
+    required init?(coder: NSCoder)
+    {
+        super.init(coder: coder)
+        self.allowsDocumentCreation = false // prevent runtime warning about allowsDocumentCreation and unimplemented delegate method for creating document
+    }
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
         self.additionalTrailingNavigationBarButtonItems = [UIBarButtonItem(image: UIImage(systemName: "gear"), style: .plain, target: self, action: #selector(settingsButtonPressed(_:)))]
         self.delegate = self
         self.view.tintColor = UIColor.systemRed
-        self.allowsDocumentCreation = false
         self.allowsPickingMultipleItems = false
     }
     
