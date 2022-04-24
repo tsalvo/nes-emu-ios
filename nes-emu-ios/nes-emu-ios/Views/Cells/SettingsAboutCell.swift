@@ -25,7 +25,7 @@
 
 import UIKit
 
-class SettingsAboutCell: UITableViewCell
+final class SettingsAboutCell: UITableViewCell
 {
     // MARK: - UI Outlets
     

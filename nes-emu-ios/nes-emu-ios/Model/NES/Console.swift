@@ -28,14 +28,14 @@ import Foundation
 struct Console
 {
     // MARK: - Private Variables
+    private let md5: String /// game MD5 hash
     private var cpu: CPU
-    private var md5: String /// game MD5 hash
     
     // MARK: - Computed Properties
     /// returns a 256x224 array of palette colors copies from the PPU's current screen buffer
     var screenBuffer: [UInt32]
     {
-        return self.cpu.ppu.frontBuffer
+        self.cpu.ppu.frontBuffer
     }
     
     /// returns a ConsoleState struct containing the current state of the CPU, PPU, APU, and Mapper

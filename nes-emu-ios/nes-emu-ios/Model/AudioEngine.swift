@@ -33,7 +33,7 @@ protocol AudioEngineProtocol: AnyObject
     func schedule(buffer aBuffer: [Float32], withSampleRate aSampleRate: SampleRate)
 }
 
-class AudioEngine: AudioEngineProtocol
+final class AudioEngine: AudioEngineProtocol
 {
     private let queue: DispatchQueue = DispatchQueue(label: "AudioEngineQueue", qos: .default)
     private let engine: AVAudioEngine = AVAudioEngine.init()

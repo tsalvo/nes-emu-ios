@@ -41,7 +41,7 @@ protocol ConsoleSaveStateSelectionDelegate: AnyObject
     func consoleStateSelectionDismissed()
 }
 
-class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSaveStateSelectionDelegate
+final class NesRomViewController: GCEventViewController, EmulatorProtocol, ConsoleSaveStateSelectionDelegate
 {
     // MARK: - Constants
     private static let defaultFrameQueueSize: Int = 3

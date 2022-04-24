@@ -30,7 +30,7 @@ protocol SettingsConfirmationDelegate: AnyObject
     func confirmationButtonPressed(forKey aKey: String, message aMessage: String, confirmationBlock aConfirmationBlock: (() -> Void)?)
 }
 
-class SettingsConfirmationCell: UITableViewCell
+final class SettingsConfirmationCell: UITableViewCell
 {
     @IBOutlet weak private var settingLabel: UILabel!
     @IBOutlet weak private var settingConfirmationButton: UIButton!

@@ -28,7 +28,7 @@ import Foundation
 import UIKit
 import os
 
-class SceneDelegate: UIResponder, UIWindowSceneDelegate
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate
 {
     var window: UIWindow?
     

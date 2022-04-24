@@ -25,7 +25,7 @@
 
 import UIKit
 
-class NesRomDocument: UIDocument
+final class NesRomDocument: UIDocument
 {
     static let fileExtension: String = "nes"
     var cartridge: Cartridge?

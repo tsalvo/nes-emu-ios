@@ -25,7 +25,7 @@
 
 import UIKit
 
-class ConsoleStateTableViewController: UITableViewController
+final class ConsoleStateTableViewController: UITableViewController
 {
     var md5: String?
     weak var consoleSaveStateSelectionDelegate: ConsoleSaveStateSelectionDelegate?

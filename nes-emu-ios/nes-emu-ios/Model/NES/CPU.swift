@@ -624,19 +624,21 @@ struct CPU
         self.cycles &+= 7
     }
     
-    /// executes a single CPU instruction
+    /// executes a single CPU instruction, and returns the number of CPU cycles used
     mutating func step() -> Int
     {
-        var retValue: Int = 1
+        let numCPUCyclesThisStep: Int
         
-        if self.stall > 0
+        guard self.stall == 0
+            else
         {
+            numCPUCyclesThisStep = 1
             self.stall -= 1
-            self.stepOthers(forNumCPUCycles: retValue)
-            return retValue
+            self.stepOthers(forNumCPUCycles: numCPUCyclesThisStep)
+            return numCPUCyclesThisStep
         }
 
-        let cycles = self.cycles
+        let oldCycles = self.cycles
 
         switch self.interrupt
         {
@@ -651,12 +653,13 @@ struct CPU
         let opcode = self.read(address: self.pc)
         let instructioninfo: InstructionInfo = CPU.instructionTable[Int(opcode)]
         let mode: AddressingMode = instructioninfo.mode
-        var address: UInt16
-        var pageCrossed: Bool = false
+        let address: UInt16
+        let pageCrossed: Bool
         switch mode
         {
         case .absolute:
             address = self.read16(address: self.pc &+ 1)
+            pageCrossed = false
         case .absoluteXIndexed:
             address = self.read16(address: self.pc &+ 1) &+ UInt16(self.x)
             pageCrossed = self.pagesDiffer(address1: address &- UInt16(self.x), address2: address)
@@ -665,14 +668,19 @@ struct CPU
             pageCrossed = self.pagesDiffer(address1: address &- UInt16(self.y), address2: address)
         case .accumulator:
             address = 0
+            pageCrossed = false
         case .immediate:
             address = self.pc &+ 1
+            pageCrossed = false
         case .implied:
             address = 0
+            pageCrossed = false
         case .xIndexedIndirect:
             address = self.read16bug(address: UInt16(self.read(address: self.pc &+ 1) &+ self.x))
+            pageCrossed = false
         case .indirect:
             address = self.read16bug(address: self.read16(address: self.pc &+ 1))
+            pageCrossed = false
         case .indirectYIndexed:
             address = self.read16bug(address: UInt16(self.read(address: self.pc &+ 1))) &+ UInt16(self.y)
             pageCrossed = self.pagesDiffer(address1: address &- UInt16(self.y), address2: address)
@@ -683,12 +691,16 @@ struct CPU
             } else {
                 address = self.pc &+ 2 &+ offset &- 0x100
             }
+            pageCrossed = false
         case .zeropage:
             address = UInt16(self.read(address: self.pc &+ 1))
+            pageCrossed = false
         case .zeroPageXIndexed:
             address = UInt16(self.read(address: self.pc &+ 1) &+ self.x) & 0xff
+            pageCrossed = false
         case .zeroPageYIndexed:
             address = UInt16(self.read(address: self.pc &+ 1) &+ self.y) & 0xff
+            pageCrossed = false
         }
 
         self.pc &+= UInt16(instructioninfo.bytes)
@@ -700,11 +712,11 @@ struct CPU
         let info: StepInfo = StepInfo(address: address, pc: self.pc, mode: mode)
         instructioninfo.instruction(&self, info)
         
-        retValue = Int(self.cycles - cycles)
+        numCPUCyclesThisStep = Int(self.cycles - oldCycles)
         
-        self.stepOthers(forNumCPUCycles: retValue)
+        self.stepOthers(forNumCPUCycles: numCPUCyclesThisStep)
         
-        return retValue
+        return numCPUCyclesThisStep
     }
     
     private mutating func stepOthers(forNumCPUCycles aNumCPUCycles: Int)

@@ -31,7 +31,7 @@ protocol SettingsEnum
     var storedValue: Any { get }
 }
 
-class Settings
+final class Settings
 {
     // MARK: - UserDefaults Keys
     static let autoSaveKey: String = "autoSaveKey"
@@ -59,7 +59,7 @@ class Settings
     static let defaultIntegerScalingKey: Bool = false
     static let defaultScanlinesKey: Scanlines = Scanlines.off
 
-    class func registerDefaultsIfNeeded()
+    final class func registerDefaultsIfNeeded()
     {
         UserDefaults.standard.register(defaults: [
             Settings.loadLastSaveKey: Settings.defaultLoadLastSaveKey,

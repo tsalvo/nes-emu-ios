@@ -32,7 +32,7 @@ protocol NesRomNavigationControllerProtocol: AnyObject
     func closeDueToExternalChange(completionHandler aCompletionHandler: ((Bool) -> Void)?)
 }
 
-class NesRomNavigationController: UINavigationController, NesRomNavigationControllerProtocol
+final class NesRomNavigationController: UINavigationController, NesRomNavigationControllerProtocol
 {
     var document: NesRomDocument?
     

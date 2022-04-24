@@ -26,7 +26,7 @@
 import UIKit
 import os
 
-class RomListTableViewController: UITableViewController
+final class RomListTableViewController: UITableViewController
 {
     var romURLs: [URL] = []
     

@@ -25,7 +25,7 @@
 
 import UIKit
 
-class SettingsSegmentedCell: UITableViewCell
+final class SettingsSegmentedCell: UITableViewCell
 {
     // MARK: - UI Outlets
     

@@ -902,7 +902,7 @@ struct APU
 
         func output() -> UInt8
         {
-            if !self.enabled || self.lengthValue == 0 || self.shiftRegister & 1 == 1
+            if !self.enabled || self.lengthValue == 0 || self.shiftRegister & 1 == 1 || self.timerPeriod < 3
             {
                 return 0
             }

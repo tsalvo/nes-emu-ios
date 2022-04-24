@@ -25,7 +25,7 @@
 
 import UIKit
 
-class ConsoleStateNavigationController: UINavigationController
+final class ConsoleStateNavigationController: UINavigationController
 {
     var md5: String?
     weak var consoleSaveStateSelectionDelegate: ConsoleSaveStateSelectionDelegate?
