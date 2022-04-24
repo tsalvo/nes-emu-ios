@@ -97,6 +97,13 @@
 			<string>scanlinesKey</string>
 			<key>DefaultValue</key>
 			<integer>0</integer>
+			<key>ShortTitles</key>
+			<array>
+				<string>off</string>
+				<string>low</string>
+				<string>med</string>
+				<string>high</string>
+			</array>
 			<key>Titles</key>
 			<array>
 				<string>off</string>
@@ -118,20 +125,20 @@
 			<key>Title</key>
 			<string>settings-section-audio</string>
 		</dict>
-        <dict>
-            <key>Type</key>
-            <string>PSToggleSwitchSpecifier</string>
-            <key>Title</key>
-            <string>settings-item-audio-enable</string>
-            <key>Key</key>
-            <string>audioEnabledKey</string>
-            <key>DefaultValue</key>
-            <true/>
-            <key>TrueValue</key>
-            <string>YES</string>
-            <key>FalseValue</key>
-            <string>NO</string>
-        </dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>settings-item-audio-enable</string>
+			<key>Key</key>
+			<string>audioEnabledKey</string>
+			<key>DefaultValue</key>
+			<true/>
+			<key>TrueValue</key>
+			<string>YES</string>
+			<key>FalseValue</key>
+			<string>NO</string>
+		</dict>
 		<dict>
 			<key>Type</key>
 			<string>PSMultiValueSpecifier</string>
@@ -141,6 +148,13 @@
 			<string>sampleRateKey</string>
 			<key>DefaultValue</key>
 			<integer>22050</integer>
+			<key>ShortTitles</key>
+			<array>
+				<string>12 kHz</string>
+				<string>16 kHz</string>
+				<string>22.05 kHz</string>
+				<string>44.1 kHz</string>
+			</array>
 			<key>Titles</key>
 			<array>
 				<string>12000 Hz</string>
