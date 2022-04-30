@@ -53,6 +53,7 @@ struct Mapper_VRC2b_VRC4e_VRC4f: MapperProtocol
     private var prgBank800XRegOffset: Int = 0
     
     private var sram: [UInt8] = [UInt8](repeating: 0, count: 8192)
+    private var wram: [UInt8] = [UInt8](repeating: 0, count: 2048) // 2KB WRAM at $6000-$6FFF mirrored once
     
     private var swapMode: Bool = false
     private var useWram: Bool = false
@@ -157,7 +158,17 @@ struct Mapper_VRC2b_VRC4e_VRC4f: MapperProtocol
     {
         switch aAddress
         {
-        case 0x6000 ... 0x7FFF:
+        case 0x6000 ... 0x6FFF:
+            if self.useWram
+            {
+                // WRAM is only 2KB mirrored, so limit the read to 2KB range
+                return self.wram[Int((aAddress & 0x67FF) - 0x6000)]
+            }
+            else
+            {
+                return self.sram[Int(aAddress - 0x6000)]
+            }
+        case 0x7000 ... 0x7FFF:
             return self.sram[Int(aAddress - 0x6000)]
         case 0x8000 ... 0xFFFF:
             let bank = (aAddress - 0x8000) / 0x2000
@@ -177,8 +188,8 @@ struct Mapper_VRC2b_VRC4e_VRC4f: MapperProtocol
         switch aAddress
         {
         case 0x8000 ... 0xFFFF:
-            let A0 = ((aAddress >> 1) | (aAddress >> 3)) & 1
-            let A1 = (aAddress | (aAddress >> 2)) & 1
+            let A1 = ((aAddress >> 1) | (aAddress >> 3)) & 1
+            let A0 = (aAddress | (aAddress >> 2)) & 1
             let translatedAddress = (aAddress & 0xFF00) | (A1 << 1) | A0
             adjustedAddress = translatedAddress & 0xF00F
         default: adjustedAddress = aAddress
@@ -186,7 +197,17 @@ struct Mapper_VRC2b_VRC4e_VRC4f: MapperProtocol
         
         switch adjustedAddress
         {
-        case 0x6000 ... 0x7FFF:
+        case 0x6000 ... 0x6FFF:
+            if self.useWram
+            {
+                // WRAM is only 2KB mirrored, so limit the write to 2KB range
+                self.wram[Int((adjustedAddress & 0x67FF) - 0x6000)] = aValue
+            }
+            else
+            {
+                self.sram[Int(adjustedAddress - 0x6000)] = aValue
+            }
+        case 0x7000 ... 0x7FFF:
             self.sram[Int(adjustedAddress - 0x6000)] = aValue
         case 0x8000 ... 0x8003:
             /*
