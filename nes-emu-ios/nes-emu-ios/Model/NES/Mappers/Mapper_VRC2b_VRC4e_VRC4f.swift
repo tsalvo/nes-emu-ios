@@ -52,8 +52,11 @@ struct Mapper_VRC2b_VRC4e_VRC4f: MapperProtocol
     
     private var prgBank800XRegOffset: Int = 0
     
+    /// 8KB SRAM at $6000-$7FFF
     private var sram: [UInt8] = [UInt8](repeating: 0, count: 8192)
-    private var wram: [UInt8] = [UInt8](repeating: 0, count: 2048) // 2KB WRAM at $6000-$6FFF mirrored once
+    
+    /// optional 2KB WRAM at $6000-$6FFF mirrored once, enabled / disabled by register $9002
+    private var wram: [UInt8] = [UInt8](repeating: 0, count: 2048)
     
     private var swapMode: Bool = false
     private var useWram: Bool = false
@@ -105,6 +108,7 @@ struct Mapper_VRC2b_VRC4e_VRC4f: MapperProtocol
             var u8: [UInt8] = []
             u8.append(contentsOf: self.chrBankLowHigh)
             u8.append(contentsOf: self.sram)
+            u8.append(contentsOf: self.wram)
             u8.append(self.irqLatch)
             u8.append(self.irqCounter)
  
@@ -114,6 +118,7 @@ struct Mapper_VRC2b_VRC4e_VRC4f: MapperProtocol
             b.append(self.irqEnable)
             b.append(self.irqCycleMode)
             b.append(self.irqLine)
+            b.append(self.useWram)
             
             var i: [Int] = []
             i.append(contentsOf: self.chrBankOffsets)
@@ -125,19 +130,20 @@ struct Mapper_VRC2b_VRC4e_VRC4f: MapperProtocol
         }
         set
         {
-            let offsetToIndividualUInt8s: Int = self.chrBankLowHigh.count + self.sram.count
+            let offsetToIndividualUInt8s: Int = self.chrBankLowHigh.count + self.sram.count + self.wram.count
             let offsetToIndividualInts: Int = self.chrBankOffsets.count + self.prgOffsets.count
             
             guard newValue.uint8s.count >= offsetToIndividualUInt8s + 2,
                   newValue.ints.count >= offsetToIndividualInts + 2,
-                  newValue.bools.count >= 5
+                  newValue.bools.count >= 6
             else { return }
             
             self.chr = newValue.chr
             self.mirroringMode = MirroringMode(rawValue: newValue.mirroringMode) ?? self.mirroringMode
             
             self.chrBankLowHigh = [UInt8](newValue.uint8s[0 ..< self.chrBankLowHigh.count])
-            self.sram = [UInt8](newValue.uint8s[self.chrBankLowHigh.count ..< offsetToIndividualUInt8s])
+            self.sram = [UInt8](newValue.uint8s[self.chrBankLowHigh.count ..< self.chrBankLowHigh.count + self.sram.count])
+            self.wram = [UInt8](newValue.uint8s[self.chrBankLowHigh.count + self.sram.count ..< offsetToIndividualUInt8s])
             self.irqLatch = newValue.uint8s[offsetToIndividualUInt8s]
             self.irqCounter = newValue.uint8s[offsetToIndividualUInt8s + 1]
             
@@ -146,6 +152,7 @@ struct Mapper_VRC2b_VRC4e_VRC4f: MapperProtocol
             self.irqEnable = newValue.bools[2]
             self.irqCycleMode = newValue.bools[3]
             self.irqLine = newValue.bools[4]
+            self.useWram = newValue.bools[5]
             
             self.chrBankOffsets = [Int](newValue.ints[0 ..< self.chrBankOffsets.count])
             self.prgOffsets = [Int](newValue.ints[self.chrBankOffsets.count ..< offsetToIndividualInts])

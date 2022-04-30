@@ -52,9 +52,14 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     
     private var prgBank800XRegOffset: Int = 0
     
+    /// 8KB SRAM at $6000-$7FFF
     private var sram: [UInt8] = [UInt8](repeating: 0, count: 8192)
     
+    /// optional 2KB WRAM at $6000-$6FFF mirrored once, enabled / disabled by register $9002
+    private var wram: [UInt8] = [UInt8](repeating: 0, count: 2048)
+    
     private var swapMode: Bool = false
+    private var useWram: Bool = false
     
     private var irqEnableAfterAcknowledgement: Bool = false
     
@@ -103,6 +108,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
             var u8: [UInt8] = []
             u8.append(contentsOf: self.chrBankLowHigh)
             u8.append(contentsOf: self.sram)
+            u8.append(contentsOf: self.wram)
             u8.append(self.irqLatch)
             u8.append(self.irqCounter)
  
@@ -112,6 +118,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
             b.append(self.irqEnable)
             b.append(self.irqCycleMode)
             b.append(self.irqLine)
+            b.append(self.useWram)
             
             var i: [Int] = []
             i.append(contentsOf: self.chrBankOffsets)
@@ -123,19 +130,20 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
         }
         set
         {
-            let offsetToIndividualUInt8s: Int = self.chrBankLowHigh.count + self.sram.count
+            let offsetToIndividualUInt8s: Int = self.chrBankLowHigh.count + self.sram.count + self.wram.count
             let offsetToIndividualInts: Int = self.chrBankOffsets.count + self.prgOffsets.count
             
             guard newValue.uint8s.count >= offsetToIndividualUInt8s + 2,
                   newValue.ints.count >= offsetToIndividualInts + 2,
-                  newValue.bools.count >= 5
+                  newValue.bools.count >= 6
             else { return }
             
             self.chr = newValue.chr
             self.mirroringMode = MirroringMode(rawValue: newValue.mirroringMode) ?? self.mirroringMode
             
             self.chrBankLowHigh = [UInt8](newValue.uint8s[0 ..< self.chrBankLowHigh.count])
-            self.sram = [UInt8](newValue.uint8s[self.chrBankLowHigh.count ..< offsetToIndividualUInt8s])
+            self.sram = [UInt8](newValue.uint8s[self.chrBankLowHigh.count ..< self.chrBankLowHigh.count + self.sram.count])
+            self.wram = [UInt8](newValue.uint8s[self.chrBankLowHigh.count + self.sram.count ..< offsetToIndividualUInt8s])
             self.irqLatch = newValue.uint8s[offsetToIndividualUInt8s]
             self.irqCounter = newValue.uint8s[offsetToIndividualUInt8s + 1]
             
@@ -144,6 +152,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
             self.irqEnable = newValue.bools[2]
             self.irqCycleMode = newValue.bools[3]
             self.irqLine = newValue.bools[4]
+            self.useWram = newValue.bools[5]
             
             self.chrBankOffsets = [Int](newValue.ints[0 ..< self.chrBankOffsets.count])
             self.prgOffsets = [Int](newValue.ints[self.chrBankOffsets.count ..< offsetToIndividualInts])
@@ -156,7 +165,17 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     {
         switch aAddress
         {
-        case 0x6000 ... 0x7FFF:
+        case 0x6000 ... 0x6FFF:
+            if self.useWram
+            {
+                // WRAM is only 2KB mirrored, so limit the read to 2KB range
+                return self.wram[Int((aAddress & 0x67FF) - 0x6000)]
+            }
+            else
+            {
+                return self.sram[Int(aAddress - 0x6000)]
+            }
+        case 0x7000 ... 0x7FFF:
             return self.sram[Int(aAddress - 0x6000)]
         case 0x8000 ... 0xFFFF:
             let bank = (aAddress - 0x8000) / 0x2000
@@ -185,7 +204,17 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
         
         switch adjustedAddress
         {
-        case 0x6000 ... 0x7FFF:
+        case 0x6000 ... 0x6FFF:
+            if self.useWram
+            {
+                // WRAM is only 2KB mirrored, so limit the write to 2KB range
+                self.wram[Int((adjustedAddress & 0x67FF) - 0x6000)] = aValue
+            }
+            else
+            {
+                self.sram[Int(adjustedAddress - 0x6000)] = aValue
+            }
+        case 0x7000 ... 0x7FFF:
             self.sram[Int(adjustedAddress - 0x6000)] = aValue
         case 0x8000 ... 0x8003:
             /*
@@ -217,10 +246,14 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
             /*
              7  bit  0
              ---------
-             .... ..M.
-                    |
-                    +-- Swap Mode (used in VRC4 only)
+             .... ..MW
+                    |+- WRAM Control (W)
+                    +-- Swap Mode (M)
              This register is VRC4 only.
+             When 'W' is clear:
+             the 8 KiB page at $6000 is open bus, and WRAM content cannot be read nor written
+             When 'W' is set:
+             the 8 KiB page at $6000 is WRAM, and WRAM content can be read and written
              When 'M' is clear:
              the 8 KiB page at $8000 is controlled by the $800x register
              the 8 KiB page at $C000 is fixed to the second last 8 KiB in the ROM
@@ -229,6 +262,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
              the 8 KiB page at $C000 is controlled by the $800x register
              */
             self.swapMode = (aValue >> 1) & 1 == 1
+            self.useWram = aValue & 1 == 1
             
             self.prgOffsets[self.swapMode ? 0 : 2] = max(0, self.prg.count - 0x4000)
             self.prgOffsets[self.swapMode ? 2 : 0] = self.prgBank800XRegOffset
