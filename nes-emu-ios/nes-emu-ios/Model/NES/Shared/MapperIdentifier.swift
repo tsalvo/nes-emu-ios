@@ -51,7 +51,7 @@ enum MapperIdentifier: UInt8
     _020 = 20,
     VRC4a_VRC4c = 21,
     VRC2a = 22,
-    VRC2b_VRC4e = 23,
+    VRC2b_VRC4e_VRC4f = 23,
     VRC6a = 24,
     VRC2c_VRC4b_VRC4d = 25,
     VRC6b = 26,
@@ -300,6 +300,7 @@ enum MapperIdentifier: UInt8
              .GxROM,
              .Namcot118_TengenMimic1,
              .MMC5,
+             .VRC2b_VRC4e_VRC4f,
              .VRC2c_VRC4b_VRC4d,
              .NTDEC_2722:
             return true
