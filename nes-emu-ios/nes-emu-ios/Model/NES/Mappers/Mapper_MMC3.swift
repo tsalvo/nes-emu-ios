@@ -59,24 +59,6 @@ struct Mapper_MMC3: MapperProtocol
         {
             self.prg.append(contentsOf: p)
         }
-
-        if let safeState = aState
-        {
-            self.chr = safeState.chr
-        }
-        else
-        {
-            for c in aCartridge.chrBlocks
-            {
-                self.chr.append(contentsOf: c)
-            }
-        }
-
-        if self.chr.count == 0
-        {
-            // use a block for CHR RAM if no block exists
-            self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
-        }
         
         if let safeState = aState,
            safeState.uint8s.count >= 13,
@@ -93,9 +75,21 @@ struct Mapper_MMC3: MapperProtocol
             self.chrMode = safeState.uint8s[10]
             self.reload = safeState.uint8s[11]
             self.counter = safeState.uint8s[12]
+            self.chr = safeState.chr
         }
         else
         {
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
+            
+            if self.chr.count == 0
+            {
+                // use a block for CHR RAM if no block exists
+                self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
+            }
+            
             self.mirroringMode = aCartridge.header.mirroringMode
             self.prgOffsets = [Int].init(repeating: 0, count: 4)
             self.chrOffsets = [Int].init(repeating: 0, count: 8)
