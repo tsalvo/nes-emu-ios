@@ -108,6 +108,10 @@
 		99B1EDB5249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDB4249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift */; };
 		99B1EDB7249EB2DF00BC66F3 /* Collection+SafeIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDB6249EB2DF00BC66F3 /* Collection+SafeIndex.swift */; };
 		99B1EDB9249EC8D000BC66F3 /* SettingsNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B1EDB8249EC8D000BC66F3 /* SettingsNavigationController.swift */; };
+		99B45540281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B4553F281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift */; };
+		99B45541281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B4553F281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift */; };
+		99B45544281E0A36006BFF3B /* Mapper_87.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B45543281E0A36006BFF3B /* Mapper_87.swift */; };
+		99B45545281E0A36006BFF3B /* Mapper_87.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B45543281E0A36006BFF3B /* Mapper_87.swift */; };
 		99B7C307249F009100B26AC6 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 99B7C306249F009100B26AC6 /* Settings.bundle */; };
 		99B7C309249F33DC00B26AC6 /* Bundle+Version.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B7C308249F33DC00B26AC6 /* Bundle+Version.swift */; };
 		99B7C30B249F33EF00B26AC6 /* Date+Year.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B7C30A249F33EF00B26AC6 /* Date+Year.swift */; };
@@ -268,6 +272,9 @@
 		99B1EDB4249EB0D100BC66F3 /* UIStackView+ArrangedSubviews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIStackView+ArrangedSubviews.swift"; sourceTree = "<group>"; };
 		99B1EDB6249EB2DF00BC66F3 /* Collection+SafeIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Collection+SafeIndex.swift"; sourceTree = "<group>"; };
 		99B1EDB8249EC8D000BC66F3 /* SettingsNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsNavigationController.swift; sourceTree = "<group>"; };
+		99B4553F281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_VRC2b_VRC4e_VRC4f.swift; sourceTree = "<group>"; };
+		99B45542281E03DC006BFF3B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		99B45543281E0A36006BFF3B /* Mapper_87.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_87.swift; sourceTree = "<group>"; };
 		99B7C306249F009100B26AC6 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		99B7C308249F33DC00B26AC6 /* Bundle+Version.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+Version.swift"; sourceTree = "<group>"; };
 		99B7C30A249F33EF00B26AC6 /* Date+Year.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Date+Year.swift"; sourceTree = "<group>"; };
@@ -348,6 +355,7 @@
 		99488F33248985F100942A1E = {
 			isa = PBXGroup;
 			children = (
+				99B45542281E03DC006BFF3B /* README.md */,
 				99488F3E248985F100942A1E /* nes-emu-ios */,
 				99FA3C8F24A6E7CD0065E539 /* nes-emu-tvos */,
 				99E2E2062495D8C1008AFCDB /* nes-thumbnail-provider */,
@@ -428,6 +436,7 @@
 			children = (
 				992164A2249D113D00EB4BAA /* Mapper_AxROM.swift */,
 				995C9ADE249BECE000429ECC /* Mapper_CNROM.swift */,
+				99B45543281E0A36006BFF3B /* Mapper_87.swift */,
 				995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */,
 				995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */,
 				995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */,
@@ -437,6 +446,7 @@
 				99BD700C24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift */,
 				99EA746E24F0ACEB005D0EAA /* Mapper_NTDEC2722.swift */,
 				99A2924A26CA00A500A4D79B /* Mapper_VRC2c_VRC4b_VRC4d.swift */,
+				99B4553F281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift */,
 				995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */,
 			);
 			path = Mappers;
@@ -744,7 +754,9 @@
 				99A43E9824944CFD0009DB5B /* SampleRate.swift in Sources */,
 				991B28C12489F66300A6A6DD /* Cartridge.swift in Sources */,
 				994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */,
+				99B45540281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift in Sources */,
 				995D07732532BD6B008AD907 /* APUState.swift in Sources */,
+				99B45544281E0A36006BFF3B /* Mapper_87.swift in Sources */,
 				995D0803253376DA008AD907 /* NSManagedObject+CPUState.swift in Sources */,
 				99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */,
 				996F42D82534111E001A31D2 /* PulseState.swift in Sources */,
@@ -833,11 +845,13 @@
 				99FA3CB924A6F12A0065E539 /* Controller.swift in Sources */,
 				99FA3CA524A6F1030065E539 /* Collection+SafeIndex.swift in Sources */,
 				99FA3CA924A6F1100065E539 /* MapperProtocol.swift in Sources */,
+				99B45541281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift in Sources */,
 				995D0804253376DA008AD907 /* NSManagedObject+CPUState.swift in Sources */,
 				995D080A25337C74008AD907 /* NSManagedObject+MapperState.swift in Sources */,
 				99FA3CAB24A6F1140065E539 /* Mapper_CNROM.swift in Sources */,
 				99FA3CBD24A6F1500065E539 /* SampleRate.swift in Sources */,
 				99A2924C26CA00A500A4D79B /* Mapper_VRC2c_VRC4b_VRC4d.swift in Sources */,
+				99B45545281E0A36006BFF3B /* Mapper_87.swift in Sources */,
 				99FA3CA624A6F1050065E539 /* Bundle+Version.swift in Sources */,
 				99BD700E24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */,
 				996F42D92534111E001A31D2 /* PulseState.swift in Sources */,
