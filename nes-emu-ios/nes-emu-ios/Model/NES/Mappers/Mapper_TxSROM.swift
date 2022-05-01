@@ -25,8 +25,6 @@
 
 import Foundation
 import os
-// https://archive.nes.science/nesdev-forums/f3/t11129.xhtml
-
 
 struct Mapper_TxSROM: MapperProtocol
 {
