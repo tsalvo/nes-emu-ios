@@ -315,7 +315,7 @@ enum MapperIdentifier: UInt8
     {
         switch self
         {
-        case .Namco163, .VRC6a, .VRC6b, .MMC5: return true
+        case .Namco163, .VRC6a, .VRC6b, .VRC7, .MMC5: return true
         default: return false
         }
     }
