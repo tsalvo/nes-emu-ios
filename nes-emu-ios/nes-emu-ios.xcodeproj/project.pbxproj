@@ -112,6 +112,8 @@
 		99B45541281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B4553F281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift */; };
 		99B45544281E0A36006BFF3B /* Mapper_87.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B45543281E0A36006BFF3B /* Mapper_87.swift */; };
 		99B45545281E0A36006BFF3B /* Mapper_87.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B45543281E0A36006BFF3B /* Mapper_87.swift */; };
+		99B45547281E39DC006BFF3B /* Mapper_78.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B45546281E39DC006BFF3B /* Mapper_78.swift */; };
+		99B45548281E39DC006BFF3B /* Mapper_78.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B45546281E39DC006BFF3B /* Mapper_78.swift */; };
 		99B7C307249F009100B26AC6 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 99B7C306249F009100B26AC6 /* Settings.bundle */; };
 		99B7C309249F33DC00B26AC6 /* Bundle+Version.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B7C308249F33DC00B26AC6 /* Bundle+Version.swift */; };
 		99B7C30B249F33EF00B26AC6 /* Date+Year.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B7C30A249F33EF00B26AC6 /* Date+Year.swift */; };
@@ -275,6 +277,7 @@
 		99B4553F281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_VRC2b_VRC4e_VRC4f.swift; sourceTree = "<group>"; };
 		99B45542281E03DC006BFF3B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		99B45543281E0A36006BFF3B /* Mapper_87.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_87.swift; sourceTree = "<group>"; };
+		99B45546281E39DC006BFF3B /* Mapper_78.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_78.swift; sourceTree = "<group>"; };
 		99B7C306249F009100B26AC6 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		99B7C308249F33DC00B26AC6 /* Bundle+Version.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+Version.swift"; sourceTree = "<group>"; };
 		99B7C30A249F33EF00B26AC6 /* Date+Year.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Date+Year.swift"; sourceTree = "<group>"; };
@@ -437,6 +440,7 @@
 				992164A2249D113D00EB4BAA /* Mapper_AxROM.swift */,
 				995C9ADE249BECE000429ECC /* Mapper_CNROM.swift */,
 				99B45543281E0A36006BFF3B /* Mapper_87.swift */,
+				99B45546281E39DC006BFF3B /* Mapper_78.swift */,
 				995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */,
 				995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */,
 				995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */,
@@ -776,6 +780,7 @@
 				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
 				995C9ADD249BECCA00429ECC /* Mapper_MMC1.swift in Sources */,
 				99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */,
+				99B45547281E39DC006BFF3B /* Mapper_78.swift in Sources */,
 				995D08422533C84D008AD907 /* NSManagedObject+APUState.swift in Sources */,
 				995D07F72533759D008AD907 /* CoreDataModel.xcdatamodeld in Sources */,
 				996F42EA25341156001A31D2 /* DMCState.swift in Sources */,
@@ -852,6 +857,7 @@
 				99FA3CBD24A6F1500065E539 /* SampleRate.swift in Sources */,
 				99A2924C26CA00A500A4D79B /* Mapper_VRC2c_VRC4b_VRC4d.swift in Sources */,
 				99B45545281E0A36006BFF3B /* Mapper_87.swift in Sources */,
+				99B45548281E39DC006BFF3B /* Mapper_78.swift in Sources */,
 				99FA3CA624A6F1050065E539 /* Bundle+Version.swift in Sources */,
 				99BD700E24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */,
 				996F42D92534111E001A31D2 /* PulseState.swift in Sources */,
