@@ -1,5 +1,5 @@
 //
-//  Mapper_VRC2c_VRC4b_VRC4d.swift
+//  Mapper_VRC2b_VRC4e_VRC4f.swift
 //  nes-emu-ios
 //
 //  Created by Tom Salvo on 4/30/22.

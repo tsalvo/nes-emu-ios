@@ -1,9 +1,9 @@
 //
-//  Mapper_CNROM.swift
+//  Mapper_87.swift
 //  nes-emu-ios
 //
-//  Created by Tom Salvo on 6/18/20.
-//  Copyright © 2020 Tom Salvo.
+//  Created by Tom Salvo on 4/30/22.
+//  Copyright © 2022 Tom Salvo.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 import Foundation
 import os
 
-struct Mapper_CNROM: MapperProtocol
+struct Mapper_87: MapperProtocol
 {
     let hasStep: Bool = false
     
@@ -40,14 +40,7 @@ struct Mapper_CNROM: MapperProtocol
     /// linear 1D array of all CHR blocks
     private var chr: [UInt8] = []
     
-    /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
-    private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
-    
     private var chrBank: Int
-    
-    private var prgBank1: Int
-    
-    private let prgBank2: Int /// locked to last bank
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
@@ -55,14 +48,12 @@ struct Mapper_CNROM: MapperProtocol
         {
             self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
             self.chrBank = safeState.ints[safe: 0] ?? 0
-            self.prgBank1 = safeState.ints[safe: 1] ?? 0
             self.chr = safeState.chr
         }
         else
         {
             self.mirroringMode = aCartridge.header.mirroringMode
             self.chrBank = 0
-            self.prgBank1 = 0
             
             for c in aCartridge.chrBlocks
             {
@@ -80,20 +71,17 @@ struct Mapper_CNROM: MapperProtocol
             // use a block for CHR RAM if no block exists
             self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
         }
-        
-        self.prgBank2 = aCartridge.prgBlocks.count - 1
     }
     
     var mapperState: MapperState
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBank, self.prgBank1], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBank], bools: [], uint8s: [], chr: self.chr)
         }
         set
         {
             self.chrBank = newValue.ints[safe: 0] ?? 0
-            self.prgBank1 = newValue.ints[safe: 1] ?? 0
             self.chr = newValue.chr
         }
     }
@@ -102,14 +90,10 @@ struct Mapper_CNROM: MapperProtocol
     {
         switch aAddress
         {
-        case 0x8000 ..< 0xC000: // PRG Block 0
-            return self.prg[self.prgBank1 * 0x4000 + Int(aAddress - 0x8000)]
-        case 0xC000 ... 0xFFFF: // PRG Block 1
-            return self.prg[self.prgBank2 * 0x4000 + Int(aAddress - 0xC000)]
-        case 0x6000 ..< 0x8000:
-            return self.sram[Int(aAddress - 0x6000)]
+        case 0x8000 ... 0xFFFF: // PRG
+            return self.prg[Int(aAddress - 0x8000)]
         default:
-            os_log("unhandled Mapper_CNROM read at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_87 read at address: 0x%04X", aAddress)
             return 0
         }
     }
@@ -117,12 +101,19 @@ struct Mapper_CNROM: MapperProtocol
     mutating func cpuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x6000 ... 0xFFFF
     {
         switch aAddress {
-        case 0x8000 ... 0xFFFF:
-            self.chrBank = Int(aValue & 3)
-        case 0x6000 ..< 0x8000: // write to SRAM save
-            self.sram[Int(aAddress - 0x6000)] = aValue
+        case 0x6000 ... 0x7FFF:
+            /*
+            $6000-7FFF:  [.... ..LH]
+              H = High CHR Bit
+              L = Low CHR Bit
+          
+            This reg selects 8k CHR @ $0000.  Note the reversed bit orders.  Most games using this mapper only have 16k CHR, so the 'H' bit is usually unused.
+             */
+
+            self.chrBank = ((aValue >> 1) & 1 == 1 ? 1 : 0) + (aValue & 1 == 1 ? 2 : 0) // low bit 1 plus high bit 0
+            
         default:
-            os_log("unhandled Mapper_CNROM write at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_87 write at address: 0x%04X", aAddress)
             break
         }
     }
