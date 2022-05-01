@@ -146,7 +146,7 @@ enum MapperIdentifier: UInt8
     _115 = 115,
     _116 = 116,
     _117 = 117,
-    _118 = 118,
+    TxSROM = 118,
     TQROM = 119,
     _120 = 120,
     _121 = 121,
@@ -304,7 +304,8 @@ enum MapperIdentifier: UInt8
              .VRC2c_VRC4b_VRC4d,
              .NTDEC_2722,
              ._078,
-             ._087:
+             ._087,
+             .TxSROM:
             return true
         default: return false
         }
