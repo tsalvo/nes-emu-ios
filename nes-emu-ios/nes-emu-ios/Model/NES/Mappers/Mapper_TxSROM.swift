@@ -69,32 +69,18 @@ struct Mapper_TxSROM: MapperProtocol
             self.prg.append(contentsOf: p)
         }
 
-        if let safeState = aState
-        {
-            self.chr = safeState.chr
-        }
-        else
-        {
-            for c in aCartridge.chrBlocks
-            {
-                self.chr.append(contentsOf: c)
-            }
-        }
-
-        if self.chr.count == 0
-        {
-            // use a block for CHR RAM if no block exists
-            self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
-        }
-        
         if let safeState = aState,
-           safeState.uint8s.count >= 13,
+           safeState.uint8s.count >= 13 + 2048,
            safeState.bools.count >= 1,
-           safeState.ints.count >= 12
+           safeState.ints.count >= 16
         {
             self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
             self.prgOffsets = [safeState.ints[0], safeState.ints[1], safeState.ints[2], safeState.ints[3]]
             self.chrOffsets = [safeState.ints[4], safeState.ints[5], safeState.ints[6], safeState.ints[7], safeState.ints[8], safeState.ints[9], safeState.ints[10], safeState.ints[11]]
+            self.nameTableA = safeState.ints[12]
+            self.nameTableB = safeState.ints[13]
+            self.nameTableC = safeState.ints[14]
+            self.nameTableD = safeState.ints[15]
             self.irqEnable = safeState.bools[0]
             self.register = safeState.uint8s[0]
             self.registers = [safeState.uint8s[1], safeState.uint8s[2], safeState.uint8s[3], safeState.uint8s[4], safeState.uint8s[5], safeState.uint8s[6], safeState.uint8s[7], safeState.uint8s[8]]
@@ -102,6 +88,8 @@ struct Mapper_TxSROM: MapperProtocol
             self.chrMode = safeState.uint8s[10]
             self.reload = safeState.uint8s[11]
             self.counter = safeState.uint8s[12]
+            self.nametable = [UInt8](safeState.uint8s[13 ..< 13 + 2048])
+            self.chr = safeState.chr
         }
         else
         {
@@ -120,6 +108,24 @@ struct Mapper_TxSROM: MapperProtocol
             self.prgOffsets[1] = self.prgBankOffset(index: 1)
             self.prgOffsets[2] = self.prgBankOffset(index: -2)
             self.prgOffsets[3] = self.prgBankOffset(index: -1)
+            
+            if let safeState = aState
+            {
+                self.chr = safeState.chr
+            }
+            else
+            {
+                for c in aCartridge.chrBlocks
+                {
+                    self.chr.append(contentsOf: c)
+                }
+            }
+
+            if self.chr.count == 0
+            {
+                // use a block for CHR RAM if no block exists
+                self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
+            }
         }
     }
     
@@ -127,13 +133,15 @@ struct Mapper_TxSROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]], bools: [self.irqEnable], uint8s: [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode, self.reload, self.counter], chr: self.chr)
+            var uint8s = [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode, self.reload, self.counter]
+            uint8s.append(contentsOf: self.nametable)
+            return MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7], self.nameTableA, self.nameTableB, self.nameTableC, self.nameTableD], bools: [self.irqEnable], uint8s: uint8s, chr: self.chr)
         }
         set
         {
-            guard newValue.uint8s.count >= 13,
+            guard newValue.uint8s.count >= 13 + 2048,
                   newValue.bools.count >= 1,
-                  newValue.ints.count >= 12
+                  newValue.ints.count >= 16
             else
             {
                 return
@@ -141,6 +149,11 @@ struct Mapper_TxSROM: MapperProtocol
             
             self.prgOffsets = [newValue.ints[0], newValue.ints[1], newValue.ints[2], newValue.ints[3]]
             self.chrOffsets = [newValue.ints[4], newValue.ints[5], newValue.ints[6], newValue.ints[7], newValue.ints[8], newValue.ints[9], newValue.ints[10], newValue.ints[11]]
+            
+            self.nameTableA = newValue.ints[12]
+            self.nameTableB = newValue.ints[13]
+            self.nameTableC = newValue.ints[14]
+            self.nameTableD = newValue.ints[15]
             self.irqEnable = newValue.bools[0]
             self.register = newValue.uint8s[0]
             self.registers = [newValue.uint8s[1], newValue.uint8s[2], newValue.uint8s[3], newValue.uint8s[4], newValue.uint8s[5], newValue.uint8s[6], newValue.uint8s[7], newValue.uint8s[8]]
@@ -148,6 +161,7 @@ struct Mapper_TxSROM: MapperProtocol
             self.chrMode = newValue.uint8s[10]
             self.reload = newValue.uint8s[11]
             self.counter = newValue.uint8s[12]
+            self.nametable = [UInt8](newValue.uint8s[13 ..< 13 + 2048])
             self.chr = newValue.chr
         }
     }
