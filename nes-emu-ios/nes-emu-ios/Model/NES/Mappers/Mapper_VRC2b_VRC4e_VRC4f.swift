@@ -2,8 +2,8 @@
 //  Mapper_VRC2c_VRC4b_VRC4d.swift
 //  nes-emu-ios
 //
-//  Created by Tom Salvo on 8/15/21.
-//  Copyright © 2020 Tom Salvo.
+//  Created by Tom Salvo on 4/30/22.
+//  Copyright © 2022 Tom Salvo.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 import Foundation
 import os
 
-struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
+struct Mapper_VRC2b_VRC4e_VRC4f: MapperProtocol
 {
     static private let scalerPreset: Int = 341 * 3 // TODO: this should be 341
     static private let scalerDelta: Int = 3
@@ -72,7 +72,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     
     private var irqCounter: UInt8 = 0
     
-    private var irqScaler: Int = Mapper_VRC2c_VRC4b_VRC4d.scalerPreset
+    private var irqScaler: Int = Mapper_VRC2b_VRC4e_VRC4f.scalerPreset
     
     private var irqLine: Bool = false
     
@@ -182,7 +182,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
             let offset = aAddress % 0x2000
             return self.prg[self.prgOffsets[Int(bank)] + Int(offset)]
         default:
-            os_log("unhandled Mapper_VRC2c_VRC4b_VRC4d CPU read at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_VRC2b_VRC4e_VRC4f CPU read at address: 0x%04X", aAddress)
             return 0
         }
     }
@@ -195,8 +195,8 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
         switch aAddress
         {
         case 0x8000 ... 0xFFFF:
-            let A0 = ((aAddress >> 1) | (aAddress >> 3)) & 1
-            let A1 = (aAddress | (aAddress >> 2)) & 1
+            let A1 = ((aAddress >> 1) | (aAddress >> 3)) & 1
+            let A0 = (aAddress | (aAddress >> 2)) & 1
             let translatedAddress = (aAddress & 0xFF00) | (A1 << 1) | A0
             adjustedAddress = translatedAddress & 0xF00F
         default: adjustedAddress = aAddress
@@ -387,7 +387,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
             if self.irqEnable
             {
                 self.irqCounter = self.irqLatch
-                self.irqScaler = Mapper_VRC2c_VRC4b_VRC4d.scalerPreset
+                self.irqScaler = Mapper_VRC2b_VRC4e_VRC4f.scalerPreset
             }
 
         case 0xF003:
@@ -395,7 +395,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
             self.irqLine = false
             self.irqEnable = self.irqEnableAfterAcknowledgement
         default:
-            os_log("unhandled Mapper_VRC2c_VRC4b_VRC4d CPU write at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_VRC2b_VRC4e_VRC4f CPU write at address: 0x%04X", aAddress)
         }
     }
     
@@ -407,7 +407,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
             let offset = Int(aAddress) % 0x0400
             return self.chr[bankOffset + offset]
         default:
-            os_log("unhandled Mapper_VRC2c_VRC4b_VRC4d PPU read at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_VRC2b_VRC4e_VRC4f PPU read at address: 0x%04X", aAddress)
             return 0
         }
         
@@ -418,7 +418,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
         switch aAddress
         {
         default:
-            os_log("unhandled Mapper_VRC2c_VRC4b_VRC4d PPU write at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_VRC2b_VRC4e_VRC4f PPU write at address: 0x%04X", aAddress)
         }
     }
     
@@ -440,11 +440,11 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
         }
         else
         {
-            self.irqScaler -= Mapper_VRC2c_VRC4b_VRC4d.scalerDelta
+            self.irqScaler -= Mapper_VRC2b_VRC4e_VRC4f.scalerDelta
             
             if self.irqScaler <= 0
             {
-                self.irqScaler += Mapper_VRC2c_VRC4b_VRC4d.scalerPreset
+                self.irqScaler += Mapper_VRC2b_VRC4e_VRC4f.scalerPreset
                 
                 if self.irqCounter == 0xFF
                 {
