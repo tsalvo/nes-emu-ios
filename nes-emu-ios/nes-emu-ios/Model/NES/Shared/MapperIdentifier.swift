@@ -113,7 +113,7 @@ enum MapperIdentifier: UInt8
     Taito_X117 = 82,
     _083 = 83,
     _084 = 84,
-    _085 = 85,
+    VRC7 = 85,
     _086 = 86,
     _087 = 87,
     Namco_118 = 88,
