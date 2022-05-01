@@ -35,6 +35,7 @@ The following mappers have been implemented:
 -  VRC2c / VRC4b / VRC4d (25)
 -  NTDEC2722 (40)
 -  GxROM (66)
+-  Mapper 78 (78)
 -  Mapper 87 (87)
 -  Namcot 118 / Tengen Mimic 1 (206)
 
