@@ -271,6 +271,7 @@
 		99B1EDB6249EB2DF00BC66F3 /* Collection+SafeIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Collection+SafeIndex.swift"; sourceTree = "<group>"; };
 		99B1EDB8249EC8D000BC66F3 /* SettingsNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsNavigationController.swift; sourceTree = "<group>"; };
 		99B4553F281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_VRC2b_VRC4e_VRC4f.swift; sourceTree = "<group>"; };
+		99B45542281E03DC006BFF3B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		99B7C306249F009100B26AC6 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		99B7C308249F33DC00B26AC6 /* Bundle+Version.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+Version.swift"; sourceTree = "<group>"; };
 		99B7C30A249F33EF00B26AC6 /* Date+Year.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Date+Year.swift"; sourceTree = "<group>"; };
@@ -351,6 +352,7 @@
 		99488F33248985F100942A1E = {
 			isa = PBXGroup;
 			children = (
+				99B45542281E03DC006BFF3B /* README.md */,
 				99488F3E248985F100942A1E /* nes-emu-ios */,
 				99FA3C8F24A6E7CD0065E539 /* nes-emu-tvos */,
 				99E2E2062495D8C1008AFCDB /* nes-thumbnail-provider */,
