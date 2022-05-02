@@ -82,11 +82,40 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        self.mirroringMode = aCartridge.header.mirroringMode
-        
-        for c in aCartridge.chrBlocks
+        if let safeState = aState,
+           safeState.uint8s.count >= 10258,
+           safeState.ints.count >= 14,
+           safeState.bools.count >= 6
         {
-            self.chr.append(contentsOf: c)
+            self.chr = safeState.chr
+            self.mirroringMode = MirroringMode(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            
+            self.chrBankLowHigh = [UInt8](safeState.uint8s[0 ..< 16])
+            self.sram = [UInt8](safeState.uint8s[16 ..< 8208])
+            self.wram = [UInt8](safeState.uint8s[8208 ..< 10256])
+            self.irqLatch = safeState.uint8s[10256]
+            self.irqCounter = safeState.uint8s[10257]
+            
+            self.swapMode = safeState.bools[0]
+            self.irqEnableAfterAcknowledgement = safeState.bools[1]
+            self.irqEnable = safeState.bools[2]
+            self.irqCycleMode = safeState.bools[3]
+            self.irqLine = safeState.bools[4]
+            self.useWram = safeState.bools[5]
+            
+            self.chrBankOffsets = [Int](safeState.ints[0 ..< 8])
+            self.prgOffsets = [Int](safeState.ints[8 ..< 12])
+            self.irqScaler = safeState.ints[12]
+            self.prgBank800XRegOffset = safeState.ints[13]
+        }
+        else
+        {
+            self.mirroringMode = aCartridge.header.mirroringMode
+            
+            for c in aCartridge.chrBlocks
+            {
+                self.chr.append(contentsOf: c)
+            }
         }
         
         for p in aCartridge.prgBlocks
