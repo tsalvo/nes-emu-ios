@@ -302,6 +302,7 @@ enum MapperIdentifier: UInt8
              .MMC5,
              .VRC2b_VRC4e_VRC4f,
              .VRC2c_VRC4b_VRC4d,
+             .VRC7,
              .NTDEC_2722,
              ._078,
              ._087,

@@ -22,23 +22,24 @@ This app uses the `UIDocumentBrowserViewController` for easy NES ROM (`.nes`) fi
 ## Game Compatibility 
 The following mappers have been implemented:
 
--  NROM (0)
--  MMC1 (1)
--  UNROM (2)
--  CNROM (3)
--  MMC3 (4)
--  MMC5 (5) 
--  AxROM (7)
--  MMC2 (9)
--  ColorDreams (11)
--  VRC2b / VRC4e / VRC4f (23)
--  VRC2c / VRC4b / VRC4d (25)
--  NTDEC2722 (40)
--  GxROM (66)
--  Mapper 78 (78)
--  Mapper 87 (87)
--  TxSROM (118)
--  Namcot 118 / Tengen Mimic 1 (206)
+- 000 NROM
+- 001 MMC1
+- 002 UNROM
+- 003 CNROM
+- 004 MMC3
+- 005 MMC5 (missing some features)
+- 007 AxROM
+- 009 MMC2
+- 011 ColorDreams
+- 023 VRC2b / VRC4e / VRC4f
+- 025 VRC2c / VRC4b / VRC4d
+- 040 NTDEC2722
+- 066 GxROM
+- 078 Mapper 78
+- 085 VRC7 (missing expansion audio)
+- 087 Mapper 87
+- 118 TxSROM
+- 206 Namcot 118 / Tengen Mimic 1
 
 This accounts for a good portion of the NES library, but there are still some big gaps remaining for popular mapper support.
 

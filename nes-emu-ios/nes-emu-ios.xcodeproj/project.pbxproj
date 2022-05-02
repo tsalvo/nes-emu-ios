@@ -85,6 +85,8 @@
 		9985ACBA25357978009EA2C0 /* ConsoleStateCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 995D08332533A7FE008AD907 /* ConsoleStateCell.xib */; };
 		9985ACBE2535797D009EA2C0 /* AddConsoleStateCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 996F430E25343312001A31D2 /* AddConsoleStateCell.xib */; };
 		9985ACC225357980009EA2C0 /* AddConsoleStateCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996F430D25343312001A31D2 /* AddConsoleStateCell.swift */; };
+		99886AB3281F019D00C55611 /* Mapper_VRC7.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99886AB2281F019D00C55611 /* Mapper_VRC7.swift */; };
+		99886AB4281F019D00C55611 /* Mapper_VRC7.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99886AB2281F019D00C55611 /* Mapper_VRC7.swift */; };
 		999AA95C248F668000DA77AA /* NesRomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999AA95B248F668000DA77AA /* NesRomViewController.swift */; };
 		999EF98724988D8B007149C9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 999EF98624988D8B007149C9 /* Localizable.strings */; };
 		99A2924B26CA00A500A4D79B /* Mapper_VRC2c_VRC4b_VRC4d.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A2924A26CA00A500A4D79B /* Mapper_VRC2c_VRC4b_VRC4d.swift */; };
@@ -254,6 +256,7 @@
 		996F430D25343312001A31D2 /* AddConsoleStateCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddConsoleStateCell.swift; sourceTree = "<group>"; };
 		996F430E25343312001A31D2 /* AddConsoleStateCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AddConsoleStateCell.xib; sourceTree = "<group>"; };
 		9972A9C9254E8089007D0DBC /* Scanlines.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scanlines.swift; sourceTree = "<group>"; };
+		99886AB2281F019D00C55611 /* Mapper_VRC7.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_VRC7.swift; sourceTree = "<group>"; };
 		999AA95B248F668000DA77AA /* NesRomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesRomViewController.swift; sourceTree = "<group>"; };
 		999EF98624988D8B007149C9 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		99A2924A26CA00A500A4D79B /* Mapper_VRC2c_VRC4b_VRC4d.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_VRC2c_VRC4b_VRC4d.swift; sourceTree = "<group>"; };
@@ -455,6 +458,7 @@
 				99EA746E24F0ACEB005D0EAA /* Mapper_NTDEC2722.swift */,
 				99A2924A26CA00A500A4D79B /* Mapper_VRC2c_VRC4b_VRC4d.swift */,
 				99B4553F281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift */,
+				99886AB2281F019D00C55611 /* Mapper_VRC7.swift */,
 				995C9AE9249C081300429ECC /* Mapper_UnsupportedPlaceholder.swift */,
 			);
 			path = Mappers;
@@ -780,6 +784,7 @@
 				99B1EDAD249EB0A800BC66F3 /* SettingsMoreInfoCell.swift in Sources */,
 				99B1EDB7249EB2DF00BC66F3 /* Collection+SafeIndex.swift in Sources */,
 				995D077F2532BDAD008AD907 /* MapperState.swift in Sources */,
+				99886AB3281F019D00C55611 /* Mapper_VRC7.swift in Sources */,
 				996F42DE2534112D001A31D2 /* TriangleState.swift in Sources */,
 				9953246224B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */,
 				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
@@ -856,6 +861,7 @@
 				99FA3CA524A6F1030065E539 /* Collection+SafeIndex.swift in Sources */,
 				99FA3CA924A6F1100065E539 /* MapperProtocol.swift in Sources */,
 				99B45541281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift in Sources */,
+				99886AB4281F019D00C55611 /* Mapper_VRC7.swift in Sources */,
 				995D0804253376DA008AD907 /* NSManagedObject+CPUState.swift in Sources */,
 				995D080A25337C74008AD907 /* NSManagedObject+MapperState.swift in Sources */,
 				99FA3CAB24A6F1140065E539 /* Mapper_CNROM.swift in Sources */,

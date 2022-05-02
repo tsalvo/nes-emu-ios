@@ -128,6 +128,8 @@ struct Cartridge: CartridgeProtocol
             return Mapper_VRC2b_VRC4e_VRC4f(withCartridge: self, state: aState)
         case .VRC2c_VRC4b_VRC4d:
             return Mapper_VRC2c_VRC4b_VRC4d(withCartridge: self, state: aState)
+        case .VRC7:
+            return Mapper_VRC7(withCartridge: self, state: aState)
         case ._078:
             return Mapper_78(withCartridge: self, state: aState)
         case ._087:
