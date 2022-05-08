@@ -839,7 +839,7 @@ struct APU
 
         mutating func writePeriod(value aValue: UInt8)
         {
-            self.mode =  aValue & 0x80 == 0x80
+            self.mode = aValue & 0x80 == 0x80
             self.timerPeriod = Noise.noiseTable[Int(aValue & 0x0F)]
         }
 
