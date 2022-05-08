@@ -28,6 +28,9 @@ import os
 
 struct Mapper_UNROM: MapperProtocol
 {
+    // MARK: Constants
+    private static let chrRamSizeInBytes: Int = 8192
+    
     // MARK: - Internal Variables
     let hasStep: Bool = false
     let hasExtendedNametableMapping: Bool = false
@@ -44,22 +47,14 @@ struct Mapper_UNROM: MapperProtocol
     private var prgBank1: Int
     /// locked to last PRG block
     private let prgBank2: Int
+    /// if no CHR ROM banks are detected, default to 8KB CHR RAM
+    private let chrRamEnabled: Bool
+    /// 8KB CHR RAM for games that do not have 8KB CHR ROM
+    private var chrRam: [UInt8] = [UInt8](repeating: 0, count: Mapper_UNROM.chrRamSizeInBytes)
     
     // MARK: - Life Cycle
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        if let safeState = aState,
-           safeState.ints.count >= 1
-        {
-            self.prgBank1 = safeState.ints[0]
-        }
-        else
-        {
-            self.prgBank1 = 0
-        }
-        
-        self.mirroringMode = aCartridge.header.mirroringMode
-        
         var c: [UInt8] = []
         var p: [UInt8] = []
         
@@ -73,11 +68,6 @@ struct Mapper_UNROM: MapperProtocol
             c.append(contentsOf: cBlock)
         }
         
-        if c.isEmpty
-        {
-            c = [UInt8](repeating: 0, count: 0x2000)
-        }
-        
         if p.isEmpty
         {
             p = [UInt8](repeating: 0, count: 0x4000)
@@ -85,6 +75,24 @@ struct Mapper_UNROM: MapperProtocol
         
         self.chr = c
         self.prg = p
+        
+        let hasChrRam: Bool = c.isEmpty
+        self.chrRamEnabled = hasChrRam
+        
+        if let safeState = aState,
+           safeState.ints.count >= 1,
+           !hasChrRam || safeState.uint8s.count >= Mapper_UNROM.chrRamSizeInBytes
+        {
+            self.prgBank1 = safeState.ints[0]
+            self.chrRam = hasChrRam ? [UInt8](safeState.uint8s[0 ..< Mapper_UNROM.chrRamSizeInBytes]) : []
+        }
+        else
+        {
+            self.prgBank1 = 0
+            self.chrRam = hasChrRam ? [UInt8](repeating: 0, count: Mapper_UNROM.chrRamSizeInBytes) : []
+        }
+        
+        self.mirroringMode = aCartridge.header.mirroringMode
         
         self.prgBanks = self.prg.count / 0x4000
         self.prgBank2 = self.prgBanks - 1
@@ -148,12 +156,23 @@ struct Mapper_UNROM: MapperProtocol
     // MARK: - PPU Handling
     func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
     {
-        return self.chr[Int(aAddress)]
+        if self.chrRamEnabled
+        {
+            return self.chrRam[Int(aAddress)]
+        }
+        else
+        {
+            return self.chr[Int(aAddress)]
+        }
     }
+        
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
-        // CHR ROM only, no writing
+        if self.chrRamEnabled
+        {
+            self.chrRam[Int(aAddress)] = aValue
+        }
     }
     
     // MARK: - Step
