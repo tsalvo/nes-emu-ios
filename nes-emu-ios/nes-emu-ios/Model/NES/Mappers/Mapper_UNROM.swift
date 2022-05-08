@@ -44,9 +44,9 @@ struct Mapper_UNROM: MapperProtocol
     /// number of 16KB PRG banks
     private let prgBanks: Int
     /// switchable 16KB PRG Bank
-    private var prgBank1: Int
+    private var prgBankOffset1: Int
     /// locked to last PRG block
-    private let prgBank2: Int
+    private let prgBankOffset2: Int
     /// if no CHR ROM banks are detected, default to 8KB CHR RAM
     private let chrRamEnabled: Bool
     /// 8KB CHR RAM for games that do not have 8KB CHR ROM
@@ -83,19 +83,19 @@ struct Mapper_UNROM: MapperProtocol
            safeState.ints.count >= 1,
            !hasChrRam || safeState.uint8s.count >= Mapper_UNROM.chrRamSizeInBytes
         {
-            self.prgBank1 = safeState.ints[0]
+            self.prgBankOffset1 = safeState.ints[0]
             self.chrRam = hasChrRam ? [UInt8](safeState.uint8s[0 ..< Mapper_UNROM.chrRamSizeInBytes]) : []
         }
         else
         {
-            self.prgBank1 = 0
+            self.prgBankOffset1 = 0
             self.chrRam = hasChrRam ? [UInt8](repeating: 0, count: Mapper_UNROM.chrRamSizeInBytes) : []
         }
         
         self.mirroringMode = aCartridge.header.mirroringMode
         
         self.prgBanks = self.prg.count / 0x4000
-        self.prgBank2 = self.prgBanks - 1
+        self.prgBankOffset2 = (self.prgBanks - 1) * 0x4000
     }
     
     // MARK: - Save State
@@ -103,7 +103,7 @@ struct Mapper_UNROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank1], bools: [], uint8s: self.chrRam, chr: [])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBankOffset1], bools: [], uint8s: self.chrRam, chr: [])
         }
         set
         {
@@ -113,7 +113,7 @@ struct Mapper_UNROM: MapperProtocol
                 return
             }
             self.chrRam = self.chrRamEnabled ? [UInt8](newValue.uint8s[0 ..< Mapper_UNROM.chrRamSizeInBytes]) : []
-            self.prgBank1 = newValue.ints[0]
+            self.prgBankOffset1 = newValue.ints[0]
         }
     }
     
@@ -123,9 +123,9 @@ struct Mapper_UNROM: MapperProtocol
         switch aAddress
         {
         case 0x8000 ..< 0xC000: // PRG Block 0
-            return self.prg[self.prgBank1 * 0x4000 + Int(aAddress - 0x8000)]
+            return self.prg[self.prgBankOffset1 + Int(aAddress - 0x8000)]
         case 0xC000 ... 0xFFFF: // PRG Block 1 (or mirror of PRG block 0 if only one PRG exists)
-            return self.prg[self.prgBank2 * 0x4000 + Int(aAddress - 0xC000)]
+            return self.prg[self.prgBankOffset2 + Int(aAddress - 0xC000)]
         case 0x6000 ..< 0x8000:
             return 0 // no PRG RAM
         default:
@@ -149,7 +149,7 @@ struct Mapper_UNROM: MapperProtocol
              bank select register, without bus conflicts. This allows the mapper
              to be used for similar boards that are compatible.
              */
-            self.prgBank1 = Int(aValue) % self.prgBanks
+            self.prgBankOffset1 = (Int(aValue) % self.prgBanks) * 0x4000
         case 0x6000 ... 0x7FFF:
             // no PRG RAM
             break

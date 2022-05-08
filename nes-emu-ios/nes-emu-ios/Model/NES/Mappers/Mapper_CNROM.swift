@@ -37,24 +37,24 @@ struct Mapper_CNROM: MapperProtocol
     /// linear 1D array of all CHR blocks
     private let chr: [UInt8]
     /// Switchable 8KB CHR Bank
-    private var chrBank: Int
+    private var chrBankOffset: Int
     /// the number of 8KB CHR blocks in the ROM (up to 4)
     private let numChrBanks: Int
     /// 16KB PRG bank, fixed to first bank
-    private let prgBank1: Int
+    private let prgBankOffset1: Int
     /// 16KB PRG bank, fixed to last bank
-    private let prgBank2: Int
+    private let prgBankOffset2: Int
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
         if let safeState = aState,
            safeState.ints.count >= 1
         {
-            self.chrBank = safeState.ints[0]
+            self.chrBankOffset = safeState.ints[0]
         }
         else
         {
-            self.chrBank = 0
+            self.chrBankOffset = 0
         }
         
         var c: [UInt8] = []
@@ -74,8 +74,8 @@ struct Mapper_CNROM: MapperProtocol
         
         self.prg = p
         self.chr = c
-        self.prgBank1 = 0
-        self.prgBank2 = aCartridge.prgBlocks.count - 1
+        self.prgBankOffset1 = 0
+        self.prgBankOffset2 = (aCartridge.prgBlocks.count - 1) * 0x4000
         self.mirroringMode = aCartridge.header.mirroringMode
     }
     
@@ -83,12 +83,12 @@ struct Mapper_CNROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBank], bools: [], uint8s: [], chr: [])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBankOffset], bools: [], uint8s: [], chr: [])
         }
         set
         {
             guard newValue.ints.count >= 1 else { return }
-            self.chrBank = newValue.ints[0]
+            self.chrBankOffset = newValue.ints[0]
         }
     }
     
@@ -97,9 +97,9 @@ struct Mapper_CNROM: MapperProtocol
         switch aAddress
         {
         case 0x8000 ... 0xBFFF: // PRG Block 0
-            return self.prg[self.prgBank1 * 0x4000 + Int(aAddress - 0x8000)]
+            return self.prg[self.prgBankOffset1 + Int(aAddress - 0x8000)]
         case 0xC000 ... 0xFFFF: // PRG Block 1
-            return self.prg[self.prgBank2 * 0x4000 + Int(aAddress - 0xC000)]
+            return self.prg[self.prgBankOffset2 + Int(aAddress - 0xC000)]
         case 0x6000 ... 0x7FFF: // No SRAM
             return 0
         default:
@@ -112,7 +112,7 @@ struct Mapper_CNROM: MapperProtocol
     {
         switch aAddress {
         case 0x8000 ... 0xFFFF:
-            self.chrBank = Int(aValue & 0x03) % self.numChrBanks
+            self.chrBankOffset = (Int(aValue & 0x03) % self.numChrBanks) * 0x2000
         case 0x6000 ... 0x7FFF: // No SRAM
             break
         default:
@@ -123,7 +123,7 @@ struct Mapper_CNROM: MapperProtocol
     
     func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
     {
-        return self.chr[(self.chrBank * 0x2000) + Int(aAddress)]
+        return self.chr[self.chrBankOffset + Int(aAddress)]
     }
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
