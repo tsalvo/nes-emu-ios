@@ -103,11 +103,16 @@ struct Mapper_UNROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank1], bools: [], uint8s: [], chr: [])
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank1], bools: [], uint8s: self.chrRam, chr: [])
         }
         set
         {
-            guard newValue.ints.count > 0 else { return }
+            guard newValue.ints.count > 0,
+                  !self.chrRamEnabled || newValue.uint8s.count >= Mapper_UNROM.chrRamSizeInBytes
+            else {
+                return
+            }
+            self.chrRam = self.chrRamEnabled ? [UInt8](newValue.uint8s[0 ..< Mapper_UNROM.chrRamSizeInBytes]) : []
             self.prgBank1 = newValue.ints[0]
         }
     }
