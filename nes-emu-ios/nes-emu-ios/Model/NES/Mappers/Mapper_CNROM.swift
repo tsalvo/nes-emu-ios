@@ -29,72 +29,66 @@ import os
 struct Mapper_CNROM: MapperProtocol
 {
     let hasStep: Bool = false
-    
     let hasExtendedNametableMapping: Bool = false
-    
     let mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
-    private var prg: [UInt8] = []
-    
+    private let prg: [UInt8]
     /// linear 1D array of all CHR blocks
-    private var chr: [UInt8] = []
-    
-    /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
-    private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
-    
+    private let chr: [UInt8]
+    /// Switchable 8KB CHR Bank
     private var chrBank: Int
-    
-    private var prgBank1: Int
-    
-    private let prgBank2: Int /// locked to last bank
+    /// the number of 8KB CHR blocks in the ROM (up to 4)
+    private let numChrBanks: Int
+    /// 16KB PRG bank, fixed to first bank
+    private let prgBank1: Int
+    /// 16KB PRG bank, fixed to last bank
+    private let prgBank2: Int
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        if let safeState = aState
+        if let safeState = aState,
+           safeState.ints.count >= 1
         {
-            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
-            self.chrBank = safeState.ints[safe: 0] ?? 0
-            self.prgBank1 = safeState.ints[safe: 1] ?? 0
-            self.chr = safeState.chr
+            self.chrBank = safeState.ints[0]
         }
         else
         {
-            self.mirroringMode = aCartridge.header.mirroringMode
             self.chrBank = 0
-            self.prgBank1 = 0
-            
-            for c in aCartridge.chrBlocks
-            {
-                self.chr.append(contentsOf: c)
-            }
         }
         
-        for p in aCartridge.prgBlocks
+        var c: [UInt8] = []
+        var p: [UInt8] = []
+        
+        for pBlock in aCartridge.prgBlocks.prefix(2) // max 2 PRG blocks (32KB)
         {
-            self.prg.append(contentsOf: p)
+            p.append(contentsOf: pBlock)
         }
         
-        if self.chr.count == 0
+        for cBlock in aCartridge.chrBlocks.prefix(4) // max 4 CHR blocks (32KB)
         {
-            // use a block for CHR RAM if no block exists
-            self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
+            c.append(contentsOf: cBlock)
         }
         
+        self.numChrBanks = c.count / 0x2000
+        
+        self.prg = p
+        self.chr = c
+        self.prgBank1 = 0
         self.prgBank2 = aCartridge.prgBlocks.count - 1
+        self.mirroringMode = aCartridge.header.mirroringMode
     }
     
     var mapperState: MapperState
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBank, self.prgBank1], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBank], bools: [], uint8s: [], chr: [])
         }
         set
         {
-            self.chrBank = newValue.ints[safe: 0] ?? 0
-            self.prgBank1 = newValue.ints[safe: 1] ?? 0
-            self.chr = newValue.chr
+            guard newValue.ints.count >= 1 else { return }
+            self.chrBank = newValue.ints[0]
         }
     }
     
@@ -102,12 +96,12 @@ struct Mapper_CNROM: MapperProtocol
     {
         switch aAddress
         {
-        case 0x8000 ..< 0xC000: // PRG Block 0
+        case 0x8000 ... 0xBFFF: // PRG Block 0
             return self.prg[self.prgBank1 * 0x4000 + Int(aAddress - 0x8000)]
         case 0xC000 ... 0xFFFF: // PRG Block 1
             return self.prg[self.prgBank2 * 0x4000 + Int(aAddress - 0xC000)]
-        case 0x6000 ..< 0x8000:
-            return self.sram[Int(aAddress - 0x6000)]
+        case 0x6000 ... 0x7FFF: // No SRAM
+            return 0
         default:
             os_log("unhandled Mapper_CNROM read at address: 0x%04X", aAddress)
             return 0
@@ -118,9 +112,9 @@ struct Mapper_CNROM: MapperProtocol
     {
         switch aAddress {
         case 0x8000 ... 0xFFFF:
-            self.chrBank = Int(aValue & 3)
-        case 0x6000 ..< 0x8000: // write to SRAM save
-            self.sram[Int(aAddress - 0x6000)] = aValue
+            self.chrBank = Int(aValue & 0x03) % self.numChrBanks
+        case 0x6000 ... 0x7FFF: // No SRAM
+            break
         default:
             os_log("unhandled Mapper_CNROM write at address: 0x%04X", aAddress)
             break
@@ -134,7 +128,7 @@ struct Mapper_CNROM: MapperProtocol
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
-        self.chr[(self.chrBank * 0x2000) + Int(aAddress)] = aValue
+        // CHR ROM only, no writing
     }
     
     func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
@@ -142,4 +136,3 @@ struct Mapper_CNROM: MapperProtocol
         return nil
     }
 }
-
