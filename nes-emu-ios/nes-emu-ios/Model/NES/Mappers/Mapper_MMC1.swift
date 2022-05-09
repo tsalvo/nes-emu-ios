@@ -33,7 +33,7 @@ struct Mapper_MMC1: MapperProtocol
     private static let chrRamSizeInBytes: Int = 8192
     
     // MARK: - Internal Variables
-    let hasStep: Bool = false
+    let hasStep: Bool = true
     let hasExtendedNametableMapping: Bool = false
     var mirroringMode: MirroringMode
     
@@ -84,6 +84,7 @@ struct Mapper_MMC1: MapperProtocol
     private var prgBank1: UInt8
     private var chrBank0: UInt8
     private var chrBank1: UInt8
+    private var ppuCyclesSinceLastCPUWrite: UInt8
     private var prgOffsets: [Int] = [Int](repeating: 0, count: 2)
     private var chrOffsets: [Int] = [Int](repeating: 0, count: 2)
     
@@ -143,7 +144,7 @@ struct Mapper_MMC1: MapperProtocol
         self.prgRamEnabled = true
         
         if let safeState = aState,
-           safeState.uint8s.count >= Mapper_MMC1.prgRamSizeInBytes + Mapper_MMC1.chrRamSizeInBytes + 8,
+           safeState.uint8s.count >= Mapper_MMC1.prgRamSizeInBytes + Mapper_MMC1.chrRamSizeInBytes + 9,
            safeState.ints.count >= 4,
            safeState.bools.count >= 2
         {
@@ -160,6 +161,7 @@ struct Mapper_MMC1: MapperProtocol
             self.prgBank1 = safeState.uint8s[u8ArrayEndOffset + 5]
             self.chrBank0 = safeState.uint8s[u8ArrayEndOffset + 6]
             self.chrBank1 = safeState.uint8s[u8ArrayEndOffset + 7]
+            self.ppuCyclesSinceLastCPUWrite = safeState.uint8s[u8ArrayEndOffset + 8]
             
             self.prgOffsets = [Int](safeState.ints[0 ..< 2])
             self.chrOffsets = [Int](safeState.ints[2 ..< 4])
@@ -177,6 +179,7 @@ struct Mapper_MMC1: MapperProtocol
             self.prgBank1 = lastPrgBank
             self.chrBank0 = 0
             self.chrBank1 = 0
+            self.ppuCyclesSinceLastCPUWrite = 2
             self.isChr4KBMode = false
             self.prgOffsets[1] = Int(lastPrgBank) * 0x4000
         }
@@ -197,6 +200,7 @@ struct Mapper_MMC1: MapperProtocol
             u8.append(self.prgBank1)
             u8.append(self.chrBank0)
             u8.append(self.chrBank1)
+            u8.append(self.ppuCyclesSinceLastCPUWrite)
             
             var i: [Int] = []
             i.append(contentsOf: self.prgOffsets)
@@ -210,7 +214,7 @@ struct Mapper_MMC1: MapperProtocol
         }
         set
         {
-            guard newValue.uint8s.count >= Mapper_MMC1.prgRamSizeInBytes + Mapper_MMC1.chrRamSizeInBytes + 8,
+            guard newValue.uint8s.count >= Mapper_MMC1.prgRamSizeInBytes + Mapper_MMC1.chrRamSizeInBytes + 9,
                   newValue.ints.count >= 4,
                   newValue.bools.count >= 2
             else {
@@ -229,6 +233,7 @@ struct Mapper_MMC1: MapperProtocol
             self.prgBank1 = newValue.uint8s[u8ArrayEndOffset + 5]
             self.chrBank0 = newValue.uint8s[u8ArrayEndOffset + 6]
             self.chrBank1 = newValue.uint8s[u8ArrayEndOffset + 7]
+            self.ppuCyclesSinceLastCPUWrite = newValue.uint8s[u8ArrayEndOffset + 8]
             
             self.prgOffsets = [Int](newValue.ints[0 ..< 2])
             self.chrOffsets = [Int](newValue.ints[2 ..< 4])
@@ -238,8 +243,12 @@ struct Mapper_MMC1: MapperProtocol
         }
     }
     
-    func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
+    mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
+        if self.ppuCyclesSinceLastCPUWrite < UInt8.max
+        {
+            self.ppuCyclesSinceLastCPUWrite += 1
+        }
         return nil
     }
     
@@ -325,8 +334,12 @@ struct Mapper_MMC1: MapperProtocol
             self.shiftRegister = 0x10
             self.writeControl(value: self.control | 0x0C)
         }
-        else
+        else if self.ppuCyclesSinceLastCPUWrite >= 3 // ignore CPU writes to $8000-$FFFF that come in too quickly in succession (see comment below)
         {
+            /*
+             https://www.nesdev.org/wiki/MMC1
+             When the serial port is written to on consecutive cycles, it ignores every write after the first. In practice, this only happens when the CPU executes read-modify-write instructions, which first write the original value before writing the modified one on the next cycle.[1] This restriction only applies to the data being written on bit 0; the bit 7 reset is never ignored. Bill & Ted's Excellent Adventure does a reset by using INC on a ROM location containing $FF and requires that the $00 write on the next cycle is ignored. Shinsenden, however, uses illegal instruction $7F (RRA abs,X) to set bit 7 on the second write and will crash after selecting the みる (look) option if this reset is ignored.[2] This write-ignore behavior appears to be intentional and is believed to ignore all consecutive write cycles after the first even if that first write does not target the serial port.[3]
+             */
             let complete: Bool = self.shiftRegister & 1 == 1
             self.shiftRegister >>= 1
             self.shiftRegister |= (aValue & 1) << 4
@@ -335,6 +348,7 @@ struct Mapper_MMC1: MapperProtocol
                 self.writeRegister(address: aAddress, value: self.shiftRegister)
                 self.shiftRegister = 0x10
             }
+            self.ppuCyclesSinceLastCPUWrite = 0
         }
     }
 
