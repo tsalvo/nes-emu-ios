@@ -31,6 +31,7 @@ struct Mapper_MMC1: MapperProtocol
     // MARK: - Constants
     private static let prgRamSizeInBytes: Int = 32768
     private static let chrRamSizeInBytes: Int = 8192
+    private static let requiredPpuCyclesBetweenCpuWrites: Int = 3
     
     // MARK: - Internal Variables
     let hasStep: Bool = true
@@ -179,7 +180,7 @@ struct Mapper_MMC1: MapperProtocol
             self.prgBank1 = lastPrgBank
             self.chrBank0 = 0
             self.chrBank1 = 0
-            self.ppuCyclesSinceLastCPUWrite = 2
+            self.ppuCyclesSinceLastCPUWrite = 0
             self.isChr4KBMode = false
             self.prgOffsets[1] = Int(lastPrgBank) * 0x4000
         }
@@ -329,17 +330,25 @@ struct Mapper_MMC1: MapperProtocol
 
     private mutating func loadRegister(address aAddress: UInt16, value aValue: UInt8)
     {
+        guard self.ppuCyclesSinceLastCPUWrite >= Mapper_MMC1.requiredPpuCyclesBetweenCpuWrites
+            else
+        {
+            /* ignore CPU writes to $8000-$FFFF that come in too quickly in succession (see comment below)
+             https://www.nesdev.org/wiki/MMC1
+             When the serial port is written to on consecutive cycles, it ignores every write after the first. In practice, this only happens when the CPU executes read-modify-write instructions, which first write the original value before writing the modified one on the next cycle.[1] This restriction only applies to the data being written on bit 0; the bit 7 reset is never ignored. Bill & Ted's Excellent Adventure does a reset by using INC on a ROM location containing $FF and requires that the $00 write on the next cycle is ignored. Shinsenden, however, uses illegal instruction $7F (RRA abs,X) to set bit 7 on the second write and will crash after selecting the みる (look) option if this reset is ignored.[2] This write-ignore behavior appears to be intentional and is believed to ignore all consecutive write cycles after the first even if that first write does not target the serial port.[3]
+             */
+            return
+        }
+        self.ppuCyclesSinceLastCPUWrite = 0
+        
         if aValue & 0x80 == 0x80
         {
             self.shiftRegister = 0x10
             self.writeControl(value: self.control | 0x0C)
         }
-        else if self.ppuCyclesSinceLastCPUWrite >= 3 // ignore CPU writes to $8000-$FFFF that come in too quickly in succession (see comment below)
+        else
         {
-            /*
-             https://www.nesdev.org/wiki/MMC1
-             When the serial port is written to on consecutive cycles, it ignores every write after the first. In practice, this only happens when the CPU executes read-modify-write instructions, which first write the original value before writing the modified one on the next cycle.[1] This restriction only applies to the data being written on bit 0; the bit 7 reset is never ignored. Bill & Ted's Excellent Adventure does a reset by using INC on a ROM location containing $FF and requires that the $00 write on the next cycle is ignored. Shinsenden, however, uses illegal instruction $7F (RRA abs,X) to set bit 7 on the second write and will crash after selecting the みる (look) option if this reset is ignored.[2] This write-ignore behavior appears to be intentional and is believed to ignore all consecutive write cycles after the first even if that first write does not target the serial port.[3]
-             */
+            
             let complete: Bool = self.shiftRegister & 1 == 1
             self.shiftRegister >>= 1
             self.shiftRegister |= (aValue & 1) << 4
@@ -348,7 +357,6 @@ struct Mapper_MMC1: MapperProtocol
                 self.writeRegister(address: aAddress, value: self.shiftRegister)
                 self.shiftRegister = 0x10
             }
-            self.ppuCyclesSinceLastCPUWrite = 0
         }
     }
 
