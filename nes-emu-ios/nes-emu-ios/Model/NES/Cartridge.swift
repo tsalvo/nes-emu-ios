@@ -108,8 +108,10 @@ struct Cartridge: CartridgeProtocol
         
         switch self.header.mapperIdentifier
         {
-        case .NROM, .UxROM:
-            return Mapper_NROM_UNROM(withCartridge: self, state: aState)
+        case .NROM:
+            return Mapper_NROM(withCartridge: self, state: aState)
+        case .UxROM:
+            return Mapper_UNROM(withCartridge: self, state: aState)
         case .MMC1:
             return Mapper_MMC1(withCartridge: self, state: aState)
         case .CNROM:
