@@ -20,6 +20,8 @@
 		991B28CC248B470C00A6A6DD /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28CB248B470C00A6A6DD /* Console.swift */; };
 		991B28CE248B746A00A6A6DD /* Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991B28CD248B746A00A6A6DD /* Controller.swift */; };
 		992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 992164A2249D113D00EB4BAA /* Mapper_AxROM.swift */; };
+		9929E3E8282F158D00ED43DA /* Mapper_TQROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9929E3E7282F158D00ED43DA /* Mapper_TQROM.swift */; };
+		9929E3E9282F158D00ED43DA /* Mapper_TQROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9929E3E7282F158D00ED43DA /* Mapper_TQROM.swift */; };
 		99301E7925302D4200CC2DBD /* Data+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99301E7825302D4200CC2DBD /* Data+MD5.swift */; };
 		99301E7A25302D4200CC2DBD /* Data+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99301E7825302D4200CC2DBD /* Data+MD5.swift */; };
 		9943B32D2659A9B40085415D /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 9943B32C2659A9B40085415D /* Settings.bundle */; };
@@ -213,6 +215,7 @@
 		991B28CB248B470C00A6A6DD /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		991B28CD248B746A00A6A6DD /* Controller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controller.swift; sourceTree = "<group>"; };
 		992164A2249D113D00EB4BAA /* Mapper_AxROM.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mapper_AxROM.swift; sourceTree = "<group>"; };
+		9929E3E7282F158D00ED43DA /* Mapper_TQROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_TQROM.swift; sourceTree = "<group>"; };
 		99301E7825302D4200CC2DBD /* Data+MD5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+MD5.swift"; sourceTree = "<group>"; };
 		9943B32C2659A9B40085415D /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		99488F3C248985F100942A1E /* nes-emu-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "nes-emu-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -454,6 +457,7 @@
 				995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */,
 				995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */,
 				99B45549281E48A4006BFF3B /* Mapper_TxSROM.swift */,
+				9929E3E7282F158D00ED43DA /* Mapper_TQROM.swift */,
 				99F4B5BF24AD6FD900DB3B36 /* Mapper_MMC5.swift */,
 				991A515828280185006CAFF6 /* Mapper_NROM.swift */,
 				991A515B28281A55006CAFF6 /* Mapper_UNROM.swift */,
@@ -773,6 +777,7 @@
 				994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */,
 				99B45540281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift in Sources */,
 				995D07732532BD6B008AD907 /* APUState.swift in Sources */,
+				9929E3E8282F158D00ED43DA /* Mapper_TQROM.swift in Sources */,
 				99B45544281E0A36006BFF3B /* Mapper_87.swift in Sources */,
 				995D0803253376DA008AD907 /* NSManagedObject+CPUState.swift in Sources */,
 				99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */,
@@ -879,6 +884,7 @@
 				996F42D92534111E001A31D2 /* PulseState.swift in Sources */,
 				996F42FD253429F5001A31D2 /* NSManagedObject+DMCState.swift in Sources */,
 				99FA3CB424A6F12A0065E539 /* Console.swift in Sources */,
+				9929E3E9282F158D00ED43DA /* Mapper_TQROM.swift in Sources */,
 				996F42F7253428D9001A31D2 /* NSManagedObject+NoiseState.swift in Sources */,
 				99FA3C9324A6E7CD0065E539 /* RomListTableViewController.swift in Sources */,
 				99FA3CA824A6F10B0065E539 /* UIStackView+ArrangedSubviews.swift in Sources */,

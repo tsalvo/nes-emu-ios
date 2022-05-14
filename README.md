@@ -39,9 +39,10 @@ The following mappers have been implemented:
 - 085 VRC7 (missing expansion audio)
 - 087 Mapper 87
 - 118 TxSROM
+- 119 TQROM
 - 206 Namcot 118 / Tengen Mimic 1
 
-This accounts for a good portion of the NES library, but there are still some big gaps remaining for popular mapper support.
+The majority of games should work with the above list of supported mappers, with more supported mappers coming soon.
 
 
 ## Performance
@@ -52,6 +53,7 @@ For best performance, build the app for **release** mode instead of debug.  Or, 
 
 
 ## Near Future Plans
+- Support more mappers
 - Performance improvements (look for low hanging fruit in areas of the app that are taking the longest).
 - On-screen control improvements (bigger tap areas, better layout).
 - Improvements to tvOS app target (full-screen layout, mechanism to load new ROMs after installation)

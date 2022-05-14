@@ -138,6 +138,8 @@ struct Cartridge: CartridgeProtocol
             return Mapper_87(withCartridge: self, state: aState)
         case .TxSROM:
             return Mapper_TxSROM(withCartridge: self, state: aState)
+        case .TQROM:
+            return Mapper_TQROM(withCartridge: self, state: aState)
         case .Namcot118_TengenMimic1:
             return Mapper_Namcot118_TengenMimic1(withCartridge: self, state: aState)
         case .NTDEC_2722:
