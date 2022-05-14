@@ -306,7 +306,8 @@ enum MapperIdentifier: UInt8
              .NTDEC_2722,
              ._078,
              ._087,
-             .TxSROM:
+             .TxSROM,
+             .TQROM:
             return true
         default: return false
         }

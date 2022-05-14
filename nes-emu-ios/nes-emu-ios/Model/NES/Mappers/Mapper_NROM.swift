@@ -1,8 +1,8 @@
 //
-//  Mapper_NROM_UNROM.swift
+//  Mapper_NROM.swift
 //  nes-emu-ios
 //
-//  Created by Tom Salvo on 6/18/20.
+//  Created by Tom Salvo on 5/8/22.
 //  Copyright © 2020 Tom Salvo.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,89 +26,99 @@
 import Foundation
 import os
 
-struct Mapper_NROM_UNROM: MapperProtocol
+struct Mapper_NROM: MapperProtocol
 {
+    // MARK: - Constants
+    private static let prgRamSizeInBytes: Int = 8192
+    
+    // MARK: - Internal Variables
     let hasStep: Bool = false
-    
     let hasExtendedNametableMapping: Bool = false
-    
     let mirroringMode: MirroringMode
     
+    // MARK: - Private Variables
     /// linear 1D array of all PRG blocks
-    private var prg: [UInt8] = []
-    
+    private let prg: [UInt8]
     /// linear 1D array of all CHR blocks
-    private var chr: [UInt8] = []
+    private let chr: [UInt8]
+    /// 16KB PRG bank, fixed to first bank
+    private let prgBankOffset1: Int
+    /// 16KB PRG bank, fixed to last bank, or mirror of first bank
+    private let prgBankOffset2: Int
     
-    /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
-    private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
+    /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF, 2KB or 4KB only used in Family Basic
+    private var prgRam: [UInt8]
     
-    private let prgBanks: Int /// number of PRG banks
-    private var prgBank1: Int /// switchable PRG bank
-    private let prgBank2: Int /// locked to last PRG block
-    
+    // MARK: - Life Cycle
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        if let safeState = aState
+        if let safeState = aState,
+           safeState.uint8s.count >= Mapper_NROM.prgRamSizeInBytes
         {
-            self.prgBank1 = safeState.ints[safe: 0] ?? 0
-            self.chr = safeState.chr
+            self.prgRam = [UInt8](safeState.uint8s[0 ..< Mapper_NROM.prgRamSizeInBytes])
         }
         else
         {
-            self.prgBank1 = 0
-            for c in aCartridge.chrBlocks
-            {
-                self.chr.append(contentsOf: c)
-            }
+            self.prgRam = [UInt8](repeating: 0, count: Mapper_NROM.prgRamSizeInBytes)
         }
         
         self.mirroringMode = aCartridge.header.mirroringMode
         
-        for p in aCartridge.prgBlocks
+        var c: [UInt8] = []
+        var p: [UInt8] = []
+        
+        for pBlock in aCartridge.prgBlocks.prefix(2) // max 2 PRG blocks (32KB)
         {
-            self.prg.append(contentsOf: p)
+            p.append(contentsOf: pBlock)
         }
         
-        if self.chr.count == 0
+        for cBlock in aCartridge.chrBlocks.prefix(1) // max 1 CHR blocks (8KB)
         {
-            // use a block for CHR RAM if no block exists
-            self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
+            c.append(contentsOf: cBlock)
         }
         
-        if aCartridge.prgBlocks.count == 1
+        if c.isEmpty
         {
-            // mirror first PRG block if necessary
-            self.prg.append(contentsOf: aCartridge.prgBlocks[0])
+            c = [UInt8](repeating: 0, count: 8192)
         }
         
-        self.prgBanks = self.prg.count / 0x4000
-        self.prgBank2 = self.prgBanks - 1
+        if p.isEmpty
+        {
+            p = [UInt8](repeating: 0, count: 16384)
+        }
+        
+        self.chr = c
+        self.prg = p
+        
+        self.prgBankOffset1 = 0
+        self.prgBankOffset2 = (aCartridge.prgBlocks.count - 1) * 0x4000
     }
     
+    // MARK: - Save State
     var mapperState: MapperState
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank1], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [], uint8s: self.prgRam, chr: [])
         }
         set
         {
-            self.prgBank1 = newValue.ints[safe: 0] ?? 0
-            self.chr = newValue.chr
+            guard newValue.uint8s.count >= Mapper_NROM.prgRamSizeInBytes else { return }
+            self.prgRam = [UInt8](newValue.uint8s[0 ..< Mapper_NROM.prgRamSizeInBytes])
         }
     }
     
+    // MARK: - CPU Handling
     func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
     {
         switch aAddress
         {
-        case 0x8000 ..< 0xC000: // PRG Block 0
-            return self.prg[self.prgBank1 * 0x4000 + Int(aAddress - 0x8000)]
+        case 0x8000 ... 0xBFFF: // PRG Block 0
+            return self.prg[self.prgBankOffset1 + Int(aAddress - 0x8000)]
         case 0xC000 ... 0xFFFF: // PRG Block 1 (or mirror of PRG block 0 if only one PRG exists)
-            return self.prg[self.prgBank2 * 0x4000 + Int(aAddress - 0xC000)]
-        case 0x6000 ..< 0x8000:
-            return self.sram[Int(aAddress - 0x6000)]
+            return self.prg[self.prgBankOffset2 + Int(aAddress - 0xC000)]
+        case 0x6000 ... 0x7FFF:
+            return self.prgRam[Int(aAddress - 0x6000)]
         default:
             os_log("unhandled Mapper_NROM read at address: 0x%04X", aAddress)
             return 0
@@ -119,15 +129,17 @@ struct Mapper_NROM_UNROM: MapperProtocol
     {
         switch aAddress {
         case 0x8000 ... 0xFFFF:
-            self.prgBank1 = Int(aValue) % self.prgBanks
-        case 0x6000 ..< 0x8000: // write to SRAM save
-            self.sram[Int(aAddress - 0x6000)] = aValue
+            // no registers, and no write to PRG ROM
+            break
+        case 0x6000 ... 0x7FFF: // write to SRAM save
+            self.prgRam[Int(aAddress - 0x6000)] = aValue
         default:
             os_log("unhandled Mapper_NROM write at address: 0x%04X", aAddress)
             break
         }
     }
     
+    // MARK: - PPU Handling
     func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
     {
         return self.chr[Int(aAddress)]
@@ -135,9 +147,10 @@ struct Mapper_NROM_UNROM: MapperProtocol
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
-        self.chr[Int(aAddress)] = aValue
+        // CHR ROM only, no writing
     }
     
+    // MARK: - Step
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
         return nil

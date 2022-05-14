@@ -496,7 +496,6 @@ struct APU
             self.envelopeEnabled = (aValue >> 4) & 1 == 0
             self.envelopePeriod = aValue & 15
             self.constantVolume = aValue & 15
-            self.envelopeStart = true
         }
 
         mutating func writeSweep(value aValue: UInt8)
@@ -834,12 +833,11 @@ struct APU
             self.envelopeEnabled = (aValue >> 4) & 1 == 0
             self.envelopePeriod = aValue & 15
             self.constantVolume = aValue & 15
-            self.envelopeStart = true
         }
 
         mutating func writePeriod(value aValue: UInt8)
         {
-            self.mode =  aValue & 0x80 == 0x80
+            self.mode = aValue & 0x80 == 0x80
             self.timerPeriod = Noise.noiseTable[Int(aValue & 0x0F)]
         }
 

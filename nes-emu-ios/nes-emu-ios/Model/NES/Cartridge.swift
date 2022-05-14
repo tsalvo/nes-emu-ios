@@ -108,8 +108,10 @@ struct Cartridge: CartridgeProtocol
         
         switch self.header.mapperIdentifier
         {
-        case .NROM, .UxROM:
-            return Mapper_NROM_UNROM(withCartridge: self, state: aState)
+        case .NROM:
+            return Mapper_NROM(withCartridge: self, state: aState)
+        case .UxROM:
+            return Mapper_UNROM(withCartridge: self, state: aState)
         case .MMC1:
             return Mapper_MMC1(withCartridge: self, state: aState)
         case .CNROM:
@@ -136,6 +138,8 @@ struct Cartridge: CartridgeProtocol
             return Mapper_87(withCartridge: self, state: aState)
         case .TxSROM:
             return Mapper_TxSROM(withCartridge: self, state: aState)
+        case .TQROM:
+            return Mapper_TQROM(withCartridge: self, state: aState)
         case .Namcot118_TengenMimic1:
             return Mapper_Namcot118_TengenMimic1(withCartridge: self, state: aState)
         case .NTDEC_2722:
