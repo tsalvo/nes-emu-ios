@@ -45,6 +45,8 @@ struct Mapper_TQROM: MapperProtocol
     private var chrRam: [UInt8] = [UInt8].init(repeating: 0, count: Mapper_TQROM.chrRamSize)
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
+    private let last8KBPrgOffset: Int
+    private let last16KBPrgOffset: Int
     private var register: UInt8
     private var registers: [UInt8]
     private var prgMode: UInt8
@@ -70,6 +72,12 @@ struct Mapper_TQROM: MapperProtocol
         {
             c.append(contentsOf: cBlock)
         }
+        
+        let last8KBPrgOffset = max(p.count - 0x2000, 0)
+        let last16KBPrgOffset = max(p.count - 0x4000, 0)
+        
+        self.last8KBPrgOffset = last8KBPrgOffset
+        self.last16KBPrgOffset = last16KBPrgOffset
         
         self.chr = c
         self.prg = p
@@ -103,10 +111,10 @@ struct Mapper_TQROM: MapperProtocol
             self.chrMode = 0
             self.reload = 0
             self.counter = 0
-            self.prgOffsets[0] = self.prgBankOffset(index: 0)
-            self.prgOffsets[1] = self.prgBankOffset(index: 1)
-            self.prgOffsets[2] = self.prgBankOffset(index: -2)
-            self.prgOffsets[3] = self.prgBankOffset(index: -1)
+            self.prgOffsets[0] = 0
+            self.prgOffsets[1] = p.count > 0x2000 ? 0x2000 : 0
+            self.prgOffsets[2] = last16KBPrgOffset
+            self.prgOffsets[3] = last8KBPrgOffset
         }
     }
     
@@ -216,7 +224,43 @@ struct Mapper_TQROM: MapperProtocol
                  */
                 self.registers[Int(self.register)] = aValue & 0x7F // get low 7 bits only
             }
-            self.updateOffsets() // call update offsets no matter if it's even or odd
+            
+            // update offsets
+            switch self.prgMode {
+            case 0:
+                self.prgOffsets[0] = Int(self.registers[6] & 0x3F) * 0x2000
+                self.prgOffsets[1] = Int(self.registers[7] & 0x3F) * 0x2000
+                self.prgOffsets[2] = self.last16KBPrgOffset
+                self.prgOffsets[3] = self.last8KBPrgOffset
+            case 1:
+                self.prgOffsets[0] = self.last16KBPrgOffset
+                self.prgOffsets[1] = Int(self.registers[7] & 0x3F) * 0x2000
+                self.prgOffsets[2] = Int(self.registers[6] & 0x3F) * 0x2000
+                self.prgOffsets[3] = self.last8KBPrgOffset
+            default: break
+            }
+            
+            switch self.chrMode {
+            case 0:
+                self.chrOffsets[0] = Int(self.registers[0] & 0xFE) * 0x0400
+                self.chrOffsets[1] = Int(self.registers[0] | 0x01) * 0x0400
+                self.chrOffsets[2] = Int(self.registers[1] & 0xFE) * 0x0400
+                self.chrOffsets[3] = Int(self.registers[1] | 0x01) * 0x0400
+                self.chrOffsets[4] = Int(self.registers[2]) * 0x0400
+                self.chrOffsets[5] = Int(self.registers[3]) * 0x0400
+                self.chrOffsets[6] = Int(self.registers[4]) * 0x0400
+                self.chrOffsets[7] = Int(self.registers[5]) * 0x0400
+            case 1:
+                self.chrOffsets[0] = Int(self.registers[2]) * 0x0400
+                self.chrOffsets[1] = Int(self.registers[3]) * 0x0400
+                self.chrOffsets[2] = Int(self.registers[4]) * 0x0400
+                self.chrOffsets[3] = Int(self.registers[5]) * 0x0400
+                self.chrOffsets[4] = Int(self.registers[0] & 0xFE) * 0x0400
+                self.chrOffsets[5] = Int(self.registers[0] | 0x01) * 0x0400
+                self.chrOffsets[6] = Int(self.registers[1] & 0xFE) * 0x0400
+                self.chrOffsets[7] = Int(self.registers[1] | 0x01) * 0x0400
+            default: break
+            }
         case 0xA000 ... 0xBFFF:
             if aAddress % 2 == 0
             {
@@ -305,16 +349,13 @@ struct Mapper_TQROM: MapperProtocol
         switch aAddress
         {
         case 0x0000 ... 0x1FFF:
-            let bank = aAddress / 0x0400
-            let bankOffset = self.chrOffsets[Int(bank)]
-            let isChrRam = bankOffset >= self.chr.count
-            let adjustedBankOffset = isChrRam ? bankOffset % Mapper_TQROM.chrRamSize : bankOffset
-            let offset = aAddress % 0x0400
-            let index: Int = adjustedBankOffset + Int(offset)
-            if isChrRam
-            {
-                self.chrRam[index] = aValue
+            let bankOffset = self.chrOffsets[Int(aAddress / 0x0400)]
+            guard bankOffset >= self.chr.count else {
+                break
             }
+            let adjustedBankOffset = bankOffset % Mapper_TQROM.chrRamSize
+            let index: Int = adjustedBankOffset + Int(aAddress % 0x0400)
+            self.chrRam[index] = aValue
         default:
             os_log("unhandled Mapper_TxSROM PPU write at address: 0x%04X", aAddress)
         }
@@ -354,66 +395,6 @@ struct Mapper_TQROM: MapperProtocol
         }
         
         return MapperStepResults(requestedCPUInterrupt: shouldTriggerIRQ ? .irq : nil)
-    }
-
-    // MARK: - Private Functions
-    private func prgBankOffset(index aIndex: Int) -> Int
-    {
-        guard self.prg.count >= 0x2000 else { return 0 }
-        
-        var i = aIndex
-        if i >= 0x80
-        {
-            i -= 0x100
-        }
-        
-        i %= (self.prg.count / 0x2000)
-        var offset = i * 0x2000
-        if offset < 0
-        {
-            offset += self.prg.count
-        }
-        
-        return offset
-    }
-
-    private mutating func updateOffsets()
-    {
-        switch self.prgMode {
-        case 0:
-            self.prgOffsets[0] = self.prgBankOffset(index: Int(self.registers[6]))
-            self.prgOffsets[1] = self.prgBankOffset(index: Int(self.registers[7]))
-            self.prgOffsets[2] = self.prgBankOffset(index: -2)
-            self.prgOffsets[3] = self.prgBankOffset(index: -1)
-        case 1:
-            self.prgOffsets[0] = self.prgBankOffset(index: -2)
-            self.prgOffsets[1] = self.prgBankOffset(index: Int(self.registers[7]))
-            self.prgOffsets[2] = self.prgBankOffset(index: Int(self.registers[6]))
-            self.prgOffsets[3] = self.prgBankOffset(index: -1)
-        default: break
-        }
-        
-        switch self.chrMode {
-        case 0:
-            self.chrOffsets[0] = Int(self.registers[0] & 0xFE) * 0x0400
-            self.chrOffsets[1] = Int(self.registers[0] | 0x01) * 0x0400
-            self.chrOffsets[2] = Int(self.registers[1] & 0xFE) * 0x0400
-            self.chrOffsets[3] = Int(self.registers[1] | 0x01) * 0x0400
-            self.chrOffsets[4] = Int(self.registers[2]) * 0x0400
-            self.chrOffsets[5] = Int(self.registers[3]) * 0x0400
-            self.chrOffsets[6] = Int(self.registers[4]) * 0x0400
-            self.chrOffsets[7] = Int(self.registers[5]) * 0x0400
-        case 1:
-            self.chrOffsets[0] = Int(self.registers[2]) * 0x0400
-            self.chrOffsets[1] = Int(self.registers[3]) * 0x0400
-            self.chrOffsets[2] = Int(self.registers[4]) * 0x0400
-            self.chrOffsets[3] = Int(self.registers[5]) * 0x0400
-            self.chrOffsets[4] = Int(self.registers[0] & 0xFE) * 0x0400
-            self.chrOffsets[5] = Int(self.registers[0] | 0x01) * 0x0400
-            self.chrOffsets[6] = Int(self.registers[1] & 0xFE) * 0x0400
-            self.chrOffsets[7] = Int(self.registers[1] | 0x01) * 0x0400
-        default: break
-        }
     }
 }
 
