@@ -117,7 +117,7 @@ struct Mapper_TQROM: MapperProtocol
         {
             var u8: [UInt8] = [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode, self.reload, self.counter]
             u8.append(contentsOf: self.chrRam)
-            return MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]], bools: [self.irqEnable/*, self.useChrRam*/], uint8s: u8, chr: self.chr)
+            return MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]], bools: [self.irqEnable], uint8s: u8, chr: [])
         }
         set
         {
@@ -165,8 +165,114 @@ struct Mapper_TQROM: MapperProtocol
     {
         switch aAddress
         {
-        case 0x8000 ... 0xFFFF:
-            self.writeRegister(address: aAddress, value: aValue)
+        case 0x8000 ... 0x9FFF:
+            if aAddress % 2 == 0
+            {
+                /* Bank Select
+                 7  bit  0
+                 ---- ----
+                 CPMx xRRR
+                 |||   |||
+                 |||   +++- Specify which bank register to update on next write to Bank Data register
+                 |||          000: R0: Select 2 KB CHR bank at PPU $0000-$07FF (or $1000-$17FF)
+                 |||          001: R1: Select 2 KB CHR bank at PPU $0800-$0FFF (or $1800-$1FFF)
+                 |||          010: R2: Select 1 KB CHR bank at PPU $1000-$13FF (or $0000-$03FF)
+                 |||          011: R3: Select 1 KB CHR bank at PPU $1400-$17FF (or $0400-$07FF)
+                 |||          100: R4: Select 1 KB CHR bank at PPU $1800-$1BFF (or $0800-$0BFF)
+                 |||          101: R5: Select 1 KB CHR bank at PPU $1C00-$1FFF (or $0C00-$0FFF)
+                 |||          110: R6: Select 8 KB PRG ROM bank at $8000-$9FFF (or $C000-$DFFF)
+                 |||          111: R7: Select 8 KB PRG ROM bank at $A000-$BFFF
+                 ||+------- Nothing on the MMC3, see MMC6
+                 |+-------- PRG ROM bank mode (0: $8000-$9FFF swappable,
+                 |                                $C000-$DFFF fixed to second-last bank;
+                 |                             1: $C000-$DFFF swappable,
+                 |                                $8000-$9FFF fixed to second-last bank)
+                 +--------- CHR A12 inversion (0: two 2 KB banks at $0000-$0FFF,
+                                                  four 1 KB banks at $1000-$1FFF;
+                                               1: two 2 KB banks at $1000-$1FFF,
+                                                  four 1 KB banks at $0000-$0FFF)
+                 */
+                self.prgMode = (aValue >> 6) & 1
+                self.chrMode = (aValue >> 7) & 1
+                self.register = aValue & 7
+            }
+            else
+            {
+                /* Bank Data (TQROM differs here from standard MMC3)
+                 7  bit  0
+                 ---- ----
+                 xCDD DDDD
+                  ||| ||||
+                  |++-++++- New bank value, based on last value written to Bank select register
+                  |         0: Select 2 KB CHR bank at PPU $0000-$07FF (or $1000-$17FF);
+                  |         1: Select 2 KB CHR bank at PPU $0800-$0FFF (or $1800-$1FFF);
+                  |         2: Select 1 KB CHR bank at PPU $1000-$13FF (or $0000-$03FF);
+                  |         3: Select 1 KB CHR bank at PPU $1400-$17FF (or $0400-$07FF);
+                  |         4: Select 1 KB CHR bank at PPU $1800-$1BFF (or $0800-$0BFF);
+                  |         5: Select 1 KB CHR bank at PPU $1C00-$1FFF (or $0C00-$0FFF);
+                  |         6, 7: As standard MMC3
+                  +-------- Chip select (for CHR banks)
+                            0: Select CHR ROM; 1: Select CHR RAM
+                 */
+                self.registers[Int(self.register)] = aValue & 0x7F // get low 7 bits only
+            }
+            self.updateOffsets() // call update offsets no matter if it's even or odd
+        case 0xA000 ... 0xBFFF:
+            if aAddress % 2 == 0
+            {
+                /* Mirroring
+                 7  bit  0
+                 ---- ----
+                 xxxx xxxM
+                         |
+                         +- Nametable mirroring (0: vertical; 1: horizontal)
+                 */
+                /// This bit has no effect on cartridges with hardwired 4-screen VRAM. In the iNES and NES 2.0 formats, this can be identified through bit 3 of byte $06 of the header.
+                self.mirroringMode = aValue & 1 == 0 ? .vertical : .horizontal // TODO: Check for hard-wired 4-screen VRAM
+            }
+            else
+            {
+                /* PRG RAM protect
+                 7  bit  0
+                 ---- ----
+                 RWXX xxxx
+                 ||||
+                 ||++------ Nothing on the MMC3, see MMC6
+                 |+-------- Write protection (0: allow writes; 1: deny writes)
+                 +--------- PRG RAM chip enable (0: disable; 1: enable)
+                 */
+                /// Disabling PRG RAM through bit 7 causes reads from the PRG RAM region to return open bus.
+                /// Though these bits are functional on the MMC3, their main purpose is to write-protect save RAM during power-off. Many emulators choose not to implement them as part of iNES Mapper 4 to avoid an incompatibility with the MMC6.
+                break
+            }
+        case 0xC000 ... 0xDFFF:
+            if aAddress % 2 == 0
+            {
+                /* IRQ latch
+                 7  bit  0
+                 ---- ----
+                 DDDD DDDD
+                 |||| ||||
+                 ++++-++++- IRQ latch value
+                 */
+                /// This register specifies the IRQ counter reload value. When the IRQ counter is zero (or a reload is requested through $C001), this value will be copied to the IRQ counter at the NEXT rising edge of the PPU address, presumably at PPU cycle 260 of the current scanline.
+                /// The exact number of scanlines between IRQs is N+1, where N is the value written to $C000. 1 (Sharp MMC3B, MMC3C) or 2 (MMC3A, Non-Sharp MMC3B) to 256 scanlines are supported.
+                self.reload = aValue // TODO: should this be (aValue + 1) ?
+            }
+            else
+            {
+                /* IRQ Reload
+                 7  bit  0
+                 ---- ----
+                 xxxx xxxx
+                 */
+                /// Writing any value to this register reloads the MMC3 IRQ counter at the NEXT rising edge of the PPU address, presumably at PPU cycle 260 of the current scanline.
+                self.counter = 0 // TODO: should we wait until the next cycle 260 to set counter to zero?
+            }
+        case 0xE000 ... 0xFFFF:
+            // EVEN: Writing any value to this register will disable MMC3 interrupts AND acknowledge any pending interrupts.
+            // ODD: Writing any value to this register will enable MMC3 interrupts.
+            self.irqEnable = aAddress % 2 == 1
         case 0x6000 ... 0x7FFF:
             self.sram[Int(aAddress) - 0x6000] = aValue
         default:
@@ -217,7 +323,9 @@ struct Mapper_TQROM: MapperProtocol
     // MARK: - Step
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
     {
-        if aMapperStepInput.ppuCycle != 280 // TODO: this should be 260
+        /// When using 8x8 sprites, if the BG uses $0000, and the sprites use $1000, the IRQ counter should decrement on PPU cycle 260, right after the visible part of the target scanline has ended.
+        /// When using 8x8 sprites, if the BG uses $1000, and the sprites use $0000, the IRQ counter should decrement on PPU cycle 324 of the previous scanline (as in, right before the target scanline is about to be drawn). However, the 2C02's pre-render scanline will decrement the counter twice every other vertical redraw, so the IRQ will shake one scanline. This is visible in Wario's Woods.
+        if aMapperStepInput.ppuCycle != 280 // TODO: this should be 260 or 324
         {
             return MapperStepResults(requestedCPUInterrupt: nil)
         }
@@ -232,110 +340,23 @@ struct Mapper_TQROM: MapperProtocol
             return MapperStepResults(requestedCPUInterrupt: nil)
         }
         
-        let shouldTriggerIRQ = self.handleScanline()
+        let shouldTriggerIRQ: Bool
+        
+        if self.counter == 0
+        {
+            self.counter = self.reload
+            shouldTriggerIRQ = false
+        }
+        else
+        {
+            self.counter -= 1
+            shouldTriggerIRQ = self.counter == 0 && self.irqEnable
+        }
         
         return MapperStepResults(requestedCPUInterrupt: shouldTriggerIRQ ? .irq : nil)
     }
 
     // MARK: - Private Functions
-    private mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)
-    {
-        switch aAddress
-        {
-        case 0x8000 ... 0x9FFF:
-            if aAddress % 2 == 0
-            {
-                self.writeBankSelect(value: aValue)
-            }
-            else
-            {
-                self.writeBankData(value: aValue)
-            }
-        case 0xA000 ... 0xBFFF:
-            if aAddress % 2 == 0
-            {
-                self.writeMirror(value: aValue)
-            }
-            else
-            {
-                self.writeProtect()
-            }
-        case 0xC000 ... 0xDFFF:
-            if aAddress % 2 == 0
-            {
-                self.writeIRQLatch(value: aValue)
-            }
-            else
-            {
-                self.writeIRQReload()
-            }
-        case 0xE000 ... 0xFFFF:
-            self.irqEnable = aAddress % 2 == 1
-        default: break
-        }
-    }
-
-    private mutating func writeBankSelect(value aValue: UInt8)
-    {
-        self.prgMode = (aValue >> 6) & 1
-        self.chrMode = (aValue >> 7) & 1
-        self.register = aValue & 7
-        self.updateOffsets()
-    }
-
-    private mutating func writeBankData(value aValue: UInt8)
-    {
-        /* TQROM
-         7  bit  0
-         ---- ----
-         xCDD DDDD
-          ||| ||||
-          |++-++++- New bank value, based on last value written to Bank select register
-          |         0: Select 2 KB CHR bank at PPU $0000-$07FF (or $1000-$17FF);
-          |         1: Select 2 KB CHR bank at PPU $0800-$0FFF (or $1800-$1FFF);
-          |         2: Select 1 KB CHR bank at PPU $1000-$13FF (or $0000-$03FF);
-          |         3: Select 1 KB CHR bank at PPU $1400-$17FF (or $0400-$07FF);
-          |         4: Select 1 KB CHR bank at PPU $1800-$1BFF (or $0800-$0BFF);
-          |         5: Select 1 KB CHR bank at PPU $1C00-$1FFF (or $0C00-$0FFF);
-          |         6, 7: As standard MMC3
-          +-------- Chip select (for CHR banks)
-                    0: Select CHR ROM; 1: Select CHR RAM
-         */
-        //self.useChrRam = aValue >> 6 & 0x01 == 1
-        self.registers[Int(self.register)] = aValue & 0x7F // get low 7 bits only
-        self.updateOffsets()
-    }
-
-    private mutating func writeMirror(value aValue: UInt8)
-    {
-        self.mirroringMode = aValue & 1 == 0 ? .vertical : .horizontal
-    }
-
-    private func writeProtect()
-    {
-        
-    }
-    
-    private mutating func writeIRQLatch(value aValue: UInt8)
-    {
-        self.reload = aValue
-    }
-
-    private mutating func writeIRQReload()
-    {
-        self.counter = 0
-    }
-
-    private mutating func writeIRQDisable()
-    {
-        self.irqEnable = false
-    }
-
-    private mutating func writeIRQEnable()
-    {
-        self.irqEnable = true
-    }
-
     private func prgBankOffset(index aIndex: Int) -> Int
     {
         guard self.prg.count >= 0x2000 else { return 0 }
@@ -393,25 +414,6 @@ struct Mapper_TQROM: MapperProtocol
             self.chrOffsets[7] = Int(self.registers[1] | 0x01) * 0x0400
         default: break
         }
-    }
-
-    
-    private mutating func handleScanline() -> Bool
-    {
-        let shouldTriggerIRQ: Bool
-        
-        if self.counter == 0
-        {
-            self.counter = self.reload
-            shouldTriggerIRQ = false
-        }
-        else
-        {
-            self.counter -= 1
-            shouldTriggerIRQ = self.counter == 0 && self.irqEnable
-        }
-        
-        return shouldTriggerIRQ
     }
 }
 
