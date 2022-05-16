@@ -41,6 +41,7 @@ The following mappers have been implemented:
 - 118 TxSROM
 - 119 TQROM
 - 206 Namcot 118 / Tengen Mimic 1
+- 232 Camerica Quattro
 
 The majority of games should work with the above list of supported mappers, with more supported mappers coming soon.
 
