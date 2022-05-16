@@ -144,6 +144,8 @@ struct Cartridge: CartridgeProtocol
             return Mapper_Namcot118_TengenMimic1(withCartridge: self, state: aState)
         case .NTDEC_2722:
             return Mapper_NTDEC2722(withCartridge: self, state: aState)
+        case .CamericaQuattro:
+            return Mapper_CamericaQuattro(withCartridge: self, state: aState)
         default:
             return Mapper_UnsupportedPlaceholder(withCartridge: self, state: aState)
         }

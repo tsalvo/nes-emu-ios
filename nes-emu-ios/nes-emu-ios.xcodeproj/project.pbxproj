@@ -130,6 +130,8 @@
 		99BD700E24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BD700C24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift */; };
 		99C7F1732494096000E4C04D /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1722494096000E4C04D /* Filter.swift */; };
 		99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1742494221800E4C04D /* AudioEngine.swift */; };
+		99D71A852832160B009EB6AC /* Mapper_CamericaQuattro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D71A842832160B009EB6AC /* Mapper_CamericaQuattro.swift */; };
+		99D71A862832160B009EB6AC /* Mapper_CamericaQuattro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D71A842832160B009EB6AC /* Mapper_CamericaQuattro.swift */; };
 		99E2E2052495D8C1008AFCDB /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */; };
 		99E2E2082495D8C1008AFCDB /* ThumbnailProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E2072495D8C1008AFCDB /* ThumbnailProvider.swift */; };
 		99E2E20C2495D8C1008AFCDB /* nes-thumbnail-provider.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -296,6 +298,7 @@
 		99BD700C24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_Namcot118_TengenMimic1.swift; sourceTree = "<group>"; };
 		99C7F1722494096000E4C04D /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		99C7F1742494221800E4C04D /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
+		99D71A842832160B009EB6AC /* Mapper_CamericaQuattro.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_CamericaQuattro.swift; sourceTree = "<group>"; };
 		99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "nes-thumbnail-provider.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLookThumbnailing.framework; path = System/Library/Frameworks/QuickLookThumbnailing.framework; sourceTree = SDKROOT; };
 		99E2E2072495D8C1008AFCDB /* ThumbnailProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailProvider.swift; sourceTree = "<group>"; };
@@ -460,6 +463,7 @@
 				9929E3E7282F158D00ED43DA /* Mapper_TQROM.swift */,
 				99F4B5BF24AD6FD900DB3B36 /* Mapper_MMC5.swift */,
 				991A515828280185006CAFF6 /* Mapper_NROM.swift */,
+				99D71A842832160B009EB6AC /* Mapper_CamericaQuattro.swift */,
 				991A515B28281A55006CAFF6 /* Mapper_UNROM.swift */,
 				9953246124B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift */,
 				99BD700C24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift */,
@@ -791,6 +795,7 @@
 				99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */,
 				99488F40248985F100942A1E /* AppDelegate.swift in Sources */,
 				99B4554A281E48A4006BFF3B /* Mapper_TxSROM.swift in Sources */,
+				99D71A852832160B009EB6AC /* Mapper_CamericaQuattro.swift in Sources */,
 				99B1EDAD249EB0A800BC66F3 /* SettingsMoreInfoCell.swift in Sources */,
 				99B1EDB7249EB2DF00BC66F3 /* Collection+SafeIndex.swift in Sources */,
 				995D077F2532BDAD008AD907 /* MapperState.swift in Sources */,
@@ -871,6 +876,7 @@
 				99FA3CA524A6F1030065E539 /* Collection+SafeIndex.swift in Sources */,
 				99FA3CA924A6F1100065E539 /* MapperProtocol.swift in Sources */,
 				99B45541281DA670006BFF3B /* Mapper_VRC2b_VRC4e_VRC4f.swift in Sources */,
+				99D71A862832160B009EB6AC /* Mapper_CamericaQuattro.swift in Sources */,
 				99886AB4281F019D00C55611 /* Mapper_VRC7.swift in Sources */,
 				995D0804253376DA008AD907 /* NSManagedObject+CPUState.swift in Sources */,
 				995D080A25337C74008AD907 /* NSManagedObject+MapperState.swift in Sources */,
