@@ -307,7 +307,8 @@ enum MapperIdentifier: UInt8
              ._078,
              ._087,
              .TxSROM,
-             .TQROM:
+             .TQROM,
+             .CamericaQuattro:
             return true
         default: return false
         }
