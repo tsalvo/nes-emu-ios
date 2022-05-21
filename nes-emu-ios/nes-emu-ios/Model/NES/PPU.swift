@@ -617,7 +617,7 @@ struct PPU
         let fineY = (self.v >> 12) & 7
         let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
         let tile = self.nameTableByte
-        let address = table + (UInt16(tile) * 16) + fineY
+        let address = table &+ (UInt16(tile) &* 16) &+ fineY
         self.lowTileByte = self.read(address: address)
     }
 
@@ -626,8 +626,8 @@ struct PPU
         let fineY = (self.v >> 12) & 7
         let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
         let tile = self.nameTableByte
-        let address = table + (UInt16(tile) * 16) + fineY
-        self.highTileByte = self.read(address: address + 8)
+        let address = table &+ (UInt16(tile) &* 16) &+ fineY
+        self.highTileByte = self.read(address: address &+ 8)
     }
 
     private mutating func storeTileData()
@@ -676,7 +676,7 @@ struct PPU
                 continue
             }
             offset = 7 - offset
-            let color = UInt8((self.spritePatterns[i] >> UInt8(offset * 4)) & 0x0F)
+            let color = UInt8((self.spritePatterns[i] >> UInt8(offset &* 4)) & 0x0F)
             if color % 4 == 0
             {
                 continue
@@ -688,8 +688,8 @@ struct PPU
 
     private mutating func renderPixel()
     {
-        let x = self.cycle - 1
-        let y = self.scanline - 8
+        let x = self.cycle &- 1
+        let y = self.scanline &- 8
         var background = self.backgroundPixel()
         var spritePixelTuple: (i: UInt8, sprite: UInt8) = self.spritePixel()
         
@@ -739,31 +739,31 @@ struct PPU
         
         let index: Int = Int(self.readPalette(address: UInt16(color)) % 64)
         let paletteColor: UInt32 = PPU.paletteColors[index]
-        self.backBuffer[(256 * y) + x] = paletteColor
+        self.backBuffer[(256 &* y) &+ x] = paletteColor
     }
 
     private mutating func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
     {
         var row = aRow
-        var tile = self.oamData[(aI * 4) + 1]
-        let attributes = self.oamData[(aI * 4) + 2]
-        var address: UInt16
+        var tile: UInt16 = UInt16(self.oamData[(aI &* 4) &+ 1])
+        let attributes = self.oamData[(aI &* 4) &+ 2]
+        let address: UInt16
         
         if !self.flagSpriteSize
         {
             if attributes & 0x80 == 0x80
             {
-                row = 7 - row
+                row = 7 &- row
             }
             
             let table: UInt16 = self.flagSpriteTable ? 0x1000 : 0
-            address = table + (UInt16(tile) * 16) + UInt16(row)
+            address = table &+ (tile &* 16) &+ UInt16(row)
         }
         else
         {
             if attributes & 0x80 == 0x80
             {
-                row = 15 - row
+                row = 15 &- row
             }
             let table = tile & 1
             tile &= 0xFE
@@ -782,8 +782,8 @@ struct PPU
         
         for _ in 0 ..< 8
         {
-            var p1: UInt8
-            var p2: UInt8
+            let p1: UInt8
+            let p2: UInt8
             if attributes & 0x40 == 0x40
             {
                 p1 = (lowTileByte & 1) << 0
@@ -812,11 +812,11 @@ struct PPU
         
         for i in 0 ..< 64
         {
-            let i4: Int = i * 4
-            let y = self.oamData[i4 + 0]
-            let a = self.oamData[i4 + 2]
-            let x = self.oamData[i4 + 3]
-            let row = self.scanline - Int(y)
+            let i4: Int = i &* 4
+            let y = self.oamData[i4 &+ 0]
+            let a = self.oamData[i4 &+ 2]
+            let x = self.oamData[i4 &+ 3]
+            let row = self.scanline &- Int(y)
             
             if row < 0 || row >= h
             {
@@ -831,7 +831,7 @@ struct PPU
                 self.spriteIndexes[count] = UInt8(i)
             }
             
-            count += 1
+            count &+= 1
         }
         
         if count > 8
@@ -850,21 +850,21 @@ struct PPU
         {
             self.cycle = 0
             self.scanline = 0
-            self.frame += 1
+            self.frame &+= 1
             self.f = false
         }
         else
         {
-            self.cycle += 1
+            self.cycle &+= 1
             if self.cycle > 340
             {
                 self.cycle = 0
-                self.scanline += 1
+                self.scanline &+= 1
                 
                 if self.scanline > 261
                 {
                     self.scanline = 0
-                    self.frame += 1
+                    self.frame &+= 1
                     self.f.toggle()
                 }
             }
@@ -878,7 +878,7 @@ struct PPU
         
         if self.nmiDelay > 0
         {
-            self.nmiDelay -= 1
+            self.nmiDelay &-= 1
             if self.nmiDelay == 0 && self.nmiOutput && self.nmiOccurred
             {
                 shouldTriggerNMI = true

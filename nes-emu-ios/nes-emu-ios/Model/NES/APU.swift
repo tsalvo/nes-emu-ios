@@ -134,7 +134,7 @@ struct APU
     {
         let output = self.filterChain.step(x: self.output())
         self.audioBuffer[self.audioBufferIndex] = output
-        self.audioBufferIndex += 1
+        self.audioBufferIndex &+= 1
         if self.audioBufferIndex >= self.audioBuffer.count
         {
             self.audioBufferIndex = 0
@@ -150,7 +150,7 @@ struct APU
         let n = self.noise.output()
         let d = self.dmc.output()
         let pulseOut = APU.pulseTable[Int(p1 + p2)]
-        let tndOut = APU.tndTable[Int((3 * t) + (2 * n) + d)]
+        let tndOut = APU.tndTable[Int((3 &* t) + (2 &* n) &+ d)]
         return pulseOut + tndOut
     }
 
@@ -165,7 +165,7 @@ struct APU
         switch self.framePeriod
         {
         case 4:
-            self.frameValue = (self.frameValue + 1) % 4
+            self.frameValue = (self.frameValue &+ 1) % 4
             switch self.frameValue
             {
             case 0, 2:
@@ -185,7 +185,7 @@ struct APU
             default: break
             }
         case 5:
-            self.frameValue = (self.frameValue + 1) % 5
+            self.frameValue = (self.frameValue &+ 1) % 5
             switch self.frameValue
             {
             case 0, 2:
@@ -374,7 +374,7 @@ struct APU
 
     mutating func writeFrameCounter(value aValue: UInt8)
     {
-        self.framePeriod = 4 + (aValue >> 7) & 1
+        self.framePeriod = 4 &+ (aValue >> 7) & 1
         self.frameIRQ = (aValue >> 6) & 1 == 0
         if self.framePeriod == 5
         {
@@ -543,13 +543,13 @@ struct APU
             }
             else if self.envelopeValue > 0
             {
-                self.envelopeValue -= 1
+                self.envelopeValue &-= 1
             }
             else
             {
                 if self.envelopeVolume > 0
                 {
-                    self.envelopeVolume -= 1
+                    self.envelopeVolume &-= 1
                 }
                 else if self.envelopeLoop
                 {
@@ -573,7 +573,7 @@ struct APU
             }
             else if self.sweepValue > 0
             {
-                self.sweepValue -= 1
+                self.sweepValue &-= 1
             }
             else
             {
@@ -589,7 +589,7 @@ struct APU
         {
             if self.lengthEnabled && self.lengthValue > 0
             {
-                self.lengthValue -= 1
+                self.lengthValue &-= 1
             }
         }
 
@@ -601,7 +601,7 @@ struct APU
                 self.timerPeriod -= delta
                 if self.channel == 1
                 {
-                    self.timerPeriod -= 1
+                    self.timerPeriod &-= 1
                 }
             }
             else
@@ -719,12 +719,12 @@ struct APU
                 self.timerValue = self.timerPeriod
                 if self.lengthValue > 0 && self.counterValue > 0
                 {
-                    self.dutyValue = (self.dutyValue + 1) % 32
+                    self.dutyValue = (self.dutyValue &+ 1) % 32
                 }
             }
             else
             {
-                self.timerValue -= 1
+                self.timerValue &-= 1
             }
         }
 
@@ -732,7 +732,7 @@ struct APU
         {
             if self.lengthEnabled && self.lengthValue > 0
             {
-                self.lengthValue -= 1
+                self.lengthValue &-= 1
             }
         }
 
@@ -744,7 +744,7 @@ struct APU
             }
             else if self.counterValue > 0
             {
-                self.counterValue -= 1
+                self.counterValue &-= 1
             }
             
             if self.lengthEnabled
@@ -874,13 +874,13 @@ struct APU
             }
             else if self.envelopeValue > 0
             {
-                self.envelopeValue -= 1
+                self.envelopeValue &-= 1
             }
             else
             {
                 if self.envelopeVolume > 0
                 {
-                    self.envelopeVolume -= 1
+                    self.envelopeVolume &-= 1
                 }
                 else if self.envelopeLoop
                 {
@@ -894,7 +894,7 @@ struct APU
         {
             if self.lengthEnabled && self.lengthValue > 0
             {
-                self.lengthValue -= 1
+                self.lengthValue &-= 1
             }
         }
 
@@ -1018,7 +1018,7 @@ struct APU
             }
             else
             {
-                self.tickValue -= 1
+                self.tickValue &-= 1
             }
             
             return numCPUStallCycles
@@ -1039,7 +1039,7 @@ struct APU
                     self.currentAddress = 0x8000
                 }
                 
-                self.currentLength -= 1
+                self.currentLength &-= 1
                 
                 if self.currentLength == 0 && self.loop
                 {
@@ -1065,19 +1065,19 @@ struct APU
             {
                 if self.value <= 125
                 {
-                    self.value += 2
+                    self.value &+= 2
                 }
             }
             else
             {
                 if self.value >= 2
                 {
-                    self.value -= 2
+                    self.value &-= 2
                 }
             }
             
             self.shiftRegister >>= 1
-            self.bitCount -= 1
+            self.bitCount &-= 1
         }
 
         func output() -> UInt8

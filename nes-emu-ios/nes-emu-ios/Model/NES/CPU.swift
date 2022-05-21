@@ -633,7 +633,7 @@ struct CPU
             else
         {
             numCPUCyclesThisStep = 1
-            self.stall -= 1
+            self.stall &-= 1
             self.stepOthers(forNumCPUCycles: numCPUCyclesThisStep)
             return numCPUCyclesThisStep
         }
@@ -722,7 +722,7 @@ struct CPU
     private mutating func stepOthers(forNumCPUCycles aNumCPUCycles: Int)
     {
         // PPU Step
-        for _ in 0 ..< aNumCPUCycles * 3
+        for _ in 0 ..< aNumCPUCycles &* 3
         {
             let ppuStepResults: PPUStepResults = self.ppu.step()
             if let safeRequestedInterrupt: Interrupt = ppuStepResults.requestedCPUInterrupt
