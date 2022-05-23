@@ -646,99 +646,91 @@ struct PPU
         self.tileData |= UInt64(data)
     }
 
-    private func fetchTileData() -> UInt32
-    {
-        return UInt32(self.tileData >> 32)
-    }
-
-    private func backgroundPixel() -> UInt8
-    {
-        if !self.flagShowBackground
-        {
-            return 0
-        }
-        let data = self.fetchTileData() >> ((7 - self.x) * 4)
-        return UInt8(data & 0x0F)
-    }
-
-    private func spritePixel() -> (UInt8, UInt8)
-    {
-        if !self.flagShowSprites
-        {
-            return (0, 0)
-        }
-        
-        for i in 0 ..< self.spriteCount
-        {
-            var offset = (self.cycle - 1) - Int(self.spritePositions[i])
-            if offset < 0 || offset > 7
-            {
-                continue
-            }
-            offset = 7 - offset
-            let color = UInt8((self.spritePatterns[i] >> UInt8(offset &* 4)) & 0x0F)
-            if color % 4 == 0
-            {
-                continue
-            }
-            return (UInt8(i), color)
-        }
-        return (0, 0)
-    }
-
     private mutating func renderPixel()
     {
         let x = self.cycle &- 1
         let y = self.scanline &- 8
-        var background = self.backgroundPixel()
-        var spritePixelTuple: (i: UInt8, sprite: UInt8) = self.spritePixel()
+        let backgroundPixel: UInt8
+        let spritePixelIndex: UInt8
+        let spritePixel: UInt8
+        let leftEdge = x < 8
         
-        if x < 8
+        if leftEdge && !self.flagShowBackground
         {
-            if !self.flagShowLeftBackground
-            {
-                background = 0
-            }
-            
-            if !self.flagShowLeftSprites
-            {
-                spritePixelTuple.sprite = 0
-            }
+            backgroundPixel = 0
+        }
+        else
+        {
+            let data = UInt32(self.tileData >> 32) >> ((7 - self.x) * 4)
+            backgroundPixel = UInt8(data & 0x0F)
         }
         
-        let b: Bool = background % 4 != 0
-        let s: Bool = spritePixelTuple.sprite % 4 != 0
+        if self.flagShowSprites
+        {
+            let lastCycle = self.cycle &- 1
+            var sp: UInt8 = 0
+            var spi: UInt8 = 0
+            for i in 0 ..< self.spriteCount
+            {
+                let offset = lastCycle - Int(self.spritePositions[i])
+                if offset < 0 || offset > 7
+                {
+                    continue
+                }
+                let color = UInt8((self.spritePatterns[i] >> UInt8((7 &- offset) &* 4)) & 0x0F)
+                if color % 4 == 0
+                {
+                    continue
+                }
+                sp = color
+                spi = UInt8(i)
+                break
+            }
+            
+            spritePixel = leftEdge && !self.flagShowLeftSprites ? 0 : sp
+            spritePixelIndex = spi
+        }
+        else
+        {
+            spritePixelIndex = 0
+            spritePixel = 0
+        }
+        
+        let b: Bool = backgroundPixel % 4 != 0
+        let s: Bool = spritePixel % 4 != 0
         let color: UInt8
         
         if !b
         {
-            color = s ? (spritePixelTuple.sprite | 0x10) : 0
+            color = s ? (spritePixel | 0x10) : 0
         }
         else if !s
         {
-            color = background
+            color = backgroundPixel
         }
         else
         {
-            let spritePixelIndex: Int = Int(spritePixelTuple.i)
+            let spi: Int = Int(spritePixelIndex)
             
-            if self.spriteIndexes[spritePixelIndex] == 0 && x < 255
+            if self.spriteIndexes[spi] == 0 && x < 255
             {
                 self.flagSpriteZeroHit = 1
             }
             
-            if self.spritePriorities[spritePixelIndex] == 0
+            if self.spritePriorities[spi] == 0
             {
-                color = spritePixelTuple.sprite | 0x10
+                color = spritePixel | 0x10
             }
             else
             {
-                color = background
+                color = backgroundPixel
             }
         }
         
-        let index: Int = Int(self.readPalette(address: UInt16(color)) % 64)
-        let paletteColor: UInt32 = PPU.paletteColors[index]
+        let paletteAddress: UInt16 = UInt16(color)
+        let paletteArressIndex: Int = Int((paletteAddress >= 16 && paletteAddress % 4 == 0) ? paletteAddress &- 16 : paletteAddress)
+        let paletteColorsIndex: Int = Int(self.paletteData[paletteArressIndex] % 64)
+        let paletteColor: UInt32 = PPU.paletteColors[paletteColorsIndex]
         self.backBuffer[(256 &* y) &+ x] = paletteColor
     }
 
