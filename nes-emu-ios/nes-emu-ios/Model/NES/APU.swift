@@ -110,8 +110,10 @@ struct APU
         self.cycle += 1
         let cycle2 = self.cycle
         let numCPUStallCycles: UInt64 = self.stepTimer(dmcCurrentAddressValue: aDmcCurrentAddressValue)
-        let f1 = Int(Double(cycle1) / APU.frameCounterRate)
-        let f2 = Int(Double(cycle2) / APU.frameCounterRate)
+        let dc1 = Double(cycle1)
+        let dc2 = Double(cycle2)
+        let f1 = Int(dc1 / APU.frameCounterRate)
+        let f2 = Int(dc2 / APU.frameCounterRate)
         if f1 != f2
         {
             shouldFireIRQ = self.stepFrameCounter()
@@ -120,8 +122,8 @@ struct APU
         {
             shouldFireIRQ = false
         }
-        let s1 = Int(Double(cycle1) / self.cycleSampleRate)
-        let s2 = Int(Double(cycle2) / self.cycleSampleRate)
+        let s1 = Int(dc1 / self.cycleSampleRate)
+        let s2 = Int(dc2 / self.cycleSampleRate)
         if s1 != s2
         {
             self.sendSample()
