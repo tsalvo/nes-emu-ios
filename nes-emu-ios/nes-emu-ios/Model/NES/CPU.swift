@@ -48,13 +48,13 @@ struct InstructionInfo
     let mode: AddressingMode
     
     /// the number of cycles used by each instruction, not including conditional cycles
-    let cycles: UInt8
+    let cycles: UInt64
     
     /// number of cycles the instruction takes if a page boundary is crossed
-    let pageBoundaryCycles: UInt8
+    let pageBoundaryCycles: UInt64
     
     /// the size of the instruction in bytes
-    let bytes: UInt8
+    let bytes: UInt16
 }
 
 /// NES Central processing unit
@@ -726,11 +726,11 @@ struct CPU
             pageCrossed = false
         }
 
-        self.pc &+= UInt16(instructioninfo.bytes)
-        self.cycles &+= UInt64(instructioninfo.cycles)
+        self.pc &+= instructioninfo.bytes
+        self.cycles &+= instructioninfo.cycles
         if pageCrossed
         {
-            self.cycles &+= UInt64(instructioninfo.pageBoundaryCycles)
+            self.cycles &+= instructioninfo.pageBoundaryCycles
         }
         let info: StepInfo = StepInfo(address: address, pc: self.pc, mode: mode)
         instructioninfo.instruction(&self, info)
