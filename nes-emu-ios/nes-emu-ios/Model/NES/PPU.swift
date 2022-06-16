@@ -698,7 +698,7 @@ struct PPU
                 }
                 else
                 {
-                    let data = UInt32(self.tileData >> 32) >> ((7 - self.x) &* 4)
+                    let data = UInt32(self.tileData &>> 32) &>> ((7 &- self.x) &* 4)
                     backgroundPixel = UInt8(data & 0x0F)
                 }
                 
@@ -766,15 +766,15 @@ struct PPU
                 }
                 
                 let paletteAddress: UInt16 = UInt16(color)
-                let paletteArressIndex: Int = Int((paletteAddress >= 16 && paletteAddress % 4 == 0) ? paletteAddress &- 16 : paletteAddress)
-                let paletteColorsIndex: Int = Int(self.paletteData[paletteArressIndex] % 64)
+                let paletteAddressIndex: Int = Int((paletteAddress >= 16 && paletteAddress % 4 == 0) ? paletteAddress &- 16 : paletteAddress)
+                let paletteColorsIndex: Int = Int(self.paletteData[paletteAddressIndex] & 0x3F)
                 let paletteColor: UInt32 = PPU.paletteColors[paletteColorsIndex]
                 self.backBuffer[(256 &* y) &+ x] = paletteColor
             }
 
             if renderLine && fetchCycle
             {
-                self.tileData <<= 4
+                self.tileData &<<= 4
                 switch self.cycle & 0x07
                 {
                 case 1:
@@ -809,11 +809,11 @@ struct PPU
                     var i: Int = 0
                     while i < 8
                     {
-                        let p1 = (self.lowTileByte & 0x80) >> 7
-                        let p2 = (self.highTileByte & 0x80) >> 6
-                        self.lowTileByte <<= 1
-                        self.highTileByte <<= 1
-                        data <<= 4
+                        let p1: UInt8 = (self.lowTileByte & 0x80) &>> 7
+                        let p2: UInt8 = (self.highTileByte & 0x80) &>> 6
+                        self.lowTileByte &<<= 1
+                        self.highTileByte &<<= 1
+                        data &<<= 4
                         data |= UInt32(a | p1 | p2)
                         i &+= 1
                     }
