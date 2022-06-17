@@ -261,7 +261,7 @@ struct PPU
         }
         else // 0x3F00 ... 0x3FFF
         {
-            return self.readPalette(address: (address % 32))
+            return self.readPalette(address: address & 0x1F)
         }
     }
     
@@ -296,9 +296,9 @@ struct PPU
     
     private func adjustedPPUAddress(forOriginalAddress aOriginalAddress: UInt16, withMirroringMode aMirrorMode: MirroringMode) -> UInt16
     {
-        let address: UInt16 = (aOriginalAddress - 0x2000) % 0x1000
+        let address: UInt16 = (aOriginalAddress - 0x2000) & 0x0FFF
         let addrRange: UInt16 = address / 0x0400
-        let offset: UInt16 = address % 0x0400
+        let offset: UInt16 = address & 0x03FF
         return 0x2000 + PPU.nameTableOffsetSequence[Int(aMirrorMode.rawValue)][Int(addrRange)] + offset
     }
     
@@ -557,12 +557,12 @@ struct PPU
                 tile &+= 1
                 row &-= 8
             }
-            address = 0x1000 * UInt16(table) + UInt16(tile) * 16 + UInt16(row)
+            address = 0x1000 * table + UInt16(tile) * 16 + UInt16(row)
         }
         
-        let a = (attributes & 3) << 2
+        let a = (attributes & 3) &<< 2
         var lowTileByte = self.read(address: address)
-        var highTileByte = self.read(address: address + 8)
+        var highTileByte = self.read(address: address &+ 8)
         var data: UInt32 = 0
         var i: Int = 0
         while i < 8
@@ -571,19 +571,19 @@ struct PPU
             let p2: UInt8
             if attributes & 0x40 == 0x40
             {
-                p1 = (lowTileByte & 1) << 0
-                p2 = (highTileByte & 1) << 1
-                lowTileByte >>= 1
-                highTileByte >>= 1
+                p1 = (lowTileByte & 1) &<< 0
+                p2 = (highTileByte & 1) &<< 1
+                lowTileByte &>>= 1
+                highTileByte &>>= 1
             }
             else
             {
-                p1 = (lowTileByte & 0x80) >> 7
-                p2 = (highTileByte & 0x80) >> 6
-                lowTileByte <<= 1
-                highTileByte <<= 1
+                p1 = (lowTileByte & 0x80) &>> 7
+                p2 = (highTileByte & 0x80) &>> 6
+                lowTileByte &<<= 1
+                highTileByte &<<= 1
             }
-            data <<= 4
+            data &<<= 4
             data |= UInt32(a | p1 | p2)
             i &+= 1
         }
@@ -610,7 +610,7 @@ struct PPU
                 {
                     self.spritePatterns[count] = self.fetchSpritePattern(i: i, row: row)
                     self.spritePositions[count] = x
-                    self.spritePriorities[count] = (a >> 5) & 1
+                    self.spritePriorities[count] = (a &>> 5) & 1
                     self.spriteIndexes[count] = UInt8(i)
                 }
                 
@@ -785,19 +785,19 @@ struct PPU
                 case 3:
                     // fetch attribute table byte
                     let v = self.v
-                    let address = 0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07)
-                    let shift = ((v >> 4) & 4) | (v & 2)
-                    self.attributeTableByte = ((self.read(address: address) >> shift) & 3) << 2
+                    let address = 0x23C0 | (v & 0x0C00) | ((v &>> 4) & 0x38) | ((v &>> 2) & 0x07)
+                    let shift = ((v &>> 4) & 4) | (v & 2)
+                    self.attributeTableByte = ((self.read(address: address) &>> shift) & 3) &<< 2
                 case 5:
                     // fetch low tile byte
-                    let fineY = (self.v >> 12) & 7
+                    let fineY = (self.v &>> 12) & 7
                     let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
                     let tile = self.nameTableByte
                     let address = table &+ (UInt16(tile) &* 16) &+ fineY
                     self.lowTileByte = self.read(address: address)
                 case 7:
                     // fetch high tile byte
-                    let fineY = (self.v >> 12) & 7
+                    let fineY = (self.v &>> 12) & 7
                     let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
                     let tile = self.nameTableByte
                     let address = table &+ (UInt16(tile) &* 16) &+ fineY
@@ -926,17 +926,19 @@ struct PPU
             self.flagSpriteZeroHit = 0
             self.flagSpriteOverflow = 0
         }
-
-        let interruptRequestedByMapper: Interrupt?
+        
+        let results: PPUStepResults
+        
         if self.mapperHasStep
         {
-            interruptRequestedByMapper = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites, ppuSpriteSize: self.flagSpriteSize))?.requestedCPUInterrupt
+            let interruptRequestedByMapper: Interrupt? = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites, ppuSpriteSize: self.flagSpriteSize))?.requestedCPUInterrupt
+            results = PPUStepResults(requestedCPUInterrupt: interruptRequestedByMapper ?? (shouldTriggerNMI ? .nmi : nil))
         }
         else
         {
-            interruptRequestedByMapper = nil
+            results = PPUStepResults(requestedCPUInterrupt: shouldTriggerNMI ? .nmi : nil)
         }
         
-        return PPUStepResults(requestedCPUInterrupt: interruptRequestedByMapper ?? (shouldTriggerNMI ? .nmi : nil))
+        return results
     }
 }

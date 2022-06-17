@@ -107,7 +107,7 @@ struct APU
     {
         let shouldFireIRQ: Bool
         let cycle1 = self.cycle
-        self.cycle += 1
+        self.cycle &+= 1
         let cycle2 = self.cycle
         let numCPUStallCycles: UInt64 = self.stepTimer(dmcCurrentAddressValue: aDmcCurrentAddressValue)
         let dc1 = Double(cycle1)
@@ -721,7 +721,7 @@ struct APU
                 self.timerValue = self.timerPeriod
                 if self.lengthValue > 0 && self.counterValue > 0
                 {
-                    self.dutyValue = (self.dutyValue &+ 1) % 32
+                    self.dutyValue = (self.dutyValue &+ 1) & 0x1F
                 }
             }
             else
@@ -856,9 +856,9 @@ struct APU
                 self.timerValue = self.timerPeriod
                 let shift: UInt8 = self.mode ? 6 : 1
                 let b1 = self.shiftRegister & 1
-                let b2 = (self.shiftRegister >> shift) & 1
-                self.shiftRegister >>= 1
-                self.shiftRegister |= (b1 ^ b2) << 14
+                let b2 = (self.shiftRegister &>> shift) & 1
+                self.shiftRegister &>>= 1
+                self.shiftRegister |= (b1 ^ b2) &<< 14
             }
             else
             {
