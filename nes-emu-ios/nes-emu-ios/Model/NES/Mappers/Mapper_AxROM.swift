@@ -49,7 +49,7 @@ struct Mapper_AxROM: MapperProtocol
     {
         if let safeState = aState
         {
-            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
             self.prgBank = safeState.ints[safe: 0] ?? 0
             
             self.chr = safeState.chr
@@ -81,11 +81,11 @@ struct Mapper_AxROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.prgBank], bools: [], uint8s: [], chr: self.chr)
         }
         set
         {
-            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(newValue.mirroringMode)) ?? self.mirroringMode
             self.prgBank = newValue.ints[safe: 0] ?? 0
             self.chr = newValue.chr
         }

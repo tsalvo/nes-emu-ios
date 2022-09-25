@@ -294,12 +294,13 @@ struct PPU
         }
     }
     
+    @inline (__always)
     private func adjustedPPUAddress(forOriginalAddress aOriginalAddress: UInt16, withMirroringMode aMirrorMode: MirroringMode) -> UInt16
     {
         let address: UInt16 = (aOriginalAddress - 0x2000) & 0x0FFF
         let addrRange: UInt16 = address / 0x0400
         let offset: UInt16 = address & 0x03FF
-        return 0x2000 + PPU.nameTableOffsetSequence[Int(aMirrorMode.rawValue)][Int(addrRange)] + offset
+        return 0x2000 + PPU.nameTableOffsetSequence[aMirrorMode.rawValue][Int(addrRange)] + offset
     }
     
     mutating func reset()
@@ -314,12 +315,14 @@ struct PPU
         self.frontBuffer = PPU.emptyBuffer
     }
     
+    @inline (__always)
     private mutating func readPalette(address aAddress: UInt16) -> UInt8 // mutating because it makes a copy of PPU otherwise
     {
         let index: UInt16 = (aAddress >= 16 && aAddress % 4 == 0) ? aAddress - 16 : aAddress
         return self.paletteData[Int(index)]
     }
 
+    @inline (__always)
     private mutating func writePalette(address aAddress: UInt16, value aValue: UInt8)
     {
         let index: UInt16 = (aAddress >= 16 && aAddress % 4 == 0) ? aAddress - 16 : aAddress
@@ -367,6 +370,7 @@ struct PPU
     }
 
     // $2000: PPUCTRL
+    @inline (__always)
     private mutating func writeControl(value aValue: UInt8)
     {
         self.flagNameTable = (aValue >> 0) & 3
@@ -382,6 +386,7 @@ struct PPU
     }
 
     // $2001: PPUMASK
+    @inline (__always)
     private mutating func writeMask(value aValue: UInt8)
     {
         self.flagGrayscale = ((aValue >> 0) & 1) == 1
@@ -395,6 +400,7 @@ struct PPU
     }
     
     // $2002: PPUSTATUS
+    @inline (__always)
     private mutating func readStatus() -> UInt8
     {
         var result = self.register & 0x1F
@@ -411,12 +417,14 @@ struct PPU
     }
 
     // $2003: OAMADDR
+    @inline (__always)
     private mutating func writeOAMAddress(value aValue: UInt8)
     {
         self.oamAddress = aValue
     }
 
     // $2004: OAMDATA (read)
+    @inline (__always)
     private mutating func readOAMData() -> UInt8
     {
         let result: UInt8
@@ -435,6 +443,7 @@ struct PPU
     }
 
     // $2004: OAMDATA (write)
+    @inline (__always)
     private mutating func writeOAMData(value aValue: UInt8)
     {
         self.oamData[Int(self.oamAddress)] = aValue
@@ -442,6 +451,7 @@ struct PPU
     }
 
     // $2005: PPUSCROLL
+    @inline (__always)
     private mutating func writeScroll(value aValue: UInt8)
     {
         if self.w == false
@@ -527,40 +537,40 @@ struct PPU
     }
     
 
-    private mutating func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
+    private mutating func fetchSpritePattern(oamDataOffset aOamDataOffset: Int, attributes aAttributes: UInt8, row aRow: Int) -> UInt32
     {
-        var row = aRow
-        var tile: UInt16 = UInt16(self.oamData[(aI &* 4) &+ 1])
-        let attributes = self.oamData[(aI &* 4) &+ 2]
+        let tile: UInt16 = UInt16(self.oamData[aOamDataOffset &+ 1])
         let address: UInt16
-        
+        let tableOffset: UInt16
+        let tileOffset: UInt16
+        let rowOffset: UInt16
         if !self.flagSpriteSize
         {
-            if attributes & 0x80 == 0x80
-            {
-                row = 7 &- row
-            }
-            
-            let table: UInt16 = self.flagSpriteTable ? 0x1000 : 0
-            address = table &+ (tile &* 16) &+ UInt16(row)
+            rowOffset = aAttributes & 0x80 == 0x80 ? UInt16(7 &- aRow) : UInt16(aRow)
+            tableOffset = self.flagSpriteTable ? 0x1000 : 0
+            tileOffset = tile &* 16
+            address = tableOffset &+ tileOffset &+ rowOffset
         }
         else
         {
-            if attributes & 0x80 == 0x80
+            let r: Int = aAttributes & 0x80 == 0x80 ? 15 &- aRow : aRow
+
+            if r > 7
             {
-                row = 15 &- row
+                tileOffset = ((tile & 0xFE) + 1) * 16
+                rowOffset =  UInt16(r &- 8)
             }
-            let table = tile & 1
-            tile &= 0xFE
-            if row > 7
+            else
             {
-                tile &+= 1
-                row &-= 8
+                tileOffset = (tile & 0xFE) * 16
+                rowOffset = UInt16(r)
             }
-            address = 0x1000 * table + UInt16(tile) * 16 + UInt16(row)
+            
+            tableOffset = (tile & 1) * 0x1000
+            address = tableOffset &+ tileOffset &+ rowOffset
         }
         
-        let a = (attributes & 3) &<< 2
+        let a = (aAttributes & 3) &<< 2
         var lowTileByte = self.read(address: address)
         var highTileByte = self.read(address: address &+ 8)
         var data: UInt32 = 0
@@ -569,7 +579,7 @@ struct PPU
         {
             let p1: UInt8
             let p2: UInt8
-            if attributes & 0x40 == 0x40
+            if aAttributes & 0x40 == 0x40
             {
                 p1 = (lowTileByte & 1) &<< 0
                 p2 = (highTileByte & 1) &<< 1
@@ -608,7 +618,7 @@ struct PPU
             {
                 if count < 8
                 {
-                    self.spritePatterns[count] = self.fetchSpritePattern(i: i, row: row)
+                    self.spritePatterns[count] = self.fetchSpritePattern(oamDataOffset: i4, attributes: a, row: row)
                     self.spritePositions[count] = x
                     self.spritePriorities[count] = (a &>> 5) & 1
                     self.spriteIndexes[count] = UInt8(i)
@@ -643,8 +653,10 @@ struct PPU
             }
         }
         
+        let renderingEnabled: Bool = self.flagShowBackground || self.flagShowSprites
+        
         // tick
-        if self.cycle == 339 && self.scanline == 261 && (self.flagShowBackground || self.flagShowSprites) && self.f
+        if self.cycle == 339 && self.scanline == 261 && renderingEnabled && self.f
         {
             self.cycle = 0
             self.scanline = 0
@@ -667,8 +679,7 @@ struct PPU
                 }
             }
         }
-
-        let renderingEnabled: Bool = self.flagShowBackground || self.flagShowSprites
+        
         let preLine: Bool = self.scanline == 261
         
         if renderingEnabled

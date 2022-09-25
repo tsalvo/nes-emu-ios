@@ -72,7 +72,7 @@ struct Mapper_TxSROM: MapperProtocol
            safeState.bools.count >= 1,
            safeState.ints.count >= 16
         {
-            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
             self.prgOffsets = [safeState.ints[0], safeState.ints[1], safeState.ints[2], safeState.ints[3]]
             self.chrOffsets = [safeState.ints[4], safeState.ints[5], safeState.ints[6], safeState.ints[7], safeState.ints[8], safeState.ints[9], safeState.ints[10], safeState.ints[11]]
             self.nameTableA = safeState.ints[12]
@@ -133,7 +133,7 @@ struct Mapper_TxSROM: MapperProtocol
         {
             var uint8s = [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode, self.reload, self.counter]
             uint8s.append(contentsOf: self.nametable)
-            return MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7], self.nameTableA, self.nameTableB, self.nameTableC, self.nameTableD], bools: [self.irqEnable], uint8s: uint8s, chr: self.chr)
+            return MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7], self.nameTableA, self.nameTableB, self.nameTableC, self.nameTableD], bools: [self.irqEnable], uint8s: uint8s, chr: self.chr)
         }
         set
         {

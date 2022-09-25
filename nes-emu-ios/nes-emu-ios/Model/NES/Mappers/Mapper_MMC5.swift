@@ -108,7 +108,7 @@ struct Mapper_MMC5: MapperProtocol
     {
         if let safeState: MapperState = aState
         {
-            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
             self.prgOffsets = [Int](safeState.ints[0 ..< self.prgOffsets.count])
             self.chrOffsets = [Int](safeState.ints[self.prgOffsets.count ..< self.prgOffsets.count + self.chrOffsets.count])
             self.verticalSplitScreenSide = safeState.bools[0]
@@ -174,7 +174,7 @@ struct Mapper_MMC5: MapperProtocol
             u8.append(self.sramBank)
             u8.append(self.reg5203Value)
             
-            return MapperState(mirroringMode: self.mirroringMode.rawValue,
+            return MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue),
                         ints:
                             self.prgOffsets + self.chrOffsets,
                         bools:
@@ -183,7 +183,7 @@ struct Mapper_MMC5: MapperProtocol
         }
         set
         {
-            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(newValue.mirroringMode)) ?? self.mirroringMode
             self.prgOffsets = [Int](newValue.ints[0 ..< self.prgOffsets.count])
             self.chrOffsets = [Int](newValue.ints[self.prgOffsets.count ..< self.prgOffsets.count + self.chrOffsets.count])
             self.verticalSplitScreenSide = newValue.bools[0]

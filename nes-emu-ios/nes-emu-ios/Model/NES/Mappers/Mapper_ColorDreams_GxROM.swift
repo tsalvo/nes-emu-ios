@@ -76,7 +76,7 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank, self.chrBank], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.prgBank, self.chrBank], bools: [], uint8s: [], chr: self.chr)
         }
         set
         {

@@ -535,7 +535,7 @@ final class NesRomViewController: GCEventViewController, EmulatorProtocol, Conso
         self.consoleFramesQueued += 1
         
         self.consoleQueue.async { [weak self] in
-            self?.console?.stepSeconds(seconds: 1.0 / 60.0)
+            self?.console?.stepTick()
             DispatchQueue.main.async { [weak self] in
                 self?.consoleFramesQueued -= 1
                 self?.screen.buffer = self?.console?.screenBuffer ?? PPU.emptyBuffer

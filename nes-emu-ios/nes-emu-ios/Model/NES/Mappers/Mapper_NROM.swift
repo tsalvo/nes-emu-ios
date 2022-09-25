@@ -99,7 +99,7 @@ struct Mapper_NROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [], uint8s: self.prgRam, chr: [])
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [], bools: [], uint8s: self.prgRam, chr: [])
         }
         set
         {

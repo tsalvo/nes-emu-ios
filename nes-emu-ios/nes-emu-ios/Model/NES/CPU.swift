@@ -61,6 +61,7 @@ struct InstructionInfo
 struct CPU
 {
     static let frequency: Int = 1789773
+    static let cyclesPerTick: Int = Int(Float64(CPU.frequency) / 60.0)
     var apu: APU
     var ppu: PPU
     var controllers: [Controller]
@@ -436,18 +437,21 @@ struct CPU
     }
     
     /// sets the zero flag if the argument is zero
+    @inline(__always)
     private mutating func setZ(value aValue: UInt8)
     {
         self.z = (aValue == 0) ? true : false
     }
     
     /// sets the negative flag if the argument is negative (high bit is set)
+    @inline(__always)
     private mutating func setN(value aValue: UInt8)
     {
         self.n = (aValue & 0x80 != 0) ? true : false
     }
 
     ///  sets the zero flag and the negative flag
+    @inline(__always)
     private mutating func setZN(value aValue: UInt8)
     {
         self.setZ(value: aValue)
@@ -455,6 +459,7 @@ struct CPU
     }
     
     /// compare two values and set zero, negative, and carry flags accordingly
+    @inline(__always)
     private mutating func compare(valueA aValueA: UInt8, valueB aValueB: UInt8)
     {
         self.setZN(value: aValueA &- aValueB)
@@ -542,6 +547,7 @@ struct CPU
     }
     
     /// checks whether two 16-bit addresses reside on different pages
+    @inline(__always)
     private func pagesDiffer(address1 aAddress1: UInt16, address2 aAddress2: UInt16) -> Bool
     {
         return aAddress1 & 0xFF00 != aAddress2 & 0xFF00
@@ -559,7 +565,7 @@ struct CPU
     private mutating func read16bug(address aAddress: UInt16) -> UInt16
     {
         let a: UInt16 = aAddress
-        let b: UInt16 = (a & 0xFF00) | UInt16((a % 256) &+ 1)
+        let b: UInt16 = (a & 0xFF00) | ((a & 0x00FF) &+ 1)  //UInt16((a % 256) &+ 1)
         let lo = self.read(address: a)
         let hi = self.read(address: b)
         return (UInt16(hi) << 8) | UInt16(lo)

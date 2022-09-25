@@ -46,7 +46,7 @@ struct Mapper_87: MapperProtocol
     {
         if let safeState = aState
         {
-            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
             self.chrBank = safeState.ints[safe: 0] ?? 0
             self.chr = safeState.chr
         }
@@ -77,7 +77,7 @@ struct Mapper_87: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBank], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.chrBank], bools: [], uint8s: [], chr: self.chr)
         }
         set
         {

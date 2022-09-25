@@ -85,7 +85,7 @@ struct Mapper_CamericaQuattro: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prg16KBPageOffset, self.prg64KBBlockOffset], bools: [], uint8s: self.chrRam, chr: [])
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.prg16KBPageOffset, self.prg64KBBlockOffset], bools: [], uint8s: self.chrRam, chr: [])
         }
         set
         {

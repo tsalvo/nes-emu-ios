@@ -35,7 +35,7 @@ struct Mapper_UnsupportedPlaceholder: MapperProtocol
     {
         if let safeState = aState
         {
-            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
         }
         else
         {
@@ -47,7 +47,7 @@ struct Mapper_UnsupportedPlaceholder: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [], uint8s: [], chr: [])
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [], bools: [], uint8s: [], chr: [])
         }
         set
         {

@@ -77,7 +77,7 @@ struct Mapper_VRC7: MapperProtocol
            safeState.ints.count >= 13,
            safeState.chr.count == 262144
         {
-            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
             self.sram = [UInt8](safeState.uint8s[0 ..< 8192])
             self.irqLatch = safeState.uint8s[8192]
             self.irqCounter = safeState.uint8s[8193]
@@ -136,7 +136,7 @@ struct Mapper_VRC7: MapperProtocol
             i.append(contentsOf: self.chrOffsets)
             i.append(self.irqScaler)
             
-            return MapperState(mirroringMode: self.mirroringMode.rawValue, ints: i, bools: b, uint8s: u8, chr: self.chr)
+            return MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: i, bools: b, uint8s: u8, chr: self.chr)
         }
         set
         {
@@ -149,7 +149,7 @@ struct Mapper_VRC7: MapperProtocol
                 return
             }
             
-            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(newValue.mirroringMode)) ?? self.mirroringMode
             self.sram = [UInt8](newValue.uint8s[0 ..< 8192])
             self.irqLatch = newValue.uint8s[8192]
             self.irqCounter = newValue.uint8s[8193]

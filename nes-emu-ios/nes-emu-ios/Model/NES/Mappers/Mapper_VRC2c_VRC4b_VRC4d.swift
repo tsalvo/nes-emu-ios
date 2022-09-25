@@ -88,7 +88,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
            safeState.bools.count >= 6
         {
             self.chr = safeState.chr
-            self.mirroringMode = MirroringMode(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.mirroringMode = MirroringMode(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
             
             self.chrBankLowHigh = [UInt8](safeState.uint8s[0 ..< 16])
             self.sram = [UInt8](safeState.uint8s[16 ..< 8208])
@@ -155,7 +155,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
             i.append(self.irqScaler)
             i.append(self.prgBank800XRegOffset)
             
-            return MapperState(mirroringMode: self.mirroringMode.rawValue, ints: i, bools: b, uint8s: u8, chr: self.chr)
+            return MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: i, bools: b, uint8s: u8, chr: self.chr)
         }
         set
         {
@@ -168,7 +168,7 @@ struct Mapper_VRC2c_VRC4b_VRC4d: MapperProtocol
             else { return }
             
             self.chr = newValue.chr
-            self.mirroringMode = MirroringMode(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.mirroringMode = MirroringMode(rawValue: Int(newValue.mirroringMode)) ?? self.mirroringMode
             
             self.chrBankLowHigh = [UInt8](newValue.uint8s[0 ..< self.chrBankLowHigh.count])
             self.sram = [UInt8](newValue.uint8s[self.chrBankLowHigh.count ..< self.chrBankLowHigh.count + self.sram.count])

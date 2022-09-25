@@ -490,6 +490,7 @@ struct APU
             return PulseState.init(enabled: self.enabled, lengthEnabled: self.lengthEnabled, lengthValue: self.lengthValue, timerPeriod: self.timerPeriod, timerValue: self.timerValue, dutyMode: self.dutyMode, dutyValue: self.dutyValue, sweepReload: self.sweepReload, sweepEnabled: self.sweepEnabled, sweepNegate: self.sweepNegate, sweepShift: self.sweepShift, sweepPeriod: self.sweepPeriod, sweepValue: self.sweepValue, envelopeEnabled: self.envelopeEnabled, envelopeLoop: self.envelopeLoop, envelopeStart: self.envelopeStart, envelopePeriod: self.envelopePeriod, envelopeValue: self.envelopeValue, envelopeVolume: self.envelopeVolume, constantVolume: self.constantVolume)
         }
         
+        @inline(__always)
         mutating func writeControl(value aValue: UInt8)
         {
             self.dutyMode = (aValue >> 6) & 3
@@ -500,6 +501,7 @@ struct APU
             self.constantVolume = aValue & 15
         }
 
+        @inline(__always)
         mutating func writeSweep(value aValue: UInt8)
         {
             self.sweepEnabled = (aValue >> 7) & 1 == 1
@@ -509,11 +511,13 @@ struct APU
             self.sweepReload = true
         }
 
+        @inline(__always)
         mutating func writeTimerLow(value aValue: UInt8)
         {
             self.timerPeriod = (self.timerPeriod & 0xFF00) | UInt16(aValue)
         }
 
+        @inline(__always)
         mutating func writeTimerHigh(value aValue: UInt8)
         {
             self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
@@ -522,6 +526,7 @@ struct APU
             self.dutyValue = 0
         }
 
+        @inline(__always)
         mutating func stepTimer()
         {
             if self.timerValue == 0
@@ -535,6 +540,7 @@ struct APU
             }
         }
 
+        @inline(__always)
         mutating func stepEnvelope()
         {
             if self.envelopeStart
@@ -562,6 +568,7 @@ struct APU
             }
         }
 
+        @inline(__always)
         mutating func stepSweep()
         {
             if self.sweepReload
@@ -587,6 +594,7 @@ struct APU
             }
         }
 
+        @inline(__always)
         mutating func stepLength()
         {
             if self.lengthEnabled && self.lengthValue > 0
@@ -595,6 +603,7 @@ struct APU
             }
         }
 
+        @inline(__always)
         mutating func sweep()
         {
             let delta = self.timerPeriod >> self.sweepShift
@@ -612,36 +621,24 @@ struct APU
             }
         }
 
+        @inline(__always)
         func output() -> UInt8
         {
-            if !self.enabled
+            let result: UInt8
+            if !self.enabled || self.lengthValue == 0 || self.timerPeriod < 8 || self.timerPeriod > 0x7FF || Pulse.dutyTable[Int(self.dutyMode)][Int(self.dutyValue)] == 0
             {
-                return 0
+                result = 0
             }
-            
-            if self.lengthValue == 0
+            else if self.envelopeEnabled
             {
-                return 0
-            }
-            
-            if Pulse.dutyTable[Int(self.dutyMode)][Int(self.dutyValue)] == 0
-            {
-                return 0
-            }
-            
-            if self.timerPeriod < 8 || self.timerPeriod > 0x7FF
-            {
-                return 0
-            }
-
-            if self.envelopeEnabled
-            {
-                return self.envelopeVolume
+                result = self.envelopeVolume
             }
             else
             {
-                return self.constantVolume
+                result = self.constantVolume
             }
+            
+            return result
         }
     }
     
@@ -695,17 +692,20 @@ struct APU
             return TriangleState.init(enabled: self.enabled, lengthEnabled: self.lengthEnabled, lengthValue: self.lengthValue, timerPeriod: self.timerPeriod, timerValue: self.timerValue, dutyValue: self.dutyValue, counterPeriod: self.counterPeriod, counterValue: self.counterValue, counterReload: self.counterReload)
         }
         
+        @inline(__always)
         mutating func writeControl(value aValue: UInt8)
         {
             self.lengthEnabled = (aValue >> 7) & 1 == 0
             self.counterPeriod = aValue & 0x7F
         }
 
+        @inline(__always)
         mutating func writeTimerLow(value aValue: UInt8)
         {
             self.timerPeriod = (self.timerPeriod & 0xFF00) | UInt16(aValue)
         }
 
+        @inline(__always)
         mutating func writeTimerHigh(value aValue: UInt8)
         {
             self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
@@ -714,6 +714,7 @@ struct APU
             self.counterReload = true
         }
 
+        @inline(__always)
         mutating func stepTimer()
         {
             if self.timerValue == 0
@@ -730,6 +731,7 @@ struct APU
             }
         }
 
+        @inline(__always)
         mutating func stepLength()
         {
             if self.lengthEnabled && self.lengthValue > 0
@@ -738,6 +740,7 @@ struct APU
             }
         }
 
+        @inline(__always)
         mutating func stepCounter()
         {
             if self.counterReload
@@ -828,6 +831,7 @@ struct APU
             return NoiseState(enabled: self.enabled, mode: self.mode, shiftRegister: self.shiftRegister, lengthEnabled: self.lengthEnabled, lengthValue: self.lengthValue, timerPeriod: self.timerPeriod, timerValue: self.timerValue, envelopeEnabled: self.envelopeEnabled, envelopeLoop: self.envelopeLoop, envelopeStart: self.envelopeStart, envelopePeriod: self.envelopePeriod, envelopeValue: self.envelopeValue, envelopeVolume: self.envelopeVolume, constantVolume: self.constantVolume)
         }
         
+        @inline (__always)
         mutating func writeControl(value aValue: UInt8)
         {
             self.lengthEnabled = (aValue >> 5) & 1 == 0
@@ -837,18 +841,21 @@ struct APU
             self.constantVolume = aValue & 15
         }
 
+        @inline (__always)
         mutating func writePeriod(value aValue: UInt8)
         {
             self.mode = aValue & 0x80 == 0x80
             self.timerPeriod = Noise.noiseTable[Int(aValue & 0x0F)]
         }
 
+        @inline (__always)
         mutating func writeLength(value aValue: UInt8)
         {
             self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
             self.envelopeStart = true
         }
 
+        @inline (__always)
         mutating func stepTimer()
         {
             if self.timerValue == 0
@@ -892,6 +899,7 @@ struct APU
             }
         }
 
+        @inline (__always)
         mutating func stepLength()
         {
             if self.lengthEnabled && self.lengthValue > 0
@@ -900,21 +908,23 @@ struct APU
             }
         }
 
+        @inline (__always)
         func output() -> UInt8
         {
+            let result: UInt8
             if !self.enabled || self.lengthValue == 0 || self.shiftRegister & 1 == 1 || self.timerPeriod < 3
             {
-                return 0
+                result = 0
             }
-            
-            if self.envelopeEnabled
+            else if self.envelopeEnabled
             {
-                return self.envelopeVolume
+                result = self.envelopeVolume
             }
             else
             {
-                return self.constantVolume
+                result = self.constantVolume
             }
+            return result
         }
     }
     
@@ -974,6 +984,7 @@ struct APU
             return DMCState(enabled: self.enabled, value: self.value, sampleAddress: self.sampleAddress, sampleLength: self.sampleLength, currentAddress: self.currentAddress, currentLength: self.currentLength, shiftRegister: self.shiftRegister, bitCount: self.bitCount, tickPeriod: self.tickPeriod, tickValue: self.tickValue, loop: self.loop, irq: self.irq)
         }
         
+        @inline (__always)
         mutating func writeControl(value aValue: UInt8)
         {
             self.irq = aValue & 0x80 == 0x80
@@ -981,23 +992,27 @@ struct APU
             self.tickPeriod = DMC.dmcTable[Int(aValue & 0x0F)]
         }
 
+        @inline (__always)
         mutating func writeValue(value aValue: UInt8)
         {
             self.value = aValue & 0x7F
         }
 
+        @inline (__always)
         mutating func writeAddress(value aValue: UInt8)
         {
             // Sample address = %11AAAAAA.AA000000
             self.sampleAddress = 0xC000 | (UInt16(aValue) << 6)
         }
 
+        @inline (__always)
         mutating func writeLength(value aValue: UInt8)
         {
             // Sample length = %0000LLLL.LLLL0001
             self.sampleLength = (UInt16(aValue) << 4) | 1
         }
 
+        @inline (__always)
         mutating func restart()
         {
             self.currentAddress = self.sampleAddress
@@ -1029,7 +1044,7 @@ struct APU
         mutating func stepReader(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> UInt64
         {
             let numCPUStallCycles: UInt64
-            if self.currentLength > 0 && self.bitCount == 0
+            if self.bitCount == 0 && self.currentLength > 0
             {
                 numCPUStallCycles = 4
                 self.shiftRegister = aDmcCurrentAddressValue
@@ -1082,6 +1097,7 @@ struct APU
             self.bitCount &-= 1
         }
 
+        @inline (__always)
         func output() -> UInt8
         {
             return self.value

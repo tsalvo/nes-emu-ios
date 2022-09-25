@@ -54,7 +54,7 @@ struct Mapper_MMC2: MapperProtocol
     {
         if let safeState = aState
         {
-            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
             self.chrLatch1 = safeState.ints[safe: 0] ?? 1
             self.chrLatch2 = safeState.ints[safe: 1] ?? 1
             self.chrBanks1 = [safeState.ints[safe: 2] ?? 0, safeState.ints[safe: 3] ?? 0]
@@ -96,11 +96,11 @@ struct Mapper_MMC2: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrLatch1, self.chrLatch2, self.chrBanks1[0], self.chrBanks1[1], self.chrBanks2[0], self.chrBanks2[1], self.prgBank1], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.chrLatch1, self.chrLatch2, self.chrBanks1[0], self.chrBanks1[1], self.chrBanks2[0], self.chrBanks2[1], self.prgBank1], bools: [], uint8s: [], chr: self.chr)
         }
         set
         {
-            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(newValue.mirroringMode)) ?? self.mirroringMode
             self.chrLatch1 = newValue.ints[safe: 0] ?? 1
             self.chrLatch2 = newValue.ints[safe: 1] ?? 1
             self.chrBanks1 = [newValue.ints[safe: 2] ?? 0, newValue.ints[safe: 3] ?? 0]

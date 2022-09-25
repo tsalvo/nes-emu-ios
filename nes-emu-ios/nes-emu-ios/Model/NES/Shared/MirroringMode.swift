@@ -25,7 +25,7 @@
 
 import Foundation
 
-enum MirroringMode: UInt8
+enum MirroringMode: Int
 {
     case horizontal = 0,
     vertical = 1,
