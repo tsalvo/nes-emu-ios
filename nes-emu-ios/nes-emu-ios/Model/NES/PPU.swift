@@ -45,13 +45,13 @@ struct PPU
     private var nameTableData: [UInt8] = [UInt8].init(repeating: 0, count: 2048)
     private var oamData: [UInt8] = [UInt8].init(repeating: 0, count: 256)
     
-    /// for each mirroring mode, return nametable offset sequence
+    /// for each mirroring mode, return nametable offset sequence, pre-adjusted from 0x2000 base address
     private static let nameTableOffsetSequence: [[UInt16]] = [
-        [0, 0, 1024, 1024],
-        [0, 1024, 0, 1024],
-        [0, 0, 0, 0],
-        [1024, 1024, 1024, 1024],
-        [0, 1024, 2048, 3072]
+        [0x2000, 0x2000, 0x2400, 0x2400],
+        [0x2000, 0x2400, 0x2000, 0x2400],
+        [0x2000, 0x2000, 0x2000, 0x2000],
+        [0x2400, 0x2400, 0x2400, 0x2400],
+        [0x2000, 0x2400, 0x2800, 0x2C00]
     ]
     
     private static let nmiMaximumDelay: UInt8 = 16
@@ -297,10 +297,10 @@ struct PPU
     @inline (__always)
     private func adjustedPPUAddress(forOriginalAddress aOriginalAddress: UInt16, withMirroringMode aMirrorMode: MirroringMode) -> UInt16
     {
-        let address: UInt16 = (aOriginalAddress - 0x2000) & 0x0FFF
-        let addrRange: UInt16 = address / 0x0400
+        let address: UInt16 = aOriginalAddress & 0x0FFF
+        let addrRange: UInt16 = address >> 10
         let offset: UInt16 = address & 0x03FF
-        return 0x2000 + PPU.nameTableOffsetSequence[aMirrorMode.rawValue][Int(addrRange)] + offset
+        return PPU.nameTableOffsetSequence[aMirrorMode.rawValue][Int(addrRange)] | offset
     }
     
     mutating func reset()
@@ -923,19 +923,21 @@ struct PPU
         }
 
         // vblank logic
-        if self.scanline == 241 && self.cycle == 1
+        if self.cycle == 1
         {
-            // set vertical blank
-            swap(&self.frontBuffer, &self.backBuffer)
-            self.nmiOccurred = true
-        }
-
-        if preLine && self.cycle == 1
-        {
-            // clear vertical blank
-            self.nmiOccurred = false
-            self.flagSpriteZeroHit = 0
-            self.flagSpriteOverflow = 0
+            if self.scanline == 241
+            {
+                // set vertical blank
+                swap(&self.frontBuffer, &self.backBuffer)
+                self.nmiOccurred = true
+            }
+            else if preLine
+            {
+                // clear vertical blank
+                self.nmiOccurred = false
+                self.flagSpriteZeroHit = 0
+                self.flagSpriteOverflow = 0
+            }
         }
         
         let results: PPUStepResults

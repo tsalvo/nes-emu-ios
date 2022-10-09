@@ -740,7 +740,7 @@ struct APU
             }
         }
 
-        @inline(__always)
+        @inline (__always)
         mutating func stepCounter()
         {
             if self.counterReload
