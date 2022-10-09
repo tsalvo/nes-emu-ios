@@ -272,7 +272,9 @@ struct Mapper_TQROM: MapperProtocol
                          +- Nametable mirroring (0: vertical; 1: horizontal)
                  */
                 /// This bit has no effect on cartridges with hardwired 4-screen VRAM. In the iNES and NES 2.0 formats, this can be identified through bit 3 of byte $06 of the header.
-                self.mirroringMode = aValue & 1 == 0 ? .vertical : .horizontal // TODO: Check for hard-wired 4-screen VRAM
+                if self.mirroringMode != .fourScreen {
+                    self.mirroringMode = aValue & 1 == 0 ? .vertical : .horizontal // TODO: Check for hard-wired 4-screen VRAM
+                }
             }
             else
             {

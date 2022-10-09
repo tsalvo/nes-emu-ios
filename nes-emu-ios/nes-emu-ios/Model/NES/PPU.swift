@@ -47,11 +47,11 @@ struct PPU
     
     /// for each mirroring mode, return nametable offset sequence, pre-adjusted from 0x2000 base address
     private static let nameTableOffsetSequence: [[UInt16]] = [
-        [0x2000, 0x2000, 0x2400, 0x2400],
-        [0x2000, 0x2400, 0x2000, 0x2400],
-        [0x2000, 0x2000, 0x2000, 0x2000],
-        [0x2400, 0x2400, 0x2400, 0x2400],
-        [0x2000, 0x2400, 0x2800, 0x2C00]
+        [0x0000, 0x0000, 0x0400, 0x0400], // horizontal
+        [0x0000, 0x0400, 0x0000, 0x0400], // vertical
+        [0x0000, 0x0000, 0x0000, 0x0000], // single 0
+        [0x0400, 0x0400, 0x0400, 0x0400], // single 1
+        [0x0000, 0x0400, 0x0800, 0x0C00]  // 4-screen
     ]
     
     private static let nmiMaximumDelay: UInt8 = 16
@@ -252,12 +252,12 @@ struct PPU
             }
             else
             {
-                return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)]
+                return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode))]
             }
         }
         else if address < 0x3F00 // 0x3000 ... 0x3EFF
         {
-            return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)]
+            return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode))]
         }
         else // 0x3F00 ... 0x3FFF
         {
@@ -281,16 +281,16 @@ struct PPU
             }
             else
             {
-                self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)] = aValue
+                self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode))] = aValue
             }
         }
         else if address < 0x3F00 // 0x3000 ... 0x3EFF
         {
-            self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)] = aValue
+            self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode))] = aValue
         }
         else // 0x3F00 ... 0x3FFF
         {
-            self.writePalette(address: (address % 32), value: aValue)
+            self.writePalette(address: address & 0x001F, value: aValue)
         }
     }
     
@@ -298,9 +298,9 @@ struct PPU
     private func adjustedPPUAddress(forOriginalAddress aOriginalAddress: UInt16, withMirroringMode aMirrorMode: MirroringMode) -> UInt16
     {
         let address: UInt16 = aOriginalAddress & 0x0FFF
-        let addrRange: UInt16 = address >> 10
+        let addrRange: UInt16 = address &>> 10
         let offset: UInt16 = address & 0x03FF
-        return PPU.nameTableOffsetSequence[aMirrorMode.rawValue][Int(addrRange)] | offset
+        return (PPU.nameTableOffsetSequence[aMirrorMode.rawValue][Int(addrRange)] | offset) & 0x07FF // limit to 2KB range (0x0800)
     }
     
     mutating func reset()
@@ -527,13 +527,10 @@ struct PPU
     /// called by the CPU with 256 bytes of OAM data for sprites and metadata
     mutating func writeOAMDMA(oamDMA aOamData: [UInt8])
     {
-        var i: Int = 0
-        while i < 256
-        {
-            self.oamData[Int(self.oamAddress)] = aOamData[i]
-            self.oamAddress &+= 1
-            i &+= 1
-        }
+        var newOAMData = aOamData
+        let remaining: Int = 255 - Int(self.oamAddress)
+        memcpy(&self.oamData[Int(self.oamAddress)], &newOAMData, remaining)
+        memcpy(&self.oamData, &newOAMData[remaining], 255 - remaining)
     }
     
 
@@ -557,16 +554,16 @@ struct PPU
 
             if r > 7
             {
-                tileOffset = ((tile & 0xFE) + 1) * 16
+                tileOffset = ((tile & 0xFE) &+ 1) &* 16
                 rowOffset =  UInt16(r &- 8)
             }
             else
             {
-                tileOffset = (tile & 0xFE) * 16
+                tileOffset = (tile & 0xFE) &* 16
                 rowOffset = UInt16(r)
             }
             
-            tableOffset = (tile & 1) * 0x1000
+            tableOffset = (tile & 1) &* 0x1000
             address = tableOffset &+ tileOffset &+ rowOffset
         }
         
