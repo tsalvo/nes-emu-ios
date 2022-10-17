@@ -556,9 +556,7 @@ struct CPU
     /// reads two bytes using Read to return a double-word value
     private mutating func read16(address aAddress: UInt16) -> UInt16
     {
-        let lo: UInt16 = UInt16(self.read(address: aAddress))
-        let hi: UInt16 = UInt16(self.read(address: aAddress &+ 1))
-        return (hi << 8) | lo
+        return UInt16(self.read(address: aAddress)) | (UInt16(self.read(address: aAddress &+ 1)) << 8)
     }
 
     /// emulates a 6502 bug that caused the low byte to wrap without incrementing the high byte

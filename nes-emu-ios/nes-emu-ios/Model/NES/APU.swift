@@ -151,7 +151,7 @@ struct APU
         let t = self.triangle.output()
         let n = self.noise.output()
         let d = self.dmc.output()
-        let pulseOut = APU.pulseTable[Int(p1 + p2)]
+        let pulseOut = APU.pulseTable[Int(p1 &+ p2)]
         let tndOut = APU.tndTable[Int((3 &* t) + (2 &* n) &+ d)]
         return pulseOut + tndOut
     }
@@ -869,7 +869,7 @@ struct APU
             }
             else
             {
-                self.timerValue -= 1
+                self.timerValue &-= 1
             }
         }
 

@@ -41,9 +41,9 @@ struct Mapper_NROM: MapperProtocol
     private let prg: [UInt8]
     /// linear 1D array of all CHR blocks
     private let chr: [UInt8]
-    /// 16KB PRG bank, fixed to first bank
+    /// 16KB PRG bank, fixed to first bank, pre-adjusted for CPU read address offset
     private let prgBankOffset1: Int
-    /// 16KB PRG bank, fixed to last bank, or mirror of first bank
+    /// 16KB PRG bank, fixed to last bank, or mirror of first bank, pre-adjusted for CPU read address offset
     private let prgBankOffset2: Int
     
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF, 2KB or 4KB only used in Family Basic
@@ -90,8 +90,8 @@ struct Mapper_NROM: MapperProtocol
         self.chr = c
         self.prg = p
         
-        self.prgBankOffset1 = 0
-        self.prgBankOffset2 = (aCartridge.prgBlocks.count - 1) * 0x4000
+        self.prgBankOffset1 = 0 - 0x8000
+        self.prgBankOffset2 = ((aCartridge.prgBlocks.count - 1) * 0x4000) - 0xC000
     }
     
     // MARK: - Save State
@@ -113,11 +113,11 @@ struct Mapper_NROM: MapperProtocol
     {
         if aAddress > 0xBFFF // 0xC000 ... 0xFFFF / PRG Block 1 (or mirror of PRG block 0 if only one PRG exists)
         {
-            return self.prg[self.prgBankOffset2 + Int(aAddress - 0xC000)]
+            return self.prg[self.prgBankOffset2 + Int(aAddress)]
         }
         else if aAddress > 0x7FFF // 0x8000 ... 0xBFFF - PRG Block 0
         {
-            return self.prg[self.prgBankOffset1 + Int(aAddress - 0x8000)]
+            return self.prg[self.prgBankOffset1 + Int(aAddress)]
         }
         else if aAddress > 0x5FFF // 0x6000 ... 0x7FFF - PRG RAM
         {
