@@ -791,7 +791,7 @@ struct CPU
         let c: UInt8 = aCPU.c ? 1 : 0
         aCPU.a = a &+ b &+ c
         aCPU.setZN(value: aCPU.a)
-        aCPU.c = Int(a) + Int(b) + Int(c) > 0xFF
+        aCPU.c = Int(a) &+ Int(b) &+ Int(c) > 0xFF
         aCPU.v = ((a ^ b) & 0x80) == 0 && ((a ^ aCPU.a) & 0x80) != 0
     }
 
