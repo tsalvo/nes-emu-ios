@@ -476,7 +476,7 @@ struct CPU
         }
         else if aAddress < 0x4000 // 0x2000 ..< 0x4000
         {
-            return self.ppu.readRegister(address: 0x2000 + (aAddress % 8))
+            return self.ppu.readRegister(address: 0x2000 + (aAddress & 0x0007))
         }
         else if aAddress == 0x4014
         {
@@ -484,7 +484,7 @@ struct CPU
         }
         else if aAddress == 0x4015
         {
-            return self.apu.readRegister(address: aAddress)
+            return self.apu.readRegister()
         }
         else if aAddress == 0x4016
         {

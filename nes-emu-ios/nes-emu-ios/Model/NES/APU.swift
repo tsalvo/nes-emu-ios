@@ -245,14 +245,35 @@ struct APU
         self.noise.stepLength()
     }
 
-    func readRegister(address aAddress: UInt16) -> UInt8
+    func readRegister() -> UInt8
     {
-        switch aAddress
+        var result: UInt8 = 0
+        if self.pulse1.lengthValue > 0
         {
-        case 0x4015:
-            return self.readStatus()
-        default: return 0
+            result |= 1
         }
+        
+        if self.pulse2.lengthValue > 0
+        {
+            result |= 2
+        }
+        
+        if self.triangle.lengthValue > 0
+        {
+            result |= 4
+        }
+        
+        if self.noise.lengthValue > 0
+        {
+            result |= 8
+        }
+        
+        if self.dmc.currentLength > 0
+        {
+            result |= 16
+        }
+        
+        return result
     }
 
     mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)
@@ -300,37 +321,6 @@ struct APU
             self.writeFrameCounter(value: aValue)
         default: break
         }
-    }
-
-    func readStatus() -> UInt8
-    {
-        var result: UInt8 = 0
-        if self.pulse1.lengthValue > 0
-        {
-            result |= 1
-        }
-        
-        if self.pulse2.lengthValue > 0
-        {
-            result |= 2
-        }
-        
-        if self.triangle.lengthValue > 0
-        {
-            result |= 4
-        }
-        
-        if self.noise.lengthValue > 0
-        {
-            result |= 8
-        }
-        
-        if self.dmc.currentLength > 0
-        {
-            result |= 16
-        }
-        
-        return result
     }
 
     mutating func writeControl(value aValue: UInt8)
@@ -532,7 +522,7 @@ struct APU
             if self.timerValue == 0
             {
                 self.timerValue = self.timerPeriod
-                self.dutyValue = (self.dutyValue + 1) % 8
+                self.dutyValue = (self.dutyValue &+ 1) & 0x07
             }
             else
             {
