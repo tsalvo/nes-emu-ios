@@ -134,7 +134,7 @@
 		99D71A862832160B009EB6AC /* Mapper_CamericaQuattro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D71A842832160B009EB6AC /* Mapper_CamericaQuattro.swift */; };
 		99E2E2052495D8C1008AFCDB /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */; };
 		99E2E2082495D8C1008AFCDB /* ThumbnailProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E2072495D8C1008AFCDB /* ThumbnailProvider.swift */; };
-		99E2E20C2495D8C1008AFCDB /* nes-thumbnail-provider.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		99E2E20C2495D8C1008AFCDB /* nes-thumbnail-provider.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		99E2E21124960A07008AFCDB /* UInt8+ByteUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */; };
 		99E2E21324966A32008AFCDB /* MirroringMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21224966A32008AFCDB /* MirroringMode.swift */; };
 		99E2E21424966A32008AFCDB /* MirroringMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E21224966A32008AFCDB /* MirroringMode.swift */; };
@@ -192,15 +192,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		99E2E20D2495D8C1008AFCDB /* Embed App Extensions */ = {
+		99E2E20D2495D8C1008AFCDB /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				99E2E20C2495D8C1008AFCDB /* nes-thumbnail-provider.appex in Embed App Extensions */,
+				99E2E20C2495D8C1008AFCDB /* nes-thumbnail-provider.appex in Embed Foundation Extensions */,
 			);
-			name = "Embed App Extensions";
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -626,7 +626,7 @@
 				99488F38248985F100942A1E /* Sources */,
 				99488F39248985F100942A1E /* Frameworks */,
 				99488F3A248985F100942A1E /* Resources */,
-				99E2E20D2495D8C1008AFCDB /* Embed App Extensions */,
+				99E2E20D2495D8C1008AFCDB /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -679,7 +679,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1150;
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1420;
 				ORGANIZATIONNAME = "Tom Salvo";
 				TargetAttributes = {
 					99488F3B248985F100942A1E = {
