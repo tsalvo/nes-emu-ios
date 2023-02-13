@@ -509,11 +509,11 @@ struct CPU
     {
         if aAddress < 0x2000 // 0x0000 ..< 0x2000
         {
-            self.ram[Int(aAddress % 0x0800)] = aValue
+            self.ram[Int(aAddress & 0x07FF)] = aValue
         }
         else if aAddress < 0x4000 // 0x2000 ..< 0x4000
         {
-            self.ppu.writeRegister(address: 0x2000 + (aAddress % 8), value: aValue)
+            self.ppu.writeRegister(address: 0x2000 + (aAddress & 0x0007), value: aValue)
         }
         else if aAddress >= 0x4000 && aAddress < 0x4014 // 0x4000 ..< 0x4014
         {
@@ -523,7 +523,7 @@ struct CPU
         {
             let startIndex: Int = Int(UInt16(aValue) << 8)
             self.ppu.writeOAMDMA(oamDMA: [UInt8](self.ram[startIndex ..< startIndex + 256]))
-            self.stall += (self.cycles % 2 == 0) ? 513 : 514
+            self.stall += 513 + (self.cycles & 1)
         }
         else if aAddress == 0x4015
         {
