@@ -35,10 +35,10 @@ struct Mapper_MMC3: MapperProtocol
     var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
-    private var prg: [UInt8] = []
+    private let prg: [UInt8]
     
     /// linear 1D array of all CHR blocks
-    private var chr: [UInt8] = []
+    private let chr: [UInt8]
     
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
@@ -55,13 +55,24 @@ struct Mapper_MMC3: MapperProtocol
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
+        var prgRom: [UInt8] = []
         for p in aCartridge.prgBlocks
         {
-            self.prg.append(contentsOf: p)
+            prgRom.append(contentsOf: p)
         }
         
+        self.prg = prgRom
+        
+        var chrRom: [UInt8] = []
+        for c in aCartridge.chrBlocks
+        {
+            chrRom.append(contentsOf: c)
+        }
+        
+        self.chr = chrRom.isEmpty ? [UInt8].init(repeating: 0, count: 8192) : chrRom
+        
         if let safeState = aState,
-           safeState.uint8s.count >= 13,
+           safeState.uint8s.count >= 8205,
            safeState.bools.count >= 1,
            safeState.ints.count >= 12
         {
@@ -75,21 +86,10 @@ struct Mapper_MMC3: MapperProtocol
             self.chrMode = safeState.uint8s[10]
             self.reload = safeState.uint8s[11]
             self.counter = safeState.uint8s[12]
-            self.chr = safeState.chr
+            self.sram = [UInt8](safeState.uint8s[13 ..< 8205])
         }
         else
         {
-            for c in aCartridge.chrBlocks
-            {
-                self.chr.append(contentsOf: c)
-            }
-            
-            if self.chr.count == 0
-            {
-                // use a block for CHR RAM if no block exists
-                self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
-            }
-            
             self.mirroringMode = aCartridge.header.mirroringMode
             self.prgOffsets = [Int].init(repeating: 0, count: 4)
             self.chrOffsets = [Int].init(repeating: 0, count: 8)
@@ -100,6 +100,7 @@ struct Mapper_MMC3: MapperProtocol
             self.chrMode = 0
             self.reload = 0
             self.counter = 0
+            self.sram = [UInt8].init(repeating: 0, count: 8192)
             
             self.prgOffsets[0] = self.prgBankOffset(index: 0)
             self.prgOffsets[1] = self.prgBankOffset(index: 1)
@@ -112,13 +113,21 @@ struct Mapper_MMC3: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]], bools: [self.irqEnable], uint8s: [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode, self.reload, self.counter], chr: self.chr)
+            var u8s: [UInt8] = [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode, self.reload, self.counter]
+            u8s.append(contentsOf: self.sram)
+            return MapperState(
+                mirroringMode: UInt8(self.mirroringMode.rawValue),
+                ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]],
+                bools: [self.irqEnable],
+                uint8s: u8s,
+                chr: []
+            )
         }
         set
         {
             self.mirroringMode = MirroringMode.init(rawValue: Int(newValue.mirroringMode)) ?? self.mirroringMode
             
-            guard newValue.uint8s.count >= 13,
+            guard newValue.uint8s.count >= 8205,
                   newValue.bools.count >= 1,
                   newValue.ints.count >= 12
             else
@@ -135,7 +144,7 @@ struct Mapper_MMC3: MapperProtocol
             self.chrMode = newValue.uint8s[10]
             self.reload = newValue.uint8s[11]
             self.counter = newValue.uint8s[12]
-            self.chr = newValue.chr
+            self.sram = [UInt8](newValue.uint8s[13 ..< 8205])
         }
     }
     
@@ -179,9 +188,7 @@ struct Mapper_MMC3: MapperProtocol
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
-        let bank = aAddress / 0x0400
-        let offset = aAddress % 0x0400
-        self.chr[self.chrOffsets[Int(bank)] + Int(offset)] = aValue
+
     }
     
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
@@ -275,16 +282,6 @@ struct Mapper_MMC3: MapperProtocol
     private mutating func writeIRQReload()
     {
         self.counter = 0
-    }
-
-    private mutating func writeIRQDisable()
-    {
-        self.irqEnable = false
-    }
-
-    private mutating func writeIRQEnable()
-    {
-        self.irqEnable = true
     }
 
     private func prgBankOffset(index aIndex: Int) -> Int
