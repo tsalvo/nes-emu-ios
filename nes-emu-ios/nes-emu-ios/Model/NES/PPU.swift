@@ -528,9 +528,9 @@ struct PPU
     mutating func writeOAMDMA(oamDMA aOamData: [UInt8])
     {
         var newOAMData = aOamData
-        let remaining: Int = 255 - Int(self.oamAddress)
+        let remaining: Int = 256 - Int(self.oamAddress)
         memcpy(&self.oamData[Int(self.oamAddress)], &newOAMData, remaining)
-        memcpy(&self.oamData, &newOAMData[remaining], 255 - remaining)
+        memcpy(&self.oamData, &newOAMData[remaining], 256 - remaining)
     }
     
 
