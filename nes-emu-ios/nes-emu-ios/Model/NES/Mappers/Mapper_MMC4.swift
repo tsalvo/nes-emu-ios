@@ -41,10 +41,10 @@ struct Mapper_MMC4: MapperProtocol
     private let chr: [UInt8]
     
     /// prevent PRG bank selection outside the available bounds for ROMs that attempt it
-    private let prgBankingBitwiseAndLimiter: UInt8
+    private let prgBankingMaxIndex: UInt8
     
     /// prevent CHR bank selection outside the available bounds for ROMs that attempt it
-    private let chrBankingBitwiseAndLimiter: UInt8
+    private let chrBankingMaxIndex: UInt8
     
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8]
@@ -73,8 +73,8 @@ struct Mapper_MMC4: MapperProtocol
         
         self.prg = prgRom
         self.chr = chrRom
-        self.prgBankingBitwiseAndLimiter = aCartridge.prgBlocks.count > 8 ? 0x0F : 0x07
-        self.chrBankingBitwiseAndLimiter = (aCartridge.chrBlocks.count * 2) > 16 ? 0x1F : (aCartridge.chrBlocks.count * 2) > 8 ? 0x0F : 0x07
+        self.prgBankingMaxIndex = aCartridge.prgBlocks.count > 8 ? 0x0F : 0x07
+        self.chrBankingMaxIndex = (aCartridge.chrBlocks.count * 2) > 16 ? 0x1F : (aCartridge.chrBlocks.count * 2) > 8 ? 0x0F : 0x07
         
         if let safeState = aState
         {
@@ -140,15 +140,15 @@ struct Mapper_MMC4: MapperProtocol
         switch aAddress
         {
         case 0xA000 ..< 0xB000: // select 16KB PRG Bank 0-15 xxxxPPPP for CPU 0x8000-0xBFFF
-            self.prgBank1 = Int(aValue & self.prgBankingBitwiseAndLimiter)
+            self.prgBank1 = Int(aValue & self.prgBankingMaxIndex)
         case 0xB000 ..< 0xC000: // Select 4 KB CHR ROM bank 1 0-31 xxxCCCCC for PPU $0000-$0FFF
-            self.chrBanks1[0] = Int(aValue & self.chrBankingBitwiseAndLimiter)
+            self.chrBanks1[0] = Int(aValue & self.chrBankingMaxIndex)
         case 0xC000 ..< 0xD000: // Select 4 KB CHR ROM bank 1 0-31 xxxCCCCC for PPU $0000-$0FFF
-            self.chrBanks1[1] = Int(aValue & self.chrBankingBitwiseAndLimiter)
+            self.chrBanks1[1] = Int(aValue & self.chrBankingMaxIndex)
         case 0xD000 ..< 0xE000: // Select 4 KB CHR ROM bank 2 0-31 xxxCCCCC for PPU $1000-$1FFF when latch2 == 1
-            self.chrBanks2[0] = Int(aValue & self.chrBankingBitwiseAndLimiter)
+            self.chrBanks2[0] = Int(aValue & self.chrBankingMaxIndex)
         case 0xE000 ..< 0xF000: // Select 4 KB CHR ROM bank 2 0-31 xxxCCCCC for PPU $1000-$1FFF
-            self.chrBanks2[1] = Int(aValue & self.chrBankingBitwiseAndLimiter)
+            self.chrBanks2[1] = Int(aValue & self.chrBankingMaxIndex)
         case 0xF000 ... 0xFFFF:
             self.mirroringMode = (aValue & 0x01) == 0 ? .vertical : .horizontal
         case 0x6000 ..< 0x8000:
@@ -164,11 +164,11 @@ struct Mapper_MMC4: MapperProtocol
         switch aAddress
         {
         case 0x0000 ..< 0x1000: // 4KB Switchable CHR Bank 1
-            let result =  self.chr[(self.chrBanks1[chrLatch1] * 0x1000) + Int(aAddress)]
+            let result =  self.chr[(self.chrBanks1[self.chrLatch1] * 0x1000) + Int(aAddress)]
             self.updateChrLatch1(forAddress: aAddress)
             return result
         case 0x1000 ..< 0x2000: // 4KB Switchable CHR Bank 2
-            let result = self.chr[(self.chrBanks2[chrLatch2] * 0x1000) + Int(aAddress - 0x1000)]
+            let result = self.chr[(self.chrBanks2[self.chrLatch2] * 0x1000) + Int(aAddress - 0x1000)]
             self.updateChrLatch2(forAddress: aAddress)
             return result
         default:
