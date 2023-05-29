@@ -40,6 +40,12 @@ struct Mapper_MMC4: MapperProtocol
     /// linear 1D array of all CHR blocks
     private let chr: [UInt8]
     
+    /// prevent PRG bank selection outside the available bounds for ROMs that attempt it
+    private let prgBankingBitwiseAndLimiter: UInt8
+    
+    /// prevent CHR bank selection outside the available bounds for ROMs that attempt it
+    private let chrBankingBitwiseAndLimiter: UInt8
+    
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8]
     
@@ -67,6 +73,8 @@ struct Mapper_MMC4: MapperProtocol
         
         self.prg = prgRom
         self.chr = chrRom
+        self.prgBankingBitwiseAndLimiter = aCartridge.prgBlocks.count > 8 ? 0x0F : 0x07
+        self.chrBankingBitwiseAndLimiter = (aCartridge.chrBlocks.count * 2) > 16 ? 0x1F : (aCartridge.chrBlocks.count * 2) > 8 ? 0x0F : 0x07
         
         if let safeState = aState
         {
@@ -132,15 +140,15 @@ struct Mapper_MMC4: MapperProtocol
         switch aAddress
         {
         case 0xA000 ..< 0xB000: // select 16KB PRG Bank 0-15 xxxxPPPP for CPU 0x8000-0xBFFF
-            self.prgBank1 = Int(aValue & 0x0F)
+            self.prgBank1 = Int(aValue & self.prgBankingBitwiseAndLimiter)
         case 0xB000 ..< 0xC000: // Select 4 KB CHR ROM bank 1 0-31 xxxCCCCC for PPU $0000-$0FFF
-            self.chrBanks1[0] = Int(aValue & 0x1F)
+            self.chrBanks1[0] = Int(aValue & self.chrBankingBitwiseAndLimiter)
         case 0xC000 ..< 0xD000: // Select 4 KB CHR ROM bank 1 0-31 xxxCCCCC for PPU $0000-$0FFF
-            self.chrBanks1[1] = Int(aValue & 0x1F)
+            self.chrBanks1[1] = Int(aValue & self.chrBankingBitwiseAndLimiter)
         case 0xD000 ..< 0xE000: // Select 4 KB CHR ROM bank 2 0-31 xxxCCCCC for PPU $1000-$1FFF when latch2 == 1
-            self.chrBanks2[0] = Int(aValue & 0x1F)
+            self.chrBanks2[0] = Int(aValue & self.chrBankingBitwiseAndLimiter)
         case 0xE000 ..< 0xF000: // Select 4 KB CHR ROM bank 2 0-31 xxxCCCCC for PPU $1000-$1FFF
-            self.chrBanks2[1] = Int(aValue & 0x1F)
+            self.chrBanks2[1] = Int(aValue & self.chrBankingBitwiseAndLimiter)
         case 0xF000 ... 0xFFFF:
             self.mirroringMode = (aValue & 0x01) == 0 ? .vertical : .horizontal
         case 0x6000 ..< 0x8000:
