@@ -132,6 +132,8 @@
 		99C7F1752494221800E4C04D /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C7F1742494221800E4C04D /* AudioEngine.swift */; };
 		99D71A852832160B009EB6AC /* Mapper_CamericaQuattro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D71A842832160B009EB6AC /* Mapper_CamericaQuattro.swift */; };
 		99D71A862832160B009EB6AC /* Mapper_CamericaQuattro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D71A842832160B009EB6AC /* Mapper_CamericaQuattro.swift */; };
+		99DEB6212A24505B00923CA8 /* Mapper_MMC4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DEB6202A24505B00923CA8 /* Mapper_MMC4.swift */; };
+		99DEB6222A24505B00923CA8 /* Mapper_MMC4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DEB6202A24505B00923CA8 /* Mapper_MMC4.swift */; };
 		99E2E2052495D8C1008AFCDB /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */; };
 		99E2E2082495D8C1008AFCDB /* ThumbnailProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E2E2072495D8C1008AFCDB /* ThumbnailProvider.swift */; };
 		99E2E20C2495D8C1008AFCDB /* nes-thumbnail-provider.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -299,6 +301,7 @@
 		99C7F1722494096000E4C04D /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		99C7F1742494221800E4C04D /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
 		99D71A842832160B009EB6AC /* Mapper_CamericaQuattro.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_CamericaQuattro.swift; sourceTree = "<group>"; };
+		99DEB6202A24505B00923CA8 /* Mapper_MMC4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC4.swift; sourceTree = "<group>"; };
 		99E2E2022495D8C1008AFCDB /* nes-thumbnail-provider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "nes-thumbnail-provider.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		99E2E2042495D8C1008AFCDB /* QuickLookThumbnailing.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLookThumbnailing.framework; path = System/Library/Frameworks/QuickLookThumbnailing.framework; sourceTree = SDKROOT; };
 		99E2E2072495D8C1008AFCDB /* ThumbnailProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailProvider.swift; sourceTree = "<group>"; };
@@ -459,9 +462,10 @@
 				995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */,
 				995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */,
 				995C9AE4249BED4000429ECC /* Mapper_MMC3.swift */,
+				99DEB6202A24505B00923CA8 /* Mapper_MMC4.swift */,
+				99F4B5BF24AD6FD900DB3B36 /* Mapper_MMC5.swift */,
 				99B45549281E48A4006BFF3B /* Mapper_TxSROM.swift */,
 				9929E3E7282F158D00ED43DA /* Mapper_TQROM.swift */,
-				99F4B5BF24AD6FD900DB3B36 /* Mapper_MMC5.swift */,
 				991A515828280185006CAFF6 /* Mapper_NROM.swift */,
 				99D71A842832160B009EB6AC /* Mapper_CamericaQuattro.swift */,
 				991A515B28281A55006CAFF6 /* Mapper_UNROM.swift */,
@@ -790,6 +794,7 @@
 				991B28C4248A22BA00A6A6DD /* CPU.swift in Sources */,
 				995D0827253390BE008AD907 /* ConsoleStateTableViewController.swift in Sources */,
 				99F4B5C024AD6FD900DB3B36 /* Mapper_MMC5.swift in Sources */,
+				99DEB6212A24505B00923CA8 /* Mapper_MMC4.swift in Sources */,
 				992164A3249D113D00EB4BAA /* Mapper_AxROM.swift in Sources */,
 				991A77B525411F8600152369 /* SettingsConfirmationCell.swift in Sources */,
 				99B7C309249F33DC00B26AC6 /* Bundle+Version.swift in Sources */,
@@ -895,6 +900,7 @@
 				996F42F7253428D9001A31D2 /* NSManagedObject+NoiseState.swift in Sources */,
 				99FA3C9324A6E7CD0065E539 /* RomListTableViewController.swift in Sources */,
 				99FA3CA824A6F10B0065E539 /* UIStackView+ArrangedSubviews.swift in Sources */,
+				99DEB6222A24505B00923CA8 /* Mapper_MMC4.swift in Sources */,
 				99FA3CB824A6F12A0065E539 /* Cartridge.swift in Sources */,
 				99F4B5C124AD6FD900DB3B36 /* Mapper_MMC5.swift in Sources */,
 				99EA747024F0ACEC005D0EAA /* Mapper_NTDEC2722.swift in Sources */,
