@@ -41,7 +41,7 @@ struct Mapper_MMC4: MapperProtocol
     private let chr: [UInt8]
     
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
-    private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
+    private var sram: [UInt8]
     
     private var chrLatch1: Int
     private var chrLatch2: Int
@@ -76,7 +76,7 @@ struct Mapper_MMC4: MapperProtocol
             self.chrBanks1 = [safeState.ints[safe: 2] ?? 0, safeState.ints[safe: 3] ?? 0]
             self.chrBanks2 = [safeState.ints[safe: 4] ?? 0, safeState.ints[safe: 5] ?? 0]
             self.prgBank1 = safeState.ints[safe: 6] ?? 0
-            self.sram = safeState.uint8s.count >= 8192 ? safeState.uint8s : self.sram
+            self.sram = safeState.uint8s.count >= 8192 ? [UInt8](safeState.uint8s.prefix(8192)) : [UInt8](repeating: 0, count: 8192)
         }
         else
         {
@@ -86,6 +86,7 @@ struct Mapper_MMC4: MapperProtocol
             self.chrBanks1 = [0, 0]
             self.chrBanks2 = [0, 0]
             self.prgBank1 = 0
+            self.sram = [UInt8](repeating: 0, count: 8192)
         }
         
         // 16KB bank fixed to last 16KB
@@ -106,7 +107,7 @@ struct Mapper_MMC4: MapperProtocol
             self.chrBanks1 = [newValue.ints[safe: 2] ?? 0, newValue.ints[safe: 3] ?? 0]
             self.chrBanks2 = [newValue.ints[safe: 4] ?? 0, newValue.ints[safe: 5] ?? 0]
             self.prgBank1 = newValue.ints[safe: 6] ?? 0
-            self.sram = newValue.uint8s.count >= 8192 ? newValue.uint8s : self.sram
+            self.sram = newValue.uint8s.count >= 8192 ? [UInt8](newValue.uint8s.prefix(8192)) : [UInt8](repeating: 0, count: 8192)
         }
     }
     
