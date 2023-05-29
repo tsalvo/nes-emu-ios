@@ -30,6 +30,7 @@ The following mappers have been implemented:
 - 005 MMC5 (missing some features)
 - 007 AxROM
 - 009 MMC2
+- 010 MMC4
 - 011 ColorDreams
 - 023 VRC2b / VRC4e / VRC4f
 - 025 VRC2c / VRC4b / VRC4d

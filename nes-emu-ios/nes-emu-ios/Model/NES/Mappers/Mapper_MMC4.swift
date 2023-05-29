@@ -1,8 +1,8 @@
 //
-//  Mapper_MMC2.swift
+//  Mapper_MMC4.swift
 //  nes-emu-ios
 //
-//  Created by Tom Salvo on 6/18/20.
+//  Created by Tom Salvo on 05/28/2023.
 //  Copyright © 2020 Tom Salvo.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,7 +26,7 @@
 import Foundation
 import os
 
-struct Mapper_MMC2: MapperProtocol
+struct Mapper_MMC4: MapperProtocol
 {
     let hasStep: Bool = false
     
@@ -40,6 +40,12 @@ struct Mapper_MMC2: MapperProtocol
     /// linear 1D array of all CHR blocks
     private let chr: [UInt8]
     
+    /// prevent PRG bank selection outside the available bounds for ROMs that attempt it
+    private let prgBankingMaxIndex: UInt8
+    
+    /// prevent CHR bank selection outside the available bounds for ROMs that attempt it
+    private let chrBankingMaxIndex: UInt8
+    
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8]
     
@@ -48,7 +54,7 @@ struct Mapper_MMC2: MapperProtocol
     private var chrBanks1: [Int]
     private var chrBanks2: [Int]
     private var prgBank1: Int // switch between different 8KB PRG Banks
-    private let prgBank2: Int // fixed to last 3x 8KB PRG banks
+    private let prgBank2: Int // fixed to last 16KB PRG bank
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
@@ -67,6 +73,8 @@ struct Mapper_MMC2: MapperProtocol
         
         self.prg = prgRom
         self.chr = chrRom
+        self.prgBankingMaxIndex = aCartridge.prgBlocks.count > 8 ? 0x0F : 0x07
+        self.chrBankingMaxIndex = (aCartridge.chrBlocks.count * 2) > 16 ? 0x1F : (aCartridge.chrBlocks.count * 2) > 8 ? 0x0F : 0x07
         
         if let safeState = aState
         {
@@ -74,7 +82,7 @@ struct Mapper_MMC2: MapperProtocol
             self.chrLatch1 = safeState.ints[safe: 0] ?? 1
             self.chrLatch2 = safeState.ints[safe: 1] ?? 1
             self.chrBanks1 = [safeState.ints[safe: 2] ?? 0, safeState.ints[safe: 3] ?? 0]
-            self.chrBanks2 = [safeState.ints[safe: 4] ?? 1, safeState.ints[safe: 5] ?? 0]
+            self.chrBanks2 = [safeState.ints[safe: 4] ?? 0, safeState.ints[safe: 5] ?? 0]
             self.prgBank1 = safeState.ints[safe: 6] ?? 0
             self.sram = safeState.uint8s.count >= 8192 ? [UInt8](safeState.uint8s.prefix(8192)) : [UInt8](repeating: 0, count: 8192)
         }
@@ -84,12 +92,13 @@ struct Mapper_MMC2: MapperProtocol
             self.chrLatch1 = 1
             self.chrLatch2 = 1
             self.chrBanks1 = [0, 0]
-            self.chrBanks2 = [1, 0]
+            self.chrBanks2 = [0, 0]
             self.prgBank1 = 0
             self.sram = [UInt8](repeating: 0, count: 8192)
         }
         
-        self.prgBank2 = max((aCartridge.prgBlocks.count * 16384) - (3 * 8192), 0)
+        // 16KB bank fixed to last 16KB
+        self.prgBank2 = max((aCartridge.prgBlocks.count * 16384) - 16384, 0)
     }
     
     var mapperState: MapperState
@@ -104,7 +113,7 @@ struct Mapper_MMC2: MapperProtocol
             self.chrLatch1 = newValue.ints[safe: 0] ?? 1
             self.chrLatch2 = newValue.ints[safe: 1] ?? 1
             self.chrBanks1 = [newValue.ints[safe: 2] ?? 0, newValue.ints[safe: 3] ?? 0]
-            self.chrBanks2 = [newValue.ints[safe: 4] ?? 1, newValue.ints[safe: 5] ?? 0]
+            self.chrBanks2 = [newValue.ints[safe: 4] ?? 0, newValue.ints[safe: 5] ?? 0]
             self.prgBank1 = newValue.ints[safe: 6] ?? 0
             self.sram = newValue.uint8s.count >= 8192 ? [UInt8](newValue.uint8s.prefix(8192)) : [UInt8](repeating: 0, count: 8192)
         }
@@ -114,14 +123,14 @@ struct Mapper_MMC2: MapperProtocol
     {
         switch aAddress
         {
-        case 0x8000 ..< 0xA000: // 8KB Switchable PRG Bank
-            return self.prg[Int(self.prgBank1 * 0x2000) + Int(aAddress - 0x8000)]
-        case 0xA000 ... 0xFFFF: // Fixed 24KB PRG
-            return self.prg[self.prgBank2 + Int(aAddress - 0xA000)]
+        case 0x8000 ..< 0xC000: // 16KB Switchable PRG Bank
+            return self.prg[Int(self.prgBank1 * 0x4000) + Int(aAddress - 0x8000)]
+        case 0xC000 ... 0xFFFF: // Fixed 16KB PRG
+            return self.prg[self.prgBank2 + Int(aAddress - 0xC000)]
         case 0x6000 ..< 0x8000:
             return self.sram[Int(aAddress - 0x6000)]
         default:
-            os_log("unhandled Mapper_MMC2 read at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_MMC4 read at address: 0x%04X", aAddress)
             return 0
         }
     }
@@ -130,20 +139,22 @@ struct Mapper_MMC2: MapperProtocol
     {
         switch aAddress
         {
-        case 0xA000 ..< 0xB000: // select 8KB PRG Bank 0-15 xxxxPPPP for CPU 0x8000-0x9FFF
-            self.prgBank1 = Int(aValue & 0x0F)
+        case 0xA000 ..< 0xB000: // select 16KB PRG Bank 0-15 xxxxPPPP for CPU 0x8000-0xBFFF
+            self.prgBank1 = Int(aValue & self.prgBankingMaxIndex)
         case 0xB000 ..< 0xC000: // Select 4 KB CHR ROM bank 1 0-31 xxxCCCCC for PPU $0000-$0FFF
-            self.chrBanks1[0] = Int(aValue & 0x1F)
+            self.chrBanks1[0] = Int(aValue & self.chrBankingMaxIndex)
         case 0xC000 ..< 0xD000: // Select 4 KB CHR ROM bank 1 0-31 xxxCCCCC for PPU $0000-$0FFF
-            self.chrBanks1[1] = Int(aValue & 0x1F)
+            self.chrBanks1[1] = Int(aValue & self.chrBankingMaxIndex)
         case 0xD000 ..< 0xE000: // Select 4 KB CHR ROM bank 2 0-31 xxxCCCCC for PPU $1000-$1FFF when latch2 == 1
-            self.chrBanks2[0] = Int(aValue & 0x1F)
+            self.chrBanks2[0] = Int(aValue & self.chrBankingMaxIndex)
         case 0xE000 ..< 0xF000: // Select 4 KB CHR ROM bank 2 0-31 xxxCCCCC for PPU $1000-$1FFF
-            self.chrBanks2[1] = Int(aValue & 0x1F)
+            self.chrBanks2[1] = Int(aValue & self.chrBankingMaxIndex)
         case 0xF000 ... 0xFFFF:
             self.mirroringMode = (aValue & 0x01) == 0 ? .vertical : .horizontal
+        case 0x6000 ..< 0x8000:
+            self.sram[Int(aAddress - 0x6000)] = aValue
         default:
-            os_log("unhandled Mapper_MMC2 write at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_MMC4 write at address: 0x%04X", aAddress)
             break
         }
     }
@@ -153,15 +164,15 @@ struct Mapper_MMC2: MapperProtocol
         switch aAddress
         {
         case 0x0000 ..< 0x1000: // 4KB Switchable CHR Bank 1
-            let result =  self.chr[(self.chrBanks1[chrLatch1] * 0x1000) + Int(aAddress)]
+            let result =  self.chr[(self.chrBanks1[self.chrLatch1] * 0x1000) + Int(aAddress)]
             self.updateChrLatch1(forAddress: aAddress)
             return result
         case 0x1000 ..< 0x2000: // 4KB Switchable CHR Bank 2
-            let result = self.chr[(self.chrBanks2[chrLatch2] * 0x1000) + Int(aAddress - 0x1000)]
+            let result = self.chr[(self.chrBanks2[self.chrLatch2] * 0x1000) + Int(aAddress - 0x1000)]
             self.updateChrLatch2(forAddress: aAddress)
             return result
         default:
-            os_log("unhandled Mapper_MMC2 read at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_MMC4 read at address: 0x%04X", aAddress)
             return 0
         }
     }
@@ -180,9 +191,9 @@ struct Mapper_MMC2: MapperProtocol
     {
         switch aAddress
         {
-        case 0x0FD8:
+        case 0x0FD8 ... 0x0FDF:
             self.chrLatch1 = 0
-        case 0x0FE8:
+        case 0x0FE8 ... 0x0FEF:
             self.chrLatch1 = 1
         default: break
         }

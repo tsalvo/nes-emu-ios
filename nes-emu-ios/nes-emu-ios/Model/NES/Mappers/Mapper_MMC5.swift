@@ -279,7 +279,8 @@ struct Mapper_MMC5: MapperProtocol
             {
             case 0x02, 0x03:
                 return self.extendedRam[Int(aAddress - 0x5C00)]
-            default: return 0
+            default:
+                return 0
             }
         case 0x6000 ... 0x7FFF: /// SRAM
             return self.sram[(Int(self.sramBank) * 0x2000) + (Int(aAddress) - 0x6000)]
@@ -441,8 +442,10 @@ struct Mapper_MMC5: MapperProtocol
             switch self.prgMode
             {
             // TODO: implement other PRG modes
-            case 2: break /// prg mode 2: (unused)
-            default: break
+            case 2:
+                break /// prg mode 2: (unused)
+            default:
+                break
             }
         case 0x5115:
             switch self.prgMode
@@ -610,7 +613,6 @@ struct Mapper_MMC5: MapperProtocol
                     let offset: Int = Int(aAddress % 0x0400)
                     return self.chr[self.chrOffsets[bank] + offset]
                 }
-                
             default:
                 return 0
             }
@@ -692,7 +694,8 @@ struct Mapper_MMC5: MapperProtocol
                     let offset: Int = Int(aAddress % 0x0400)
                     self.chr[self.chrOffsets[bank] + offset] = aValue
                 }
-            default: break
+            default:
+                break
             }
         case 0x2000 ... 0x2FFF:
 

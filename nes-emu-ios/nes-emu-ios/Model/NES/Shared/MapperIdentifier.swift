@@ -296,6 +296,7 @@ enum MapperIdentifier: UInt8
              .MMC3,
              .AxROM,
              .MMC2,
+             .MMC4,
              .ColorDreams,
              .GxROM,
              .Namcot118_TengenMimic1,
