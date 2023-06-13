@@ -676,13 +676,48 @@ struct CPU
             address = 0
             pageCrossed = false
         case .xIndexedIndirect:
-            address = self.read16bug(address: UInt16(self.read(address: self.pc &+ 1) &+ self.x))
+            let zero: UInt8 = self.read(address: self.pc &+ 1) &+ self.x
+                        
+            if zero == 0xFF
+            {
+                address = UInt16(self.read(address: 0x00FF)) | (UInt16(self.read(address: 0x0000)) << 8)
+            }
+            else
+            {
+                address = self.read16bug(address: UInt16(zero))
+            }
+
             pageCrossed = false
         case .indirect:
-            address = self.read16bug(address: self.read16(address: self.pc &+ 1))
+            /*
+             http://6502.org/tutorials/6502opcodes.html
+             JMP (Indirect) must never use a vector beginning on the last byte of a page (e.g. JMP ($30FF)).
+             For example, if address $3000 contains $40, $30FF contains $80, and $3100 contains $50, the result of JMP ($30FF) will be a transfer of control to $4080 rather than $5080 as you intended i.e. the 6502 took the low byte of the address from $30FF and the high byte from $3000.
+             */
+            let vector = self.read16(address: self.pc &+ 1)
+            if vector & 0x00FF == 0x00FF
+            {
+                let lo = self.read(address: vector)
+                let hi = self.read(address: vector &- 0x00FF)
+                address = UInt16(lo) | (UInt16(hi) << 8)
+            }
+            else
+            {
+                address = self.read16bug(address: vector)
+            }
             pageCrossed = false
         case .indirectYIndexed:
-            address = self.read16bug(address: UInt16(self.read(address: self.pc &+ 1))) &+ UInt16(self.y)
+            let zero: UInt8 = self.read(address: self.pc &+ 1)
+                        
+            if zero == 0xFF
+            {
+                address = UInt16(self.read(address: 0x00FF)) | (UInt16(self.read(address: 0x0000)) << 8) &+ UInt16(self.y)
+            }
+            else
+            {
+                address = self.read16bug(address: UInt16(zero)) &+ UInt16(self.y)
+            }
+
             pageCrossed = self.pagesDiffer(address1: address &- UInt16(self.y), address2: address)
         case .relative:
             let offset = UInt16(self.read(address: self.pc &+ 1))
