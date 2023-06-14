@@ -89,6 +89,9 @@ struct Mapper_MMC1: MapperProtocol
     private var prgOffsets: [Int] = [Int](repeating: 0, count: 2)
     private var chrOffsets: [Int] = [Int](repeating: 0, count: 2)
     
+    private let maxPrgBankLoFor16KBMode: UInt8
+    private let max4KBChrBank: UInt8
+    
     // MARK: - Life Cycle
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
@@ -107,9 +110,6 @@ struct Mapper_MMC1: MapperProtocol
         
         self.prg = p
         self.chr = c
-        
-        os_log("Mapper_MMC1 %dKB PRG (%d blocks)", aCartridge.prgBlocks.count * 16, aCartridge.prgBlocks.count)
-        os_log("Mapper_MMC1 %dKB CHR (%d blocks)", aCartridge.chrBlocks.count * 8, aCartridge.chrBlocks.count)
         
         let variant: Variant
         if aCartridge.chrBlocks.count == 0
@@ -140,6 +140,8 @@ struct Mapper_MMC1: MapperProtocol
         
         let lastPrgBank: UInt8 = UInt8(aCartridge.prgBlocks.count - 1) & 0x0F
         self.lastPrgBankIndex = lastPrgBank
+        self.maxPrgBankLoFor16KBMode = lastPrgBank
+        self.max4KBChrBank = UInt8((aCartridge.chrBlocks.count == 0) ? 1 : (aCartridge.chrBlocks.count * 2) - 1)
         
         self.prgRamBank = 0
         self.prgRamEnabled = true
@@ -267,7 +269,7 @@ struct Mapper_MMC1: MapperProtocol
                 os_log("Mapper_MMC1 PRG RAM disabled - CPU read 0 at address: 0x%04X", aAddress)
                 return 0
             }
-            let offset: Int = (Int(self.prgRamBank) * 0x1000) + Int(aAddress - 0x6000)
+            let offset: Int = (Int(self.prgRamBank) * 0x2000) + Int(aAddress - 0x6000)
             return self.prgRam[offset]
         default:
             os_log("unhandled Mapper_MMC1 CPU read at address: 0x%04X", aAddress)
@@ -286,7 +288,7 @@ struct Mapper_MMC1: MapperProtocol
                 os_log("Mapper_MMC1 PRG RAM disabled - prevented CPU write at address: 0x%04X", aAddress)
                 break
             }
-            let offset: Int = (Int(self.prgRamBank) * 0x1000) + Int(aAddress - 0x6000)
+            let offset: Int = (Int(self.prgRamBank) * 0x2000) + Int(aAddress - 0x6000)
             self.prgRam[offset] = aValue
         default:
             os_log("unhandled Mapper_MMC1 CPU write at address: 0x%04X", aAddress)
@@ -348,7 +350,6 @@ struct Mapper_MMC1: MapperProtocol
         }
         else
         {
-            
             let complete: Bool = self.shiftRegister & 1 == 1
             self.shiftRegister >>= 1
             self.shiftRegister |= (aValue & 1) << 4
@@ -458,12 +459,12 @@ struct Mapper_MMC1: MapperProtocol
             */
             if self.isChr4KBMode
             {
-                self.chrBank0 = aValue & 0x1F
+                self.chrBank0 = aValue & self.max4KBChrBank
                 self.chrOffsets[0] = Int(self.chrBank0) * 0x1000
             }
             else
             {
-                self.chrBank0 = aValue & 0x1E
+                self.chrBank0 = aValue & self.max4KBChrBank & 0x1E
                 self.chrOffsets[0] = Int(self.chrBank0) * 0x1000
                 self.chrOffsets[1] = Int(self.chrBank0 | 0x01) * 0x1000
             }
@@ -528,12 +529,12 @@ struct Mapper_MMC1: MapperProtocol
             self.prgRamBank = aValue >> 4 & 1
             if self.isChr4KBMode
             {
-                self.chrBank0 = aValue & 0x0F
+                self.chrBank0 = aValue & self.max4KBChrBank
                 self.chrOffsets[0] = Int(self.chrBank0) * 0x1000
             }
             else
             {
-                self.chrBank0 = aValue & 0x0E
+                self.chrBank0 = aValue & self.max4KBChrBank & 0x0E
                 self.chrOffsets[0] = Int(self.chrBank0) * 0x1000
                 self.chrOffsets[1] = Int(self.chrBank0 | 0x01) * 0x1000
             }
@@ -553,9 +554,9 @@ struct Mapper_MMC1: MapperProtocol
              |||||
              +++++- Select 4 KB CHR bank at PPU $1000 (ignored in 8 KB mode)
             */
-            self.chrBank1 = aValue & 0x1F
             if self.isChr4KBMode
             {
+                self.chrBank1 = aValue & self.max4KBChrBank
                 self.chrOffsets[1] = Int(self.chrBank1) * 0x1000
             }
         case .snrom:
@@ -615,10 +616,10 @@ struct Mapper_MMC1: MapperProtocol
              |++++- Select 4 KB CHR ROM bank at PPU $1000 (ignored in 8 KB mode)
              +----- Select 8 KB PRG RAM bank (ignored in 8 KB mode)
              */
-            self.prgRamBank = aValue >> 4 & 1
-            self.chrBank1 = aValue & 0x0F
             if self.isChr4KBMode
             {
+                self.prgRamBank = aValue >> 4 & 1
+                self.chrBank1 = aValue & self.max4KBChrBank
                 self.chrOffsets[1] = Int(self.chrBank1) * 0x1000
             }
         }
@@ -641,20 +642,20 @@ struct Mapper_MMC1: MapperProtocol
         case 0, 1:
             // switch 32 KB at $8000, ignoring low bit of bank number
             self.prgBank0 &= 0x10
-            self.prgBank0 |= aValue & 0x0E
+            self.prgBank0 |= aValue & self.maxPrgBankLoFor16KBMode & 0x0E
             self.prgOffsets[0] = Int(self.prgBank0) * 0x4000
             self.prgOffsets[1] = Int(self.prgBank0 | 0x01) * 0x4000
         case 2:
             // fix first bank at $8000 and switch 16 KB bank at $C000
             self.prgBank0 &= 0x10
             self.prgBank1 &= 0x10
-            self.prgBank1 |= aValue & 0x0F
+            self.prgBank1 |= aValue & self.maxPrgBankLoFor16KBMode
             self.prgOffsets[0] = Int(self.prgBank0) * 0x4000
             self.prgOffsets[1] = Int(self.prgBank1) * 0x4000
         case 3:
             // switch first 16 KB bank at $8000, fix last bank at $C000
             self.prgBank0 &= 0x10
-            self.prgBank0 |= aValue & 0x0F
+            self.prgBank0 |= aValue & self.maxPrgBankLoFor16KBMode
             self.prgBank1 &= 0x10
             self.prgBank1 |= self.lastPrgBankIndex
             self.prgOffsets[0] = Int(self.prgBank0) * 0x4000
