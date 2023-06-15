@@ -37,13 +37,15 @@ struct Mapper_AxROM: MapperProtocol
     private var prgBank: Int
     
     /// linear 1D array of all PRG blocks
-    private var prg: [UInt8] = []
+    private let prg: [UInt8]
     
-    /// linear 1D array of all CHR blocks
-    private var chr: [UInt8] = []
+    /// 8KB of CHR RAM addressable though 0x0000 ... 0x1FFF
+    private var chr: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
     
-    /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
+    /// 8KB of SRAM addressable through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
+    
+    private let max32KBPrgBankIndex: UInt8
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
@@ -65,16 +67,14 @@ struct Mapper_AxROM: MapperProtocol
             }
         }
         
-        for p in aCartridge.prgBlocks
+        var p: [UInt8] = []
+        for pBlock in aCartridge.prgBlocks
         {
-            self.prg.append(contentsOf: p)
+            p.append(contentsOf: pBlock)
         }
-
-        if self.chr.count == 0
-        {
-            // use a block for CHR RAM if no block exists
-            self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
-        }
+        
+        self.prg = p
+        self.max32KBPrgBankIndex = aCartridge.prgBlocks.count > 1 ? (UInt8((aCartridge.prgBlocks.count / 2) - 1) & 0x07) : 0
     }
     
     var mapperState: MapperState
@@ -110,7 +110,7 @@ struct Mapper_AxROM: MapperProtocol
         switch aAddress
         {
         case 0x8000 ... 0xFFFF:
-            self.prgBank = Int(aValue & 7)
+            self.prgBank = Int(aValue & self.max32KBPrgBankIndex)
             switch aValue & 0x10 {
             case 0x00:
                 self.mirroringMode = .single0
