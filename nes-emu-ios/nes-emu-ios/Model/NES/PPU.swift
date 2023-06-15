@@ -83,6 +83,7 @@ struct PPU
                   self.nmiOutput
             else { return }
             
+            // TODO: this fixes some games (e.g. Burger Time), but shouldn't be necessary - the timings are off somewhere
             self.nmiDelay = PPU.nmiMaximumDelay
         }
     }
