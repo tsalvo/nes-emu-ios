@@ -124,8 +124,8 @@ struct Cartridge: CartridgeProtocol
             return Mapper_MMC2(withCartridge: self, state: aState)
         case .MMC4:
             return Mapper_MMC4(withCartridge: self, state: aState)
-        case .ColorDreams, .GxROM:
-            return Mapper_ColorDreams_GxROM(withCartridge: self, state: aState)
+        case .ColorDreams:
+            return Mapper_ColorDreams(withCartridge: self, state: aState)
         case .MMC5:
             return Mapper_MMC5(withCartridge: self, state: aState)
         case .VRC2b_VRC4e_VRC4f:
@@ -134,6 +134,8 @@ struct Cartridge: CartridgeProtocol
             return Mapper_VRC2c_VRC4b_VRC4d(withCartridge: self, state: aState)
         case .VRC7:
             return Mapper_VRC7(withCartridge: self, state: aState)
+        case .GxROM:
+            return Mapper_GxROM(withCartridge: self, state: aState)
         case ._078:
             return Mapper_78(withCartridge: self, state: aState)
         case ._087:
