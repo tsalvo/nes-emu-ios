@@ -107,7 +107,7 @@ struct Mapper_GxROM: MapperProtocol
         case 0x6000 ... 0x7FFF:
             return self.sram[Int(aAddress - 0x6000)]
         default:
-            os_log("unhandled Mapper_ColorDreams_GxROM read at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_GxROM read at address: 0x%04X", aAddress)
             return 0
         }
     }
@@ -130,7 +130,7 @@ struct Mapper_GxROM: MapperProtocol
         case 0x6000 ... 0x7FFF:
             return self.sram[Int(aAddress - 0x6000)] = aValue
         default:
-            os_log("unhandled Mapper_ColorDreams_GxROM CPU write at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_GxROM CPU write at address: 0x%04X", aAddress)
             break
         }
     }
@@ -142,7 +142,7 @@ struct Mapper_GxROM: MapperProtocol
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8)
     {
-        os_log("unhandled Mapper_ColorDreams_GxROM PPU write at address: 0x%04X", aAddress)
+        os_log("unhandled Mapper_GxROM PPU write at address: 0x%04X", aAddress)
     }
 
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
