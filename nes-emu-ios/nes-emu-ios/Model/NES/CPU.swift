@@ -63,6 +63,7 @@ struct CPU
     static let frequency: Int = 1789773
     var apu: APU
     var ppu: PPU
+    var isHalted: Bool = false
     var controllers: [Controller]
     
     init(ppu aPPU: PPU, apu aAPU: APU, controllers aControllers: [Controller], state aState: CPUState? = nil)
@@ -297,7 +298,7 @@ struct CPU
         InstructionInfo(instruction: CPU.iny, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1), // C8
         InstructionInfo(instruction: CPU.cmp, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2), // C9
         InstructionInfo(instruction: CPU.dex, mode: .implied,          cycles: 2, pageBoundaryCycles: 0, bytes: 1), // CA
-        InstructionInfo(instruction: CPU.axs, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2), // CB
+        InstructionInfo(instruction: CPU.sbx, mode: .immediate,        cycles: 2, pageBoundaryCycles: 0, bytes: 2), // CB
         InstructionInfo(instruction: CPU.cpy, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3), // CC
         InstructionInfo(instruction: CPU.cmp, mode: .absolute,         cycles: 4, pageBoundaryCycles: 0, bytes: 3), // CD
         InstructionInfo(instruction: CPU.dec, mode: .absolute,         cycles: 6, pageBoundaryCycles: 0, bytes: 3), // CE
@@ -646,6 +647,7 @@ struct CPU
             self.nmi()
         case .irq:
             self.irq()
+            self.isHalted = false
         default: break
         }
         self.interrupt = .none
@@ -1257,97 +1259,372 @@ struct CPU
 
     private static func ahx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         SHA (AHX, AXA)
+         Stores A AND X AND (high-byte of addr. + 1) at addr.
+
+         unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+         A AND X AND (H+1) -> M
+         N    Z    C    I    D    V
+         -    -    -    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         absolut,Y    SHA oper,Y    9F     3        5      †
+         (indirect),Y SHA (oper),Y  93     2        6      †
+        */
+        let value: UInt8 = aCPU.a & aCPU.x & aCPU.read(address: aStepInfo.address &+ 1)
+        aCPU.write(address: aStepInfo.address, value: value)
     }
     
     private static func alr(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         ALR (ASR)
+         AND oper + LSR
+
+         A AND oper, 0 -> [76543210] -> C
+         N    Z    C    I    D    V
+         +    +    +    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         immediate     ALR #oper    4B     2        2
+        */
+        aCPU.c = false
+        aCPU.a = aCPU.a & aCPU.read(address: aStepInfo.address)
+        if aCPU.a & 0x01 == 1
+        {
+            aCPU.c = true
+        }
+        aCPU.a >>= 1
+        aCPU.setZN(value: aCPU.a)
     }
     
     private static func anc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         ANC
+         AND oper + set C as ASL
+
+         A AND oper, bit(7) -> C
+         N    Z    C    I    D    V
+         +    +    +    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         immediate    ANC #oper     0B     2        2
+        */
+        CPU.and(cpu: &aCPU, stepInfo: aStepInfo)
+        aCPU.c = aCPU.a & 0x80 == 0x80
     }
     
     private static func arr(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+        ARR
+        AND oper + ROR
+
+        This operation involves the adder:
+        V-flag is set according to (A AND oper) + oper
+        The carry is not set, but bit 7 (sign) is exchanged with the carry
+
+        A AND oper, C -> [76543210] -> C
+        N    Z    C    I    D    V
+        +    +    +    -    -    +
+        addressing    assembler     opc    bytes    cycles
+        immediate     ARR #oper     6B     2        2
+        */
+        let operandValue: UInt8 = aCPU.read(address: aStepInfo.address)
+        aCPU.a = ((aCPU.a & operandValue) >> 1) | (aCPU.c ? 0x80 : 0x00)
+        aCPU.c = aCPU.a & 0x40 != 0
+        aCPU.v = ((aCPU.c ? 0x01 : 0x00) ^ ((aCPU.a >> 5) & 0x01)) != 0
+        aCPU.setZN(value: aCPU.a)
     }
     
-    private static func axs(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
+    private static func sbx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         SBX (AXS, SAX)
+         CMP and DEX at once, sets flags like CMP
+
+         (A AND X) - oper -> X
+         N    Z    C    I    D    V
+         +    +    +    -    -    -
+         addressing    assembler     opc    bytes    cycles
+         immediate     SBX #oper     CB     2        2
+        */
+        let opValue: UInt8 = aCPU.read(address: aStepInfo.address)
+        let value: UInt8 = (aCPU.a & aCPU.x) &- opValue
+        aCPU.c = aCPU.a & aCPU.x >= opValue
+        aCPU.x = value
+        aCPU.setZN(value: value)
     }
     
     private static func dcp(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         DCP (DCM)
+         DEC oper + CMP oper
+
+         M - 1 -> M, A - M
+         N    Z    C    I    D    V
+         +    +    +    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         zeropage    DCP oper    C7    2    5
+         zeropage,X    DCP oper,X    D7    2    6
+         absolute    DCP oper    CF    3    6
+         absolut,X    DCP oper,X    DF    3    7
+         absolut,Y    DCP oper,Y    DB    3    7
+         (indirect,X)    DCP (oper,X)    C3    2    8
+         (indirect),Y    DCP (oper),Y    D3    2    8
+         */
+        CPU.dec(cpu: &aCPU, stepInfo: aStepInfo)
+        CPU.cmp(cpu: &aCPU, stepInfo: aStepInfo)
     }
     
     private static func isc(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         ISC (ISB, INS)
+         INC oper + SBC oper
+
+         M + 1 -> M, A - M - C -> A
+         N    Z    C    I    D    V
+         +    +    +    -    -    +
+         addressing    assembler     opc    bytes    cycles
+         zeropage      ISC oper      E7     2    5
+         zeropage,X    ISC oper,X    F7     2    6
+         absolute      ISC oper      EF     3    6
+         absolut,X     ISC oper,X    FF     3    7
+         absolut,Y     ISC oper,Y    FB     3    7
+         (indirect,X)  ISC (oper,X)  E3     2    8
+         (indirect),Y  ISC (oper),Y  F3     2    8
+        */
+        CPU.inc(cpu: &aCPU, stepInfo: aStepInfo)
+        CPU.sbc(cpu: &aCPU, stepInfo: aStepInfo)
     }
     
     private static func kil(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        aCPU.isHalted = true
+        aCPU.pc &-= 1
+        aCPU.cycles &+= 0xFF
     }
     
     private static func las(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         LAS (LAR)
+         LDA/TSX oper
+
+         M AND SP -> A, X, SP
+         N    Z    C    I    D    V
+         +    +    -    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         absolut,Y    LAS oper,Y    BB    3    4*
+        */
+        CPU.lda(cpu: &aCPU, stepInfo: aStepInfo)
+        CPU.tsx(cpu: &aCPU, stepInfo: aStepInfo)
     }
     
     private static func lax(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         LAX
+         LDA oper + LDX oper
+
+         M -> A -> X
+         N    Z    C    I    D    V
+         +    +    -    -    -    -
+         addressing    assembler     opc    bytes    cycles
+         zeropage      LAX oper      A7     2        3
+         zeropage,Y    LAX oper,Y    B7     2        4
+         absolute      LAX oper      AF     3        4
+         absolut,Y     LAX oper,Y    BF     3        4*
+         (indirect,X)  LAX (oper,X)  A3     2        6
+         (indirect),Y  LAX (oper),Y  B3     2        5*
+        */
+        CPU.lda(cpu: &aCPU, stepInfo: aStepInfo)
+        CPU.ldx(cpu: &aCPU, stepInfo: aStepInfo)
     }
     
     private static func rla(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         RLA
+         ROL oper + AND oper
+
+         M = C <- [76543210] <- C, A AND M -> A
+         N    Z    C    I    D    V
+         +    +    +    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         zeropage      RLA oper     27     2        5
+         zeropage,X    RLA oper,X   37     2        6
+         absolute      RLA oper     2F     3        6
+         absolut,X     RLA oper,X   3F     3        7
+         absolut,Y     RLA oper,Y   3B     3        7
+         (indirect,X)  RLA (oper,X) 23     2        8
+         (indirect),Y  RLA (oper),Y 33     2        8
+        */
+        CPU.rol(cpu: &aCPU, stepInfo: aStepInfo)
+        CPU.and(cpu: &aCPU, stepInfo: aStepInfo)
     }
     
     private static func rra(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         RRA
+         ROR oper + ADC oper
+
+         M = C -> [76543210] -> C, A + M + C -> A, C
+         N    Z    C    I    D    V
+         +    +    +    -    -    +
+         addressing    assembler     opc    bytes    cycles
+         zeropage      RRA oper      67     2        5
+         zeropage,X    RRA oper,X    77     2        6
+         absolute      RRA oper      6F     3        6
+         absolut,X     RRA oper,X    7F     3        7
+         absolut,Y     RRA oper,Y    7B     3        7
+         (indirect,X)  RRA (oper,X)  63     2        8
+         (indirect),Y  RRA (oper),Y  73     2        8
+        */
+        CPU.ror(cpu: &aCPU, stepInfo: aStepInfo)
+        CPU.adc(cpu: &aCPU, stepInfo: aStepInfo)
     }
     
     private static func sax(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         SAX (AXS, AAX)
+         A and X are put on the bus at the same time (resulting effectively in an AND operation) and stored in M
+
+         A AND X -> M
+         N    Z    C    I    D    V
+         -    -    -    -    -    -
+         addressing    assembler     opc    bytes    cycles
+         zeropage      SAX oper      87     2        3
+         zeropage,Y    SAX oper,Y    97     2        4
+         absolute      SAX oper      8F     3        4
+         (indirect,X)  SAX (oper,X)  83     2        6
+        */
+        let value = aCPU.a & aCPU.x
+        aCPU.write(address: aStepInfo.address, value: value)
     }
     
     private static func shx(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         SHX (A11, SXA, XAS)
+         Stores X AND (high-byte of addr. + 1) at addr.
+
+         unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+         X AND (H+1) -> M
+         N    Z    C    I    D    V
+         -    -    -    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         absolut,Y    SHX oper,Y    9E    3    5      †
+        */
+        let newAddr = ((UInt16(aCPU.x) & ((aStepInfo.address >> 8) &+ 1)) << 8) | (aStepInfo.address & 0xFF)
+        aCPU.write(address: newAddr, value: UInt8(newAddr >> 8))
     }
     
     private static func shy(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         SHY (A11, SYA, SAY)
+         Stores Y AND (high-byte of addr. + 1) at addr.
+
+         unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+         Y AND (H+1) -> M
+         N    Z    C    I    D    V
+         -    -    -    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         absolut,X    SHY oper,X    9C    3    5      †
+         */
+        let newAddr = ((UInt16(aCPU.y) & ((aStepInfo.address >> 8) &+ 1)) << 8) | (aStepInfo.address & 0xFF)
+        aCPU.write(address: newAddr, value: UInt8(newAddr >> 8))
     }
     
     private static func slo(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         SLO (ASO)
+         ASL oper + ORA oper
+
+         M = C <- [76543210] <- 0, A OR M -> A
+         N    Z    C    I    D    V
+         +    +    +    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         zeropage      SLO oper      07    2        5
+         zeropage,X    SLO oper,X    17    2        6
+         absolute      SLO oper      0F    3        6
+         absolut,X     SLO oper,X    1F    3        7
+         absolut,Y     SLO oper,Y    1B    3        7
+         (indirect,X)  SLO (oper,X)  03    2        8
+         (indirect),Y  SLO (oper),Y  13    2        8
+         */
+        CPU.asl(cpu: &aCPU, stepInfo: aStepInfo)
+        CPU.ora(cpu: &aCPU, stepInfo: aStepInfo)
     }
     
     private static func sre(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         SRE (LSE)
+         LSR oper + EOR oper
+
+         M = 0 -> [76543210] -> C, A EOR M -> A
+         N    Z    C    I    D    V
+         +    +    +    -    -    -
+         addressing     assembler     opc    bytes    cycles
+         zeropage       SRE oper      47     2        5
+         zeropage,X     SRE oper,X    57     2        6
+         absolute       SRE oper      4F     3        6
+         absolut,X      SRE oper,X    5F     3        7
+         absolut,Y      SRE oper,Y    5B     3        7
+         (indirect,X)   SRE (oper,X)  43     2        8
+         (indirect),Y   SRE (oper),Y  53     2        8
+         */
+        CPU.lsr(cpu: &aCPU, stepInfo: aStepInfo)
+        CPU.eor(cpu: &aCPU, stepInfo: aStepInfo)
     }
     
     private static func tas(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         TAS (XAS, SHS)
+         Puts A AND X in SP and stores A AND X AND (high-byte of addr. + 1) at addr.
+
+         unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
+
+         A AND X -> SP, A AND X AND (H+1) -> M
+         N    Z    C    I    D    V
+         -    -    -    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         absolut,Y    TAS oper,Y    9B     3        5†
+        */
+        let value1: UInt8 = aCPU.a & aCPU.x
+        let value2: UInt8 = value1 & aCPU.read(address: aStepInfo.address &+ 1)
+        aCPU.sp = value1
+        aCPU.write(address: aStepInfo.address, value: value2)
     }
     
     private static func xaa(cpu aCPU: inout CPU, stepInfo aStepInfo: StepInfo)
     {
-        
+        /*
+         ANE (XAA)
+         * AND X + AND oper
+
+         Highly unstable, do not use.
+         A base value in A is determined based on the contets of A and a constant, which may be typically $00, $ff, $ee, etc. The value of this constant depends on temerature, the chip series, and maybe other factors, as well.
+         In order to eliminate these uncertaincies from the equation, use either 0 as the operand or a value of $FF in the accumulator.
+
+         (A OR CONST) AND X AND oper -> A
+         N    Z    C    I    D    V
+         +    +    -    -    -    -
+         addressing    assembler    opc    bytes    cycles
+         immediate     ANE #oper     8B    2        2††
+        */
+        aCPU.a = aCPU.a & aCPU.x
+        aCPU.setZN(value: aCPU.a)
     }
 }
 
