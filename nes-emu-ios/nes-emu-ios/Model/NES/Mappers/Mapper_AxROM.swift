@@ -32,7 +32,7 @@ struct Mapper_AxROM: MapperProtocol
     
     let hasExtendedNametableMapping: Bool = false
     
-    var mirroringMode: MirroringMode
+    private(set) var mirroringMode: MirroringMode
     
     private var prgBank: Int
     
