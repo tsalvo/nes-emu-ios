@@ -41,10 +41,10 @@ struct Mapper_MMC3: MapperProtocol
     private let chr: [UInt8]
     
     /// 8KB of CHR RAM used if there is no CHR ROM onboard (used only on TNROM variant boards - Famicom only)
-    private var chrRam: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
+    private var chrRam: [UInt8]
     
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
-    private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
+    private var sram: [UInt8]
     
     private var register: UInt8
     private var registers: [UInt8]
@@ -77,7 +77,7 @@ struct Mapper_MMC3: MapperProtocol
         self.isChrRamEnabled = chrRom.isEmpty
         
         if let safeState = aState,
-           safeState.uint8s.count >= 8205,
+           safeState.uint8s.count >= 16397,
            safeState.bools.count >= 1,
            safeState.ints.count >= 12
         {
@@ -92,6 +92,7 @@ struct Mapper_MMC3: MapperProtocol
             self.reload = safeState.uint8s[11]
             self.counter = safeState.uint8s[12]
             self.sram = [UInt8](safeState.uint8s[13 ..< 8205])
+            self.chrRam = [UInt8](safeState.uint8s[8205 ..< 16397])
         }
         else
         {
@@ -106,6 +107,7 @@ struct Mapper_MMC3: MapperProtocol
             self.reload = 0
             self.counter = 0
             self.sram = [UInt8].init(repeating: 0, count: 8192)
+            self.chrRam = [UInt8].init(repeating: 0, count: 8192)
             
             self.prgOffsets[0] = self.prgBankOffset(index: 0)
             self.prgOffsets[1] = self.prgBankOffset(index: 1)
@@ -120,6 +122,7 @@ struct Mapper_MMC3: MapperProtocol
         {
             var u8s: [UInt8] = [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode, self.reload, self.counter]
             u8s.append(contentsOf: self.sram)
+            u8s.append(contentsOf: self.chrRam)
             return MapperState(
                 mirroringMode: self.mirroringMode.rawValue,
                 ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]],
@@ -132,7 +135,7 @@ struct Mapper_MMC3: MapperProtocol
         {
             self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
             
-            guard newValue.uint8s.count >= 8205,
+            guard newValue.uint8s.count >= 16397,
                   newValue.bools.count >= 1,
                   newValue.ints.count >= 12
             else
@@ -150,6 +153,7 @@ struct Mapper_MMC3: MapperProtocol
             self.reload = newValue.uint8s[11]
             self.counter = newValue.uint8s[12]
             self.sram = [UInt8](newValue.uint8s[13 ..< 8205])
+            self.chrRam = [UInt8](newValue.uint8s[8205 ..< 16397])
         }
     }
     
