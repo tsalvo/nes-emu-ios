@@ -38,25 +38,6 @@ extension UInt8
         return result
     }
     
-    /// Returns a UInt8 value from an array of 8 boolean values in big endian order (more significant, or "higher", bits first)
-    init(fromBigEndianBitArray aBigEndianBitArray: [Bool])
-    {
-        var retValue: UInt8 = 0
-        if aBigEndianBitArray.count == 8
-        {
-            retValue += aBigEndianBitArray[7] ? 1 : 0
-            retValue += aBigEndianBitArray[6] ? 2 : 0
-            retValue += aBigEndianBitArray[5] ? 4 : 0
-            retValue += aBigEndianBitArray[4] ? 8 : 0
-            retValue += aBigEndianBitArray[3] ? 16 : 0
-            retValue += aBigEndianBitArray[2] ? 32 : 0
-            retValue += aBigEndianBitArray[1] ? 64 : 0
-            retValue += aBigEndianBitArray[0] ? 128 : 0
-        }
-        
-        self.init(retValue)
-    }
-    
     /// Returns an array of 8 boolean values in little-endian order (less significant, or "lower", bits first)
     var littleEndianBitArray: [Bool]
     {
