@@ -1,5 +1,5 @@
 //
-//  Mapper_ColorDreams_GxROM.swift
+//  Mapper_ColorDreams.swift
 //  nes-emu-ios
 //
 //  Created by Tom Salvo on 7/8/20.
@@ -26,7 +26,7 @@
 import Foundation
 import os
 
-struct Mapper_ColorDreams_GxROM: MapperProtocol
+struct Mapper_ColorDreams: MapperProtocol
 {
     let hasStep: Bool = false
     
@@ -35,10 +35,10 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
     let mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
-    private var prg: [UInt8] = []
+    private let prg: [UInt8]
     
     /// linear 1D array of all CHR blocks
-    private var chr: [UInt8] = []
+    private let chr: [UInt8]
     
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
     private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
@@ -46,29 +46,42 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
     private var prgBank: Int = 0
     private var chrBank: Int = 0
     
+    private let max32KBPrgBankIndex: UInt8
+    private let max8KBChrBankIndex: UInt8
+    
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
+        var chrRom: [UInt8] = []
+        var prgRom: [UInt8] = []
+        
         for p in aCartridge.prgBlocks
         {
-            self.prg.append(contentsOf: p)
+            prgRom.append(contentsOf: p)
         }
+        
+        for c in aCartridge.chrBlocks
+        {
+            chrRom.append(contentsOf: c)
+        }
+        
+        self.prg = prgRom
+        self.chr = chrRom
+        
+        let maxPrg32KBIndex: UInt8 = (UInt8(max(0, aCartridge.prgBlocks.count - 1)) / 2) & 0x03
+        self.max8KBChrBankIndex = UInt8(max(0, aCartridge.chrBlocks.count - 1)) & 0x0F
+        self.max32KBPrgBankIndex = maxPrg32KBIndex
         
         self.mirroringMode = aCartridge.header.mirroringMode
         
         if let safeState = aState
         {
-            self.prgBank = safeState.ints[safe: 0] ?? 0
             self.chrBank = safeState.ints[safe: 1] ?? 0
-            self.chr = safeState.chr
+            self.prgBank = safeState.ints[safe: 0] ?? Int(maxPrg32KBIndex)
         }
         else
         {
             self.chrBank = 0
-            self.prgBank = max(0, self.prg.count - 0x8000) / 0x8000
-            for c in aCartridge.chrBlocks
-            {
-                self.chr.append(contentsOf: c)
-            }
+            self.prgBank = Int(maxPrg32KBIndex)
         }
     }
     
@@ -76,13 +89,12 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.prgBank, self.chrBank], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.prgBank, self.chrBank], bools: [], uint8s: [], chr: [])
         }
         set
         {
             self.prgBank = newValue.ints[safe: 0] ?? 0
             self.chrBank = newValue.ints[safe: 1] ?? 0
-            self.chr = newValue.chr
         }
     }
     
@@ -95,7 +107,7 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
         case 0x6000 ... 0x7FFF:
             return self.sram[Int(aAddress - 0x6000)]
         default:
-            os_log("unhandled Mapper_ColorDreams_GxROM read at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_ColorDreams read at address: 0x%04X", aAddress)
             return 0
         }
     }
@@ -114,12 +126,12 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
              |||| ++--- Used for lockout defeat
              ++++------ Select 8 KB CHR ROM bank for PPU $0000-$1FFF
              */
-            self.chrBank = Int((aValue >> 4) & 0x0F)
-            self.prgBank = Int(aValue & 0x03)
+            self.chrBank = Int((aValue >> 4) & self.max8KBChrBankIndex)
+            self.prgBank = Int(aValue & self.max32KBPrgBankIndex)
         case 0x6000 ... 0x7FFF:
             return self.sram[Int(aAddress - 0x6000)] = aValue
         default:
-            os_log("unhandled Mapper_ColorDreams_GxROM write at address: 0x%04X", aAddress)
+            os_log("unhandled Mapper_ColorDreams CPU write at address: 0x%04X", aAddress)
             break
         }
     }
@@ -131,7 +143,7 @@ struct Mapper_ColorDreams_GxROM: MapperProtocol
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8)
     {
-        self.chr[(self.chrBank * 0x2000) + Int(aAddress)] = aValue
+        os_log("unhandled Mapper_ColorDreams PPU write at address: 0x%04X", aAddress)
     }
 
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
