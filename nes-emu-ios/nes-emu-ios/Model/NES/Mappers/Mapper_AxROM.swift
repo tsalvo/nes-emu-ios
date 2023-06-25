@@ -32,63 +32,60 @@ struct Mapper_AxROM: MapperProtocol
     
     let hasExtendedNametableMapping: Bool = false
     
-    var mirroringMode: MirroringMode
+    private(set) var mirroringMode: MirroringMode
     
     private var prgBank: Int
     
     /// linear 1D array of all PRG blocks
-    private var prg: [UInt8] = []
+    private let prg: [UInt8]
     
-    /// linear 1D array of all CHR blocks
-    private var chr: [UInt8] = []
+    /// 8KB of CHR RAM addressable though 0x0000 ... 0x1FFF
+    private var chrRam: [UInt8]
     
-    /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
-    private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
+    private let max32KBPrgBankIndex: UInt8
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        if let safeState = aState
+        if let safeState = aState,
+           safeState.uint8s.count >= 8192,
+           safeState.ints.count >= 1
         {
             self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
-            self.prgBank = safeState.ints[safe: 0] ?? 0
-            
-            self.chr = safeState.chr
+            self.prgBank = safeState.ints[0]
+            self.chrRam = [UInt8](safeState.uint8s[0 ..< 8192])
         }
         else
         {
             self.mirroringMode = aCartridge.header.mirroringMode
             self.prgBank = 0
-            
-            for c in aCartridge.chrBlocks
-            {
-                self.chr.append(contentsOf: c)
-            }
+            self.chrRam = [UInt8].init(repeating: 0, count: 8192)
         }
         
-        for p in aCartridge.prgBlocks
+        var p: [UInt8] = []
+        for pBlock in aCartridge.prgBlocks
         {
-            self.prg.append(contentsOf: p)
+            p.append(contentsOf: pBlock)
         }
-
-        if self.chr.count == 0
-        {
-            // use a block for CHR RAM if no block exists
-            self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
-        }
+        self.prg = p
+        self.max32KBPrgBankIndex = aCartridge.prgBlocks.count > 1 ? (UInt8((aCartridge.prgBlocks.count / 2) - 1) & 0x0F) : 0
     }
     
     var mapperState: MapperState
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank], bools: [], uint8s: self.chrRam, chr: [])
         }
         set
         {
+            guard newValue.uint8s.count >= 8192,
+                  newValue.ints.count >= 1
+            else {
+                return
+            }
             self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
-            self.prgBank = newValue.ints[safe: 0] ?? 0
-            self.chr = newValue.chr
-        }
+            self.prgBank = newValue.ints[0]
+            self.chrRam = [UInt8](newValue.uint8s[0 ..< 8192])        }
     }
     
     func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
@@ -98,7 +95,7 @@ struct Mapper_AxROM: MapperProtocol
         case 0x8000 ... 0xFFFF: // PRG Blocks
             return self.prg[self.prgBank * 0x8000 + Int(aAddress - 0x8000)]
         case 0x6000 ..< 0x8000:
-            return self.sram[Int(aAddress - 0x6000)]
+            return 0 // no SRAM
         default:
             os_log("unhandled Mapper_AxROM read at address: 0x%04X", aAddress)
             return 0
@@ -110,7 +107,7 @@ struct Mapper_AxROM: MapperProtocol
         switch aAddress
         {
         case 0x8000 ... 0xFFFF:
-            self.prgBank = Int(aValue & 7)
+            self.prgBank = Int(aValue & self.max32KBPrgBankIndex)
             switch aValue & 0x10 {
             case 0x00:
                 self.mirroringMode = .single0
@@ -119,7 +116,7 @@ struct Mapper_AxROM: MapperProtocol
             default: break
             }
         case 0x6000 ..< 0x8000:
-            self.sram[Int(aAddress) - 0x6000] = aValue
+            break // no SRAM
         default:
             os_log("unhandled Mapper_AxROM write at address: 0x%04X", aAddress)
             break
@@ -128,12 +125,12 @@ struct Mapper_AxROM: MapperProtocol
     
     func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
     {
-        return self.chr[Int(aAddress)]
+        return self.chrRam[Int(aAddress)]
     }
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
-        self.chr[Int(aAddress)] = aValue
+        self.chrRam[Int(aAddress)] = aValue
     }
 
     func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?

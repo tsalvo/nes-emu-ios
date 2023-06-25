@@ -24,6 +24,8 @@
 		9929E3E9282F158D00ED43DA /* Mapper_TQROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9929E3E7282F158D00ED43DA /* Mapper_TQROM.swift */; };
 		99301E7925302D4200CC2DBD /* Data+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99301E7825302D4200CC2DBD /* Data+MD5.swift */; };
 		99301E7A25302D4200CC2DBD /* Data+MD5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99301E7825302D4200CC2DBD /* Data+MD5.swift */; };
+		9937C3492A3F84ED007A4CBA /* Mapper_ColorDreams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9937C3482A3F84ED007A4CBA /* Mapper_ColorDreams.swift */; };
+		9937C34A2A3F84ED007A4CBA /* Mapper_ColorDreams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9937C3482A3F84ED007A4CBA /* Mapper_ColorDreams.swift */; };
 		9943B32D2659A9B40085415D /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 9943B32C2659A9B40085415D /* Settings.bundle */; };
 		99488F40248985F100942A1E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F3F248985F100942A1E /* AppDelegate.swift */; };
 		99488F42248985F100942A1E /* DocumentBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F41248985F100942A1E /* DocumentBrowserViewController.swift */; };
@@ -33,8 +35,8 @@
 		99488F4E248985F300942A1E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 99488F4C248985F300942A1E /* LaunchScreen.storyboard */; };
 		99488F592489BF8400942A1E /* UInt8+ByteUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */; };
 		994C12122496F10600DD2FE1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994C12112496F10600DD2FE1 /* SceneDelegate.swift */; };
-		9953246224B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9953246124B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift */; };
-		9953246324B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9953246124B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift */; };
+		9953246224B5A86D000E9DE7 /* Mapper_GxROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9953246124B5A86D000E9DE7 /* Mapper_GxROM.swift */; };
+		9953246324B5A86D000E9DE7 /* Mapper_GxROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9953246124B5A86D000E9DE7 /* Mapper_GxROM.swift */; };
 		995C9ADD249BECCA00429ECC /* Mapper_MMC1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */; };
 		995C9ADF249BECE000429ECC /* Mapper_CNROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9ADE249BECE000429ECC /* Mapper_CNROM.swift */; };
 		995C9AE3249BED0B00429ECC /* Mapper_MMC2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */; };
@@ -221,6 +223,7 @@
 		992164A2249D113D00EB4BAA /* Mapper_AxROM.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mapper_AxROM.swift; sourceTree = "<group>"; };
 		9929E3E7282F158D00ED43DA /* Mapper_TQROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_TQROM.swift; sourceTree = "<group>"; };
 		99301E7825302D4200CC2DBD /* Data+MD5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+MD5.swift"; sourceTree = "<group>"; };
+		9937C3482A3F84ED007A4CBA /* Mapper_ColorDreams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_ColorDreams.swift; sourceTree = "<group>"; };
 		9943B32C2659A9B40085415D /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		99488F3C248985F100942A1E /* nes-emu-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "nes-emu-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		99488F3F248985F100942A1E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -232,7 +235,7 @@
 		99488F4F248985F300942A1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		99488F582489BF8400942A1E /* UInt8+ByteUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UInt8+ByteUtils.swift"; sourceTree = "<group>"; };
 		994C12112496F10600DD2FE1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		9953246124B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_ColorDreams_GxROM.swift; sourceTree = "<group>"; };
+		9953246124B5A86D000E9DE7 /* Mapper_GxROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_GxROM.swift; sourceTree = "<group>"; };
 		995C9ADC249BECCA00429ECC /* Mapper_MMC1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC1.swift; sourceTree = "<group>"; };
 		995C9ADE249BECE000429ECC /* Mapper_CNROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_CNROM.swift; sourceTree = "<group>"; };
 		995C9AE2249BED0B00429ECC /* Mapper_MMC2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_MMC2.swift; sourceTree = "<group>"; };
@@ -469,7 +472,8 @@
 				991A515828280185006CAFF6 /* Mapper_NROM.swift */,
 				99D71A842832160B009EB6AC /* Mapper_CamericaQuattro.swift */,
 				991A515B28281A55006CAFF6 /* Mapper_UNROM.swift */,
-				9953246124B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift */,
+				9953246124B5A86D000E9DE7 /* Mapper_GxROM.swift */,
+				9937C3482A3F84ED007A4CBA /* Mapper_ColorDreams.swift */,
 				99BD700C24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift */,
 				99EA746E24F0ACEB005D0EAA /* Mapper_NTDEC2722.swift */,
 				99A2924A26CA00A500A4D79B /* Mapper_VRC2c_VRC4b_VRC4d.swift */,
@@ -807,7 +811,7 @@
 				995D077F2532BDAD008AD907 /* MapperState.swift in Sources */,
 				99886AB3281F019D00C55611 /* Mapper_VRC7.swift in Sources */,
 				996F42DE2534112D001A31D2 /* TriangleState.swift in Sources */,
-				9953246224B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */,
+				9953246224B5A86D000E9DE7 /* Mapper_GxROM.swift in Sources */,
 				991B28C8248B43A700A6A6DD /* APU.swift in Sources */,
 				995C9ADD249BECCA00429ECC /* Mapper_MMC1.swift in Sources */,
 				99E2E21624966AB0008AFCDB /* MapperIdentifier.swift in Sources */,
@@ -826,6 +830,7 @@
 				995D080F25338007008AD907 /* NSManagedObject+PPUState.swift in Sources */,
 				99BD700D24B81BB500D9A70D /* Mapper_Namcot118_TengenMimic1.swift in Sources */,
 				99FEEA60249DBB280072D225 /* NesRomNavigationController.swift in Sources */,
+				9937C3492A3F84ED007A4CBA /* Mapper_ColorDreams.swift in Sources */,
 				99B1EDB2249EB0A800BC66F3 /* SettingsIconTextInfoCell.swift in Sources */,
 				991A515928280185006CAFF6 /* Mapper_NROM.swift in Sources */,
 				996F42FC253429F5001A31D2 /* NSManagedObject+DMCState.swift in Sources */,
@@ -866,7 +871,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9953246324B5A86D000E9DE7 /* Mapper_ColorDreams_GxROM.swift in Sources */,
+				9953246324B5A86D000E9DE7 /* Mapper_GxROM.swift in Sources */,
 				995D081625338860008AD907 /* NSManagedObject+ConsoleState.swift in Sources */,
 				99FA3CAA24A6F1120065E539 /* Mapper_AxROM.swift in Sources */,
 				99FA3CB724A6F12A0065E539 /* PPU.swift in Sources */,
@@ -888,6 +893,7 @@
 				995D080A25337C74008AD907 /* NSManagedObject+MapperState.swift in Sources */,
 				99FA3CAB24A6F1140065E539 /* Mapper_CNROM.swift in Sources */,
 				99FA3CBD24A6F1500065E539 /* SampleRate.swift in Sources */,
+				9937C34A2A3F84ED007A4CBA /* Mapper_ColorDreams.swift in Sources */,
 				99A2924C26CA00A500A4D79B /* Mapper_VRC2c_VRC4b_VRC4d.swift in Sources */,
 				99B45545281E0A36006BFF3B /* Mapper_87.swift in Sources */,
 				99B45548281E39DC006BFF3B /* Mapper_78.swift in Sources */,

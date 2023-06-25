@@ -30,6 +30,13 @@ import os
 
 struct Mapper_MMC5: MapperProtocol
 {
+    static private let prgRamBytes: Int = 1024 * 128
+    static private let extendedRamBytes: Int = 1024
+    static private let onboardVRamPageBytes: Int = 1024
+    static private let numNameTableModes: Int = 4
+    static private let numPrgBanks: Int = 4
+    static private let numChrBanks: Int = 12
+    
     enum NameTableMode: UInt8
     {
         case
@@ -50,13 +57,13 @@ struct Mapper_MMC5: MapperProtocol
     
     let hasExtendedNametableMapping: Bool = true
     
-    var mirroringMode: MirroringMode
+    private(set) var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
-    private var prg: [UInt8] = []
+    private let prg: [UInt8]
     
     /// linear 1D array of all CHR blocks
-    private var chr: [UInt8] = []
+    private let chr: [UInt8]
     
     /// 0 - 3
     private var prgMode: UInt8 = 2
@@ -74,7 +81,7 @@ struct Mapper_MMC5: MapperProtocol
     private var fillModeColor: UInt8 = 0
     
     /// NameTable modes for PPU $2000-$23FF, $2400-$27FF, $2800-$2BFF, and $2C00-$2FFF
-    private var nameTableModes: [NameTableMode] = [NameTableMode].init(repeating: NameTableMode.onboardVRAMPage0, count: 4)
+    private var nameTableModes: [NameTableMode] = [NameTableMode](repeating: NameTableMode.onboardVRAMPage0, count: 4)
     
     private var verticalSplitScreenSide: Bool = false
     private var verticalSplitScreenMode: Bool = false
@@ -82,15 +89,15 @@ struct Mapper_MMC5: MapperProtocol
     /// 0 - 31
     private var verticalSplitStartStopTile: UInt8 = 0
     
-    /// 0 - 15 - select an 8KB range of SRAM within the 128KB total SRAM
-    private var sramBank: UInt8 = 0
+    /// 0 - 15 - select an 8KB range of SRAM within the 128KB total PRG RAM
+    private var prgRamBank: UInt8 = 0
     
-    /// 128KB of SRAM addressible through 0x6000 ... 0x7FFF or 0x8000 ... 0xDFFF, 8KB bank-switched
-    private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 1024 * 128)
+    /// 128KB of PRG RAM addressible through 0x6000 ... 0x7FFF or 0x8000 ... 0xDFFF, 8KB bank-switched
+    private var prgRam: [UInt8] = [UInt8](repeating: 0, count: Self.prgRamBytes)
     
-    private var extendedRam: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
-    private var onboardVRamPage0: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
-    private var onboardVRamPage1: [UInt8] = [UInt8].init(repeating: 0, count: 1024)
+    private var extendedRam: [UInt8] = [UInt8](repeating: 0, count: Self.extendedRamBytes)
+    private var onboardVRamPage0: [UInt8] = [UInt8](repeating: 0, count: Self.onboardVRamPageBytes)
+    private var onboardVRamPage1: [UInt8] = [UInt8](repeating: 0, count: Self.onboardVRamPageBytes)
     private var reg5203Value: UInt8 = 0
     private var inFrameFlag: Bool = false
     private var irqEnableFlag: Bool = false
@@ -101,16 +108,36 @@ struct Mapper_MMC5: MapperProtocol
     /// becomes set at any time that the internal scanline counter matches the value written to register $5203
     private var pendingIRQFlag: Bool = false
     
-    private var prgOffsets: [Int] = [Int].init(repeating: 0, count: 4)
-    private var chrOffsets: [Int] = [Int].init(repeating: 0, count: 12)
+    private var prgOffsets: [Int] = [Int](repeating: 0, count: Self.numPrgBanks)
+    private var chrOffsets: [Int] = [Int](repeating: 0, count: Self.numChrBanks)
+    private var isPrgRamOffset: [Bool] = [Bool](repeating: false, count: Self.numPrgBanks)
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        if let safeState: MapperState = aState
+        var c: [UInt8] = []
+        var p: [UInt8] = []
+        
+        for pBlock in aCartridge.prgBlocks
+        {
+            p.append(contentsOf: pBlock)
+        }
+        
+        for cBlock in aCartridge.chrBlocks
+        {
+            c.append(contentsOf: cBlock)
+        }
+        
+        self.prg = p
+        self.chr = c
+        
+        if let safeState: MapperState = aState,
+           safeState.ints.count >= Self.numPrgBanks + Self.numChrBanks,
+           safeState.bools.count >= 8,
+           safeState.uint8s.count >= Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes + Self.onboardVRamPageBytes + Self.numNameTableModes + 8
         {
             self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
-            self.prgOffsets = [Int](safeState.ints[0 ..< self.prgOffsets.count])
-            self.chrOffsets = [Int](safeState.ints[self.prgOffsets.count ..< self.prgOffsets.count + self.chrOffsets.count])
+            self.prgOffsets = [Int](safeState.ints[0 ..< Self.numPrgBanks])
+            self.chrOffsets = [Int](safeState.ints[Self.numPrgBanks ..< Self.numPrgBanks + Self.numChrBanks])
             self.verticalSplitScreenSide = safeState.bools[0]
             self.verticalSplitScreenMode = safeState.bools[1]
             self.inFrameFlag = safeState.bools[2]
@@ -118,39 +145,30 @@ struct Mapper_MMC5: MapperProtocol
             self.upperChrBankSet = safeState.bools[4]
             self.sprite8x16ModeEnable = safeState.bools[5]
             self.pendingIRQFlag = safeState.bools[6]
-            self.sram = [UInt8](safeState.uint8s[0 ..< self.sram.count])
-            self.extendedRam = [UInt8](safeState.uint8s[self.sram.count ..< self.sram.count + self.extendedRam.count])
-            self.onboardVRamPage0 = [UInt8](safeState.uint8s[self.sram.count + self.extendedRam.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count])
-            self.onboardVRamPage1 = [UInt8](safeState.uint8s[self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count])
-            let ntModesU8: [UInt8] = [UInt8](safeState.uint8s[self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count + self.nameTableModes.count])
+            self.hBlank = safeState.bools[7]
+            self.prgRam = [UInt8](safeState.uint8s[0 ..< Self.prgRamBytes])
+            self.extendedRam = [UInt8](safeState.uint8s[Self.prgRamBytes ..< Self.prgRamBytes + Self.extendedRamBytes])
+            self.onboardVRamPage0 = [UInt8](safeState.uint8s[Self.prgRamBytes + Self.extendedRamBytes ..< Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes])
+            self.onboardVRamPage1 = [UInt8](safeState.uint8s[Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes ..< Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes + Self.onboardVRamPageBytes])
+            let ntModesU8: [UInt8] = [UInt8](safeState.uint8s[Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes + Self.onboardVRamPageBytes ..< Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes + Self.onboardVRamPageBytes + Self.numNameTableModes])
             self.nameTableModes = ntModesU8.map({ NameTableMode(rawValue: $0) ?? .onboardVRAMPage0 })
-            let offsetToIndividualUInt8s: Int = self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count + self.nameTableModes.count
+            let offsetToIndividualUInt8s: Int = Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes + Self.onboardVRamPageBytes + Self.numNameTableModes
             self.prgMode = safeState.uint8s[offsetToIndividualUInt8s]
             self.chrMode = safeState.uint8s[offsetToIndividualUInt8s + 1]
             self.extendedRamMode = safeState.uint8s[offsetToIndividualUInt8s + 2]
             self.fillModeTile = safeState.uint8s[offsetToIndividualUInt8s + 3]
             self.fillModeColor = safeState.uint8s[offsetToIndividualUInt8s + 4]
             self.verticalSplitStartStopTile = safeState.uint8s[offsetToIndividualUInt8s + 5]
-            self.sramBank = safeState.uint8s[offsetToIndividualUInt8s + 6]
+            self.prgRamBank = safeState.uint8s[offsetToIndividualUInt8s + 6]
             self.reg5203Value = safeState.uint8s[offsetToIndividualUInt8s + 7]
-            self.chr = safeState.chr
         }
         else
         {
             self.mirroringMode = aCartridge.header.mirroringMode
-            for c in aCartridge.chrBlocks
-            {
-                self.chr.append(contentsOf: c)
-            }
             self.prgOffsets[0] = (aCartridge.prgBlocks.count - 1) * 16384
             self.prgOffsets[1] = (aCartridge.prgBlocks.count - 1) * 16384 + 8192
             self.prgOffsets[2] = (aCartridge.prgBlocks.count - 1) * 16384 + 8192
             self.prgOffsets[3] = (aCartridge.prgBlocks.count - 1) * 16384
-        }
-        
-        for p in aCartridge.prgBlocks
-        {
-            self.prg.append(contentsOf: p)
         }
     }
     
@@ -160,7 +178,7 @@ struct Mapper_MMC5: MapperProtocol
         {
             let ntModesU8: [UInt8] = self.nameTableModes.map({ $0.rawValue })
             var u8: [UInt8] = []
-            u8.append(contentsOf: self.sram)
+            u8.append(contentsOf: self.prgRam)
             u8.append(contentsOf: self.extendedRam)
             u8.append(contentsOf: self.onboardVRamPage0)
             u8.append(contentsOf: self.onboardVRamPage1)
@@ -171,21 +189,38 @@ struct Mapper_MMC5: MapperProtocol
             u8.append(self.fillModeTile)
             u8.append(self.fillModeColor)
             u8.append(self.verticalSplitStartStopTile)
-            u8.append(self.sramBank)
+            u8.append(self.prgRamBank)
             u8.append(self.reg5203Value)
             
-            return MapperState(mirroringMode: self.mirroringMode.rawValue,
-                        ints:
-                            self.prgOffsets + self.chrOffsets,
-                        bools:
-                            [self.verticalSplitScreenSide, self.verticalSplitScreenMode, self.inFrameFlag, self.irqEnableFlag, self.upperChrBankSet, self.sprite8x16ModeEnable, self.pendingIRQFlag],
-                        uint8s: u8, chr: self.chr)
+            return MapperState(
+                mirroringMode: self.mirroringMode.rawValue,
+                ints: self.prgOffsets + self.chrOffsets,
+                bools: [
+                    self.verticalSplitScreenSide,
+                    self.verticalSplitScreenMode,
+                    self.inFrameFlag,
+                    self.irqEnableFlag,
+                    self.upperChrBankSet,
+                    self.sprite8x16ModeEnable,
+                    self.pendingIRQFlag,
+                    self.hBlank
+                ],
+                uint8s: u8,
+                chr: []
+            )
         }
         set
         {
+            guard newValue.ints.count >= self.prgOffsets.count + self.chrOffsets.count,
+                  newValue.bools.count >= 8,
+                  newValue.uint8s.count >= Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes + Self.onboardVRamPageBytes + Self.numNameTableModes + 8
+            else
+            {
+                return
+            }
             self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
-            self.prgOffsets = [Int](newValue.ints[0 ..< self.prgOffsets.count])
-            self.chrOffsets = [Int](newValue.ints[self.prgOffsets.count ..< self.prgOffsets.count + self.chrOffsets.count])
+            self.prgOffsets = [Int](newValue.ints[0 ..< Self.numPrgBanks])
+            self.chrOffsets = [Int](newValue.ints[Self.numPrgBanks ..< Self.numPrgBanks + Self.numChrBanks])
             self.verticalSplitScreenSide = newValue.bools[0]
             self.verticalSplitScreenMode = newValue.bools[1]
             self.inFrameFlag = newValue.bools[2]
@@ -193,22 +228,22 @@ struct Mapper_MMC5: MapperProtocol
             self.upperChrBankSet = newValue.bools[4]
             self.sprite8x16ModeEnable = newValue.bools[5]
             self.pendingIRQFlag = newValue.bools[6]
-            self.sram = [UInt8](newValue.uint8s[0 ..< self.sram.count])
-            self.extendedRam = [UInt8](newValue.uint8s[self.sram.count ..< self.sram.count + self.extendedRam.count])
-            self.onboardVRamPage0 = [UInt8](newValue.uint8s[self.sram.count + self.extendedRam.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count])
-            self.onboardVRamPage1 = [UInt8](newValue.uint8s[self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count])
-            let ntModesU8: [UInt8] = [UInt8](newValue.uint8s[self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count ..< self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count + self.nameTableModes.count])
+            self.hBlank = newValue.bools[7]
+            self.prgRam = [UInt8](newValue.uint8s[0 ..< Self.prgRamBytes])
+            self.extendedRam = [UInt8](newValue.uint8s[Self.prgRamBytes ..< Self.prgRamBytes + Self.extendedRamBytes])
+            self.onboardVRamPage0 = [UInt8](newValue.uint8s[Self.prgRamBytes + Self.extendedRamBytes ..< Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes])
+            self.onboardVRamPage1 = [UInt8](newValue.uint8s[Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes ..< Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes + Self.onboardVRamPageBytes])
+            let ntModesU8: [UInt8] = [UInt8](newValue.uint8s[Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes + Self.onboardVRamPageBytes ..< Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes + Self.onboardVRamPageBytes + Self.numNameTableModes])
             self.nameTableModes = ntModesU8.map({ NameTableMode(rawValue: $0) ?? .onboardVRAMPage0 })
-            let offsetToIndividualUInt8s: Int = self.sram.count + self.extendedRam.count + self.onboardVRamPage0.count + self.onboardVRamPage1.count + self.nameTableModes.count
+            let offsetToIndividualUInt8s: Int = Self.prgRamBytes + Self.extendedRamBytes + Self.onboardVRamPageBytes + Self.onboardVRamPageBytes + Self.numNameTableModes
             self.prgMode = newValue.uint8s[offsetToIndividualUInt8s]
             self.chrMode = newValue.uint8s[offsetToIndividualUInt8s + 1]
             self.extendedRamMode = newValue.uint8s[offsetToIndividualUInt8s + 2]
             self.fillModeTile = newValue.uint8s[offsetToIndividualUInt8s + 3]
             self.fillModeColor = newValue.uint8s[offsetToIndividualUInt8s + 4]
             self.verticalSplitStartStopTile = newValue.uint8s[offsetToIndividualUInt8s + 5]
-            self.sramBank = newValue.uint8s[offsetToIndividualUInt8s + 6]
+            self.prgRamBank = newValue.uint8s[offsetToIndividualUInt8s + 6]
             self.reg5203Value = newValue.uint8s[offsetToIndividualUInt8s + 7]
-            self.chr = newValue.chr
         }
     }
     
@@ -232,7 +267,14 @@ struct Mapper_MMC5: MapperProtocol
                 /// $C000-$FFFF: 16 KB switchable PRG ROM bank
                 let bank: Int = Int(aAddress - 0x8000) / 0x4000
                 let offset: Int = Int(aAddress % 0x4000)
-                return self.prg[self.prgOffsets[bank] + offset]
+                if self.isPrgRamOffset[bank]
+                {
+                    return self.prgRam[self.prgOffsets[bank] + offset]
+                }
+                else
+                {
+                    return self.prg[self.prgOffsets[bank] + offset]
+                }
             case 2:
                 /// CPU $8000-$BFFF: 16 KB switchable PRG ROM/RAM bank
                 /// CPU $C000-$DFFF: 8 KB switchable PRG ROM/RAM bank
@@ -240,11 +282,32 @@ struct Mapper_MMC5: MapperProtocol
                 switch aAddress
                 {
                 case 0x8000 ... 0xBFFF:
-                    return self.prg[self.prgOffsets[0] + Int(aAddress - 0x8000)]
+                    if self.isPrgRamOffset[0]
+                    {
+                        return self.prgRam[self.prgOffsets[0] + Int(aAddress - 0x8000)]
+                    }
+                    else
+                    {
+                        return self.prg[self.prgOffsets[0] + Int(aAddress - 0x8000)]
+                    }
                 case 0xC000 ... 0xDFFF:
-                    return self.prg[self.prgOffsets[1] + Int(aAddress - 0xC000)]
+                    if self.isPrgRamOffset[1]
+                    {
+                        return self.prgRam[self.prgOffsets[1] + Int(aAddress - 0xC000)]
+                    }
+                    else
+                    {
+                        return self.prg[self.prgOffsets[1] + Int(aAddress - 0xC000)]
+                    }
                 case 0xE000 ... 0xFFFF:
-                    return self.prg[self.prgOffsets[2] + Int(aAddress - 0xE000)]
+                    if self.isPrgRamOffset[2]
+                    {
+                        return self.prgRam[self.prgOffsets[2] + Int(aAddress - 0xE000)]
+                    }
+                    else
+                    {
+                        return self.prg[self.prgOffsets[2] + Int(aAddress - 0xE000)]
+                    }
                 default:
                     return 0
                 }
@@ -255,7 +318,14 @@ struct Mapper_MMC5: MapperProtocol
                 /// CPU $E000-$FFFF: 8 KB switchable PRG ROM bank
                 let bank: Int = Int(aAddress - 0x8000) / 0x2000
                 let offset: Int = Int(aAddress % 0x2000)
-                return self.prg[self.prgOffsets[bank] + offset]
+                if self.isPrgRamOffset[bank]
+                {
+                    return self.prgRam[self.prgOffsets[bank] + offset]
+                }
+                else
+                {
+                    return self.prg[self.prgOffsets[bank] + offset]
+                }
             default:
                 return 0
             }
@@ -282,8 +352,8 @@ struct Mapper_MMC5: MapperProtocol
             default:
                 return 0
             }
-        case 0x6000 ... 0x7FFF: /// SRAM
-            return self.sram[(Int(self.sramBank) * 0x2000) + (Int(aAddress) - 0x6000)]
+        case 0x6000 ... 0x7FFF: /// PRG RAM
+            return self.prgRam[(Int(self.prgRamBank) * 0x2000) + (Int(aAddress) - 0x6000)]
         default:
             os_log("unhandled Mapper_MMC5 CPU read at address: 0x%04X", aAddress)
             return 0
@@ -299,13 +369,19 @@ struct Mapper_MMC5: MapperProtocol
             {
             case 0:
                 /// 32KB switchable PRG ROM
-                self.prg[self.prgOffsets[0] + Int(aAddress - 0x8000)] = aValue
+                break
             case 1:
                 /// $8000-$BFFF: 16 KB switchable PRG ROM / RAM bank
                 /// $C000-$FFFF: 16 KB switchable PRG ROM bank
-                let bank: Int = Int(aAddress - 0x8000) / 0x4000
-                let offset: Int = Int(aAddress % 0x4000)
-                self.prg[self.prgOffsets[bank] + offset] = aValue
+                switch aAddress
+                {
+                case 0x8000 ... 0xBFFF:
+                    if self.isPrgRamOffset[0]
+                    {
+                        self.prgRam[self.prgOffsets[0] + Int(aAddress - 0x8000)] = aValue
+                    }
+                default: break
+                }
             case 2:
                 /// CPU $8000-$BFFF: 16 KB switchable PRG ROM/RAM bank
                 /// CPU $C000-$DFFF: 8 KB switchable PRG ROM/RAM bank
@@ -313,11 +389,15 @@ struct Mapper_MMC5: MapperProtocol
                 switch aAddress
                 {
                 case 0x8000 ... 0xBFFF:
-                    self.prg[self.prgOffsets[0] + Int(aAddress - 0x8000)] = aValue
+                    if self.isPrgRamOffset[0]
+                    {
+                        self.prgRam[self.prgOffsets[0] + Int(aAddress - 0x8000)] = aValue
+                    }
                 case 0xC000 ... 0xDFFF:
-                    self.prg[self.prgOffsets[1] + Int(aAddress - 0xC000)] = aValue
-                case 0xE000 ... 0xFFFF:
-                    self.prg[self.prgOffsets[2] + Int(aAddress - 0xE000)] = aValue
+                    if self.isPrgRamOffset[1]
+                    {
+                        self.prgRam[self.prgOffsets[1] + Int(aAddress - 0xC000)] = aValue
+                    }
                 default:
                     break
                 }
@@ -326,14 +406,31 @@ struct Mapper_MMC5: MapperProtocol
                 /// CPU $A000-$BFFF: 8 KB switchable PRG ROM/RAM bank
                 /// CPU $C000-$DFFF: 8 KB switchable PRG ROM/RAM bank
                 /// CPU $E000-$FFFF: 8 KB switchable PRG ROM bank
-                let bank: Int = Int(aAddress - 0x8000) / 0x2000
-                let offset: Int = Int(aAddress % 0x2000)
-                self.prg[self.prgOffsets[bank] + offset] = aValue
+                switch aAddress
+                {
+                case 0x8000 ... 0x9FFF:
+                    if self.isPrgRamOffset[0]
+                    {
+                        self.prgRam[self.prgOffsets[0] + Int(aAddress - 0x8000)] = aValue
+                    }
+                case 0xA000 ... 0xBFFF:
+                    if self.isPrgRamOffset[1]
+                    {
+                        self.prgRam[self.prgOffsets[1] + Int(aAddress - 0xA000)] = aValue
+                    }
+                case 0xC000 ... 0xDFFF:
+                    if self.isPrgRamOffset[2]
+                    {
+                        self.prgRam[self.prgOffsets[2] + Int(aAddress - 0xC000)] = aValue
+                    }
+                default:
+                    break
+                }
             default:
                 break
             }
         case 0x6000 ... 0x7FFF: /// SRAM
-            self.sram[(Int(self.sramBank) * 0x2000) + (Int(aAddress) - 0x6000)] = aValue
+            self.prgRam[(Int(self.prgRamBank) * 0x2000) + (Int(aAddress) - 0x6000)] = aValue
         case 0x5000 ... 0x5015:
             // TODO: this might be used by Castlevania 3 (for APU-related function?). Investigate
             break
@@ -437,43 +534,92 @@ struct Mapper_MMC5: MapperProtocol
         ///Modes 0-2 : The bankswitching registers always hold a value of 8kb bank index numbers. When selecting banks of a "larger" size (16 kb or 32kb), the low bits in the bankswitching register are ignored. In other words, the address lines from the CPU are passed through the mapper directly to the PRG-ROM chip.
         ///Games seem to expect $5117 to be $FF at power on. All games have their reset vector in the last bank of PRG ROM, and the vector points to an address greater than or equal to $E000.
         case 0x5113:
-            self.sramBank = aValue & 0x0F // get 4 low bits (0 - 15)
+            self.prgRamBank = aValue & 0x0F // get 4 low bits (0 - 15)
         case 0x5114:
             switch self.prgMode
             {
-            // TODO: implement other PRG modes
+            case 0:
+                break /// prg mode 0: (unused)
+            case 1:
+                break /// prg mode 1: (unused)
             case 2:
                 break /// prg mode 2: (unused)
+            case 3: /// prg mode 3: CPU $8000-$9FFF: 8 KB switchable PRG ROM/RAM bank
+                let isPrgRam = aValue >> 7 & 0x01 == 0
+                let bank: Int = Int(aValue & (isPrgRam ? 0x0F : 0x7F)) /// get low 7 bits for ROM (0 - 127), or low 4 bits for RAM (0 - 15)
+                self.prgOffsets[0] = 8192 * bank
+                self.isPrgRamOffset[0] = isPrgRam
+                break
             default:
                 break
             }
         case 0x5115:
             switch self.prgMode
             {
-            // TODO: implement other PRG modes
-            case 2: /// prg mode 2: CPU $8000-$BFFF: 16 KB switchable PRG ROM/RAM bank, indexed from an even multiple of 8KB offset
-                let bank: Int = Int(aValue & 0x7F) & ~0x1 // get low 7 bits (0 - 127) and round down to even number
+            case 0:
+                break /// prg mode 0: (unused)
+            case 1: /// $8000-$BFFF: 16 KB switchable PRG ROM / RAM bank
+                let isPrgRam = aValue >> 7 & 0x01 == 0
+                let bank: Int = Int(aValue & (isPrgRam ? 0x0E : 0x7E)) /// get low 7 bits for ROM (0 - 127), or low 4 bits for RAM (0 - 15). since this is a 16KB offset, round down to nearest multiple of 2
                 self.prgOffsets[0] = 8192 * bank
+                self.isPrgRamOffset[0] = isPrgRam
+                break
+            case 2: /// prg mode 2: CPU $8000-$BFFF: 16 KB switchable PRG ROM/RAM bank, indexed from an even multiple of 8KB offset
+                let isPrgRam = aValue >> 7 & 0x01 == 0
+                let bank: Int = Int(aValue & (isPrgRam ? 0x0E : 0x7E)) /// get low 7 bits for ROM (0 - 127), or low 4 bits for RAM (0 - 15),  since this is a 16KB offset, round down to nearest multiple of 2
+                self.prgOffsets[0] = 8192 * bank
+                self.isPrgRamOffset[0] = isPrgRam
+            case 3: /// prg mode 3: CPU $A000-$BFFF: 8 KB switchable PRG ROM/RAM bank
+                let isPrgRam = aValue >> 7 & 0x01 == 0
+                let bank: Int = Int(aValue & (isPrgRam ? 0x0F : 0x7F)) /// get low 7 bits for ROM (0 - 127), or low 4 bits for RAM (0 - 15)
+                self.prgOffsets[1] = 8192 * bank
+                self.isPrgRamOffset[1] = isPrgRam
+                break
             default:
                 break
             }
         case 0x5116:
             switch self.prgMode
             {
-            // TODO: implement other PRG modes
+            case 0:
+                break /// prg mode 0: (unused)
+            case 1:
+                break /// prg mode 1: (unused)
             case 2: /// prg mode 2: CPU $C000-$DFFF: 8 KB switchable PRG ROM/RAM bank
-                let bank: Int = Int(aValue & 0x7F) // get low 7 bits (0 - 127)
+                let isPrgRam = aValue >> 7 & 0x01 == 0
+                let bank: Int = Int(aValue & (isPrgRam ? 0x0F : 0x7F)) /// get low 7 bits for ROM (0 - 127), or low 4 bits for RAM (0 - 15)
                 self.prgOffsets[1] = 8192 * bank
+                self.isPrgRamOffset[1] = isPrgRam
+            case 3: /// prg mode 3: CPU $C000-$DFFF: 8 KB switchable PRG ROM/RAM bank
+                let isPrgRam = aValue >> 7 & 0x01 == 0
+                let bank: Int = Int(aValue & (isPrgRam ? 0x0F : 0x7F)) /// get low 7 bits for ROM (0 - 127), or low 4 bits for RAM (0 - 15)
+                self.prgOffsets[2] = 8192 * bank
+                self.isPrgRamOffset[2] = isPrgRam
+                break
             default:
                 break
             }
         case 0x5117:
             switch self.prgMode
             {
-            // TODO: implement other PRG modes
+            case 0: /// prg mode 0: 32KB switchable PRG ROM
+                let bank: Int = Int(aValue & 0x7C) /// get low 7 bits for ROM (0 - 127). since this is a 32KB offset, round down to nearest multiple of 4
+                self.prgOffsets[0] = 8192 * bank
+                self.isPrgRamOffset[0] = false
+            case 1: /// prg mode 1: $C000-$FFFF: 16 KB switchable PRG ROM bank
+                let bank: Int = Int(aValue & 0x7E) /// get low 7 bits for ROM (0 - 127). since this is a 16KB offset, round down to nearest multiple of 2
+                self.prgOffsets[1] = 8192 * bank
+                self.isPrgRamOffset[1] = false
+                break
             case 2: /// prg mode 2: CPU $E000-$FFFF: 8 KB switchable PRG ROM bank
-                let bank: Int = Int(aValue & 0x7F) // get low 7 bits (0 - 127)
+                let bank: Int = Int(aValue & 0x7F) /// get low 7 bits (0 - 127)
                 self.prgOffsets[2] = 8192 * bank
+                self.isPrgRamOffset[2] = false
+            case 3: /// prg mode 3: CPU $E000-$FFFF: 8 KB switchable PRG ROM bank
+                let bank: Int = Int(aValue & 0x7F) /// get low 7 bits (0 - 127)
+                self.prgOffsets[3] = 8192 * bank
+                self.isPrgRamOffset[3] = false
+                break
             default:
                 break
             }
@@ -484,8 +630,37 @@ struct Mapper_MMC5: MapperProtocol
             }
             switch self.chrMode
             {
-            // TODO: implement other CHR modes
+            case 0:
+                switch aAddress
+                {
+                case 0x5127: // 8KB CHR bank at PPU 0x0000 .... 0x1FFF
+                    self.chrOffsets[0] = Int(aValue & 0x7F) * 8192
+                default: break
+                }
+            case 1:
+                switch aAddress
+                {
+                case 0x5123: // 4KB CHR bank at PPU 0x0000 .... 0x0FFF
+                    self.chrOffsets[0] = Int(aValue) * 4096
+                case 0x5127: // 4KB CHR bank at PPU 0x1000 .... 0x1FFF
+                    self.chrOffsets[1] = Int(aValue) * 4096
+                default: break
+                }
+            case 2:
+                switch aAddress
+                {
+                case 0x5121: // 2KB CHR bank at PPU 0x0000 .... 0x07FF
+                    self.chrOffsets[0] = Int(aValue) * 4096
+                case 0x5123: // 2KB CHR bank at PPU 0x0800 .... 0x0FFF
+                    self.chrOffsets[1] = Int(aValue) * 4096
+                case 0x5125: // 2KB CHR bank at PPU 0x1000 .... 0x07FF
+                    self.chrOffsets[2] = Int(aValue) * 4096
+                case 0x5127: // 2KB CHR bank at PPU 0x1800 .... 0x1FFF
+                    self.chrOffsets[3] = Int(aValue) * 4096
+                default: break
+                }
             case 3:
+                // Eight 1KB CHR Banks within 8KB window of PPU 0x0000 ... 0x2000
                 self.chrOffsets[Int(aAddress - 0x5120)] = Int(aValue) * 1024
             default:
                 break
@@ -592,7 +767,7 @@ struct Mapper_MMC5: MapperProtocol
                 let offset: Int = Int(aAddress % 0x0800)
                 return self.chr[self.chrOffsets[bank] + offset]
             case 3:
-                if self.upperChrBankSet// && self.sprite8x16ModeEnable
+                if self.upperChrBankSet
                 {
                     let adjustedAddress: UInt16 = aAddress % 0x1000
                     let bank: Int = 8 + Int(adjustedAddress / 0x0400)
@@ -652,51 +827,8 @@ struct Mapper_MMC5: MapperProtocol
     {
         switch aAddress
         {
-            case 0x0000 ...  0x1FFF:
-            switch self.chrMode
-            {
-            case 0:
-                /// $0000-$1FFF: 8 KB switchable CHR bank
-                self.chr[self.chrOffsets[0] + Int(aAddress)] = aValue
-            case 1:
-                /// $0000-$0FFF: 4 KB switchable CHR bank
-                /// $1000-$1FFF: 4 KB switchable CHR bank
-                let bank: Int = Int(aAddress / 0x1000)
-                let offset: Int = Int(aAddress % 0x1000)
-                self.chr[self.chrOffsets[bank] + offset] = aValue
-            case 2:
-                /// $0000-$07FF: 2 KB switchable CHR bank
-                /// $0800-$0FFF: 2 KB switchable CHR bank
-                /// $1000-$17FF: 2 KB switchable CHR bank
-                /// $1800-$1FFF: 2 KB switchable CHR bank
-                let bank: Int = Int(aAddress / 0x0800)
-                let offset: Int = Int(aAddress % 0x0800)
-                self.chr[self.chrOffsets[bank] + offset] = aValue
-            case 3:
-                if self.upperChrBankSet// && self.sprite8x16ModeEnable
-                {
-                    let adjustedAddress: UInt16 = aAddress % 0x1000
-                    let bank: Int = 8 + Int(adjustedAddress / 0x0400)
-                    let offset: Int = Int(aAddress % 0x0400)
-                    self.chr[self.chrOffsets[bank] + offset] = aValue
-                }
-                else
-                {
-                    /// $0000-$03FF: 1 KB switchable CHR bank
-                    /// $0400-$07FF: 1 KB switchable CHR bank
-                    /// $0800-$0BFF: 1 KB switchable CHR bank
-                    /// $0C00-$0FFF: 1 KB switchable CHR bank
-                    /// $1000-$13FF: 1 KB switchable CHR bank
-                    /// $1400-$17FF: 1 KB switchable CHR bank
-                    /// $1800-$1BFF: 1 KB switchable CHR bank
-                    /// $1C00-$1FFF: 1 KB switchable CHR bank
-                    let bank: Int = Int(aAddress / 0x0400)
-                    let offset: Int = Int(aAddress % 0x0400)
-                    self.chr[self.chrOffsets[bank] + offset] = aValue
-                }
-            default:
-                break
-            }
+        case 0x0000 ...  0x1FFF:
+            break
         case 0x2000 ... 0x2FFF:
 
             let nameTableMapIndex: Int = Int(aAddress - 0x2000) / 0x400

@@ -32,7 +32,7 @@ struct Mapper_MMC2: MapperProtocol
     
     let hasExtendedNametableMapping: Bool = false
     
-    var mirroringMode: MirroringMode
+    private(set) var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
     private let prg: [UInt8]
@@ -49,6 +49,9 @@ struct Mapper_MMC2: MapperProtocol
     private var chrBanks2: [Int]
     private var prgBank1: Int // switch between different 8KB PRG Banks
     private let prgBank2: Int // fixed to last 3x 8KB PRG banks
+    
+    private let max8KBPrgBankIndex: UInt8
+    private let max4KBChrBankIndex: UInt8
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
@@ -90,6 +93,8 @@ struct Mapper_MMC2: MapperProtocol
         }
         
         self.prgBank2 = max((aCartridge.prgBlocks.count * 16384) - (3 * 8192), 0)
+        self.max8KBPrgBankIndex = UInt8((aCartridge.prgBlocks.count * 2) - 1) & 0x0F
+        self.max4KBChrBankIndex = UInt8((aCartridge.chrBlocks.count * 2) - 1) & 0x1F
     }
     
     var mapperState: MapperState
@@ -131,15 +136,15 @@ struct Mapper_MMC2: MapperProtocol
         switch aAddress
         {
         case 0xA000 ..< 0xB000: // select 8KB PRG Bank 0-15 xxxxPPPP for CPU 0x8000-0x9FFF
-            self.prgBank1 = Int(aValue & 0x0F)
+            self.prgBank1 = Int(aValue & self.max8KBPrgBankIndex)
         case 0xB000 ..< 0xC000: // Select 4 KB CHR ROM bank 1 0-31 xxxCCCCC for PPU $0000-$0FFF
-            self.chrBanks1[0] = Int(aValue & 0x1F)
+            self.chrBanks1[0] = Int(aValue & self.max4KBChrBankIndex)
         case 0xC000 ..< 0xD000: // Select 4 KB CHR ROM bank 1 0-31 xxxCCCCC for PPU $0000-$0FFF
-            self.chrBanks1[1] = Int(aValue & 0x1F)
+            self.chrBanks1[1] = Int(aValue & self.max4KBChrBankIndex)
         case 0xD000 ..< 0xE000: // Select 4 KB CHR ROM bank 2 0-31 xxxCCCCC for PPU $1000-$1FFF when latch2 == 1
-            self.chrBanks2[0] = Int(aValue & 0x1F)
+            self.chrBanks2[0] = Int(aValue & self.max4KBChrBankIndex)
         case 0xE000 ..< 0xF000: // Select 4 KB CHR ROM bank 2 0-31 xxxCCCCC for PPU $1000-$1FFF
-            self.chrBanks2[1] = Int(aValue & 0x1F)
+            self.chrBanks2[1] = Int(aValue & self.max4KBChrBankIndex)
         case 0xF000 ... 0xFFFF:
             self.mirroringMode = (aValue & 0x01) == 0 ? .vertical : .horizontal
         default:
