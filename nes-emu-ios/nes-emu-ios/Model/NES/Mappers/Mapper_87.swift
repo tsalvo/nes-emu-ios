@@ -35,41 +35,44 @@ struct Mapper_87: MapperProtocol
     let mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
-    private var prg: [UInt8] = []
+    private let prg: [UInt8]
     
     /// linear 1D array of all CHR blocks
-    private var chr: [UInt8] = []
+    private let chr: [UInt8]
     
     private var chrBank: Int
+    private let max8KBChrBankIndex: UInt8
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
-        if let safeState = aState
+        var c: [UInt8] = []
+        var p: [UInt8] = []
+        
+        for pBlock in aCartridge.prgBlocks
+        {
+            p.append(contentsOf: pBlock)
+        }
+        
+        for cBlock in aCartridge.chrBlocks
+        {
+            c.append(contentsOf: cBlock)
+        }
+        
+        self.prg = p
+        self.chr = c
+        
+        self.max8KBChrBankIndex = UInt8(max(0, aCartridge.chrBlocks.count - 1)) & 0x03
+        
+        if let safeState = aState,
+           safeState.ints.count >= 1
         {
             self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
-            self.chrBank = safeState.ints[safe: 0] ?? 0
-            self.chr = safeState.chr
+            self.chrBank = safeState.ints[0]
         }
         else
         {
             self.mirroringMode = aCartridge.header.mirroringMode
             self.chrBank = 0
-            
-            for c in aCartridge.chrBlocks
-            {
-                self.chr.append(contentsOf: c)
-            }
-        }
-        
-        for p in aCartridge.prgBlocks
-        {
-            self.prg.append(contentsOf: p)
-        }
-        
-        if self.chr.count == 0
-        {
-            // use a block for CHR RAM if no block exists
-            self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
         }
     }
     
@@ -77,12 +80,12 @@ struct Mapper_87: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.chrBank], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.chrBank], bools: [], uint8s: [], chr: [])
         }
         set
         {
-            self.chrBank = newValue.ints[safe: 0] ?? 0
-            self.chr = newValue.chr
+            guard newValue.ints.count >= 1 else { return }
+            self.chrBank = newValue.ints[0]
         }
     }
     
@@ -109,9 +112,7 @@ struct Mapper_87: MapperProtocol
           
             This reg selects 8k CHR @ $0000.  Note the reversed bit orders.  Most games using this mapper only have 16k CHR, so the 'H' bit is usually unused.
              */
-
-            self.chrBank = ((aValue >> 1) & 1 == 1 ? 1 : 0) + (aValue & 1 == 1 ? 2 : 0) // low bit 1 plus high bit 0
-            
+            self.chrBank = Int(((aValue << 1) & 0b00000010) | ((aValue >> 1) & 0b00000001) & self.max8KBChrBankIndex)
         default:
             os_log("unhandled Mapper_87 write at address: 0x%04X", aAddress)
             break
@@ -125,7 +126,7 @@ struct Mapper_87: MapperProtocol
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
-        self.chr[(self.chrBank * 0x2000) + Int(aAddress)] = aValue
+        
     }
     
     func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?

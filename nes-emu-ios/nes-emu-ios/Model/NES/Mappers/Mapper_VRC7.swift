@@ -35,7 +35,7 @@ struct Mapper_VRC7: MapperProtocol
     
     let hasExtendedNametableMapping: Bool = false
     
-    var mirroringMode: MirroringMode
+    private(set) var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
     private var prg: [UInt8] = []

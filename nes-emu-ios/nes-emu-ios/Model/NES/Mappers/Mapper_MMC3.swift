@@ -32,7 +32,7 @@ struct Mapper_MMC3: MapperProtocol
     
     let hasExtendedNametableMapping: Bool = false
     
-    var mirroringMode: MirroringMode
+    private(set) var mirroringMode: MirroringMode
     
     /// linear 1D array of all PRG blocks
     private let prg: [UInt8]
@@ -40,8 +40,11 @@ struct Mapper_MMC3: MapperProtocol
     /// linear 1D array of all CHR blocks
     private let chr: [UInt8]
     
+    /// 8KB of CHR RAM used if there is no CHR ROM onboard (used only on TNROM variant boards - Famicom only)
+    private var chrRam: [UInt8]
+    
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF
-    private var sram: [UInt8] = [UInt8].init(repeating: 0, count: 8192)
+    private var sram: [UInt8]
     
     private var register: UInt8
     private var registers: [UInt8]
@@ -52,6 +55,7 @@ struct Mapper_MMC3: MapperProtocol
     private var reload: UInt8
     private var counter: UInt8
     private var irqEnable: Bool
+    private let isChrRamEnabled: Bool
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
@@ -69,10 +73,11 @@ struct Mapper_MMC3: MapperProtocol
             chrRom.append(contentsOf: c)
         }
         
-        self.chr = chrRom.isEmpty ? [UInt8].init(repeating: 0, count: 8192) : chrRom
+        self.chr = chrRom
+        self.isChrRamEnabled = chrRom.isEmpty
         
         if let safeState = aState,
-           safeState.uint8s.count >= 8205,
+           safeState.uint8s.count >= 16397,
            safeState.bools.count >= 1,
            safeState.ints.count >= 12
         {
@@ -87,6 +92,7 @@ struct Mapper_MMC3: MapperProtocol
             self.reload = safeState.uint8s[11]
             self.counter = safeState.uint8s[12]
             self.sram = [UInt8](safeState.uint8s[13 ..< 8205])
+            self.chrRam = [UInt8](safeState.uint8s[8205 ..< 16397])
         }
         else
         {
@@ -101,6 +107,7 @@ struct Mapper_MMC3: MapperProtocol
             self.reload = 0
             self.counter = 0
             self.sram = [UInt8].init(repeating: 0, count: 8192)
+            self.chrRam = [UInt8].init(repeating: 0, count: 8192)
             
             self.prgOffsets[0] = self.prgBankOffset(index: 0)
             self.prgOffsets[1] = self.prgBankOffset(index: 1)
@@ -115,6 +122,7 @@ struct Mapper_MMC3: MapperProtocol
         {
             var u8s: [UInt8] = [self.register, self.registers[0], self.registers[1], self.registers[2], self.registers[3], self.registers[4], self.registers[5], self.registers[6], self.registers[7], self.prgMode, self.chrMode, self.reload, self.counter]
             u8s.append(contentsOf: self.sram)
+            u8s.append(contentsOf: self.chrRam)
             return MapperState(
                 mirroringMode: UInt8(self.mirroringMode.rawValue),
                 ints: [self.prgOffsets[0], self.prgOffsets[1], self.prgOffsets[2], self.prgOffsets[3], self.chrOffsets[0], self.chrOffsets[1], self.chrOffsets[2], self.chrOffsets[3], self.chrOffsets[4], self.chrOffsets[5], self.chrOffsets[6], self.chrOffsets[7]],
@@ -127,7 +135,7 @@ struct Mapper_MMC3: MapperProtocol
         {
             self.mirroringMode = MirroringMode.init(rawValue: Int(newValue.mirroringMode)) ?? self.mirroringMode
             
-            guard newValue.uint8s.count >= 8205,
+            guard newValue.uint8s.count >= 16397,
                   newValue.bools.count >= 1,
                   newValue.ints.count >= 12
             else
@@ -145,6 +153,7 @@ struct Mapper_MMC3: MapperProtocol
             self.reload = newValue.uint8s[11]
             self.counter = newValue.uint8s[12]
             self.sram = [UInt8](newValue.uint8s[13 ..< 8205])
+            self.chrRam = [UInt8](newValue.uint8s[8205 ..< 16397])
         }
     }
     
@@ -181,14 +190,24 @@ struct Mapper_MMC3: MapperProtocol
     
     func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
     {
-        let bank = aAddress / 0x0400
-        let offset = aAddress % 0x0400
-        return self.chr[self.chrOffsets[Int(bank)] + Int(offset)]
+        if self.isChrRamEnabled
+        {
+            return self.chrRam[Int(aAddress)]
+        }
+        else
+        {
+            let bank = aAddress / 0x0400
+            let offset = aAddress % 0x0400
+            return self.chr[self.chrOffsets[Int(bank)] + Int(offset)]
+        }
     }
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
-
+        if self.isChrRamEnabled
+        {
+            self.chrRam[Int(aAddress)] = aValue
+        }
     }
     
     mutating func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
@@ -215,73 +234,110 @@ struct Mapper_MMC3: MapperProtocol
 
     private mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)
     {
+        let isEven: Bool = aAddress & 0x0001 == 0
         switch aAddress
         {
         case 0x8000 ... 0x9FFF:
-            if aAddress % 2 == 0
+            switch isEven
             {
-                self.writeBankSelect(value: aValue)
-            }
-            else
-            {
-                self.writeBankData(value: aValue)
+            case true:
+                /*
+                 Bank select ($8000-$9FFE, even)
+                 7  bit  0
+                 ---- ----
+                 CPMx xRRR
+                 |||   |||
+                 |||   +++- Specify which bank register to update on next write to Bank Data register
+                 |||          000: R0: Select 2 KB CHR bank at PPU $0000-$07FF (or $1000-$17FF)
+                 |||          001: R1: Select 2 KB CHR bank at PPU $0800-$0FFF (or $1800-$1FFF)
+                 |||          010: R2: Select 1 KB CHR bank at PPU $1000-$13FF (or $0000-$03FF)
+                 |||          011: R3: Select 1 KB CHR bank at PPU $1400-$17FF (or $0400-$07FF)
+                 |||          100: R4: Select 1 KB CHR bank at PPU $1800-$1BFF (or $0800-$0BFF)
+                 |||          101: R5: Select 1 KB CHR bank at PPU $1C00-$1FFF (or $0C00-$0FFF)
+                 |||          110: R6: Select 8 KB PRG ROM bank at $8000-$9FFF (or $C000-$DFFF)
+                 |||          111: R7: Select 8 KB PRG ROM bank at $A000-$BFFF
+                 ||+------- Nothing on the MMC3, see MMC6
+                 |+-------- PRG ROM bank mode (0: $8000-$9FFF swappable,
+                 |                                $C000-$DFFF fixed to second-last bank;
+                 |                             1: $C000-$DFFF swappable,
+                 |                                $8000-$9FFF fixed to second-last bank)
+                 +--------- CHR A12 inversion (0: two 2 KB banks at $0000-$0FFF,
+                                                  four 1 KB banks at $1000-$1FFF;
+                                               1: two 2 KB banks at $1000-$1FFF,
+                                                  four 1 KB banks at $0000-$0FFF)
+                 */
+                self.prgMode = (aValue >> 6) & 0x01
+                self.chrMode = (aValue >> 7) & 0x01
+                self.register = aValue & 0x07
+                self.updateOffsets()
+            case false:
+                /*
+                 Bank data ($8001-$9FFF, odd)
+                 7  bit  0
+                 ---- ----
+                 DDDD DDDD
+                 |||| ||||
+                 ++++-++++- New bank value, based on last value written to Bank select register (mentioned above)
+                 */
+                self.registers[Int(self.register)] = aValue
+                self.updateOffsets()
             }
         case 0xA000 ... 0xBFFF:
-            if aAddress % 2 == 0
+            switch isEven
             {
-                self.writeMirror(value: aValue)
-            }
-            else
-            {
-                self.writeProtect()
+            case true:
+                /*
+                 Mirroring ($A000-$BFFE, even)
+                 7  bit  0
+                 ---- ----
+                 xxxx xxxM
+                         |
+                         +- Nametable mirroring (0: vertical; 1: horizontal)
+                 */
+                self.mirroringMode = aValue & 0x01 == 0 ? .vertical : .horizontal
+            case false:
+                /*
+                 PRG RAM protect ($A001-$BFFF, odd)
+                 7  bit  0
+                 ---- ----
+                 RWXX xxxx
+                 ||||
+                 ||++------ Nothing on the MMC3, see MMC6
+                 |+-------- Write protection (0: allow writes; 1: deny writes)
+                 +--------- PRG RAM chip enable (0: disable; 1: enable)
+                 */
+                break
             }
         case 0xC000 ... 0xDFFF:
-            if aAddress % 2 == 0
+            switch isEven
             {
-                self.writeIRQLatch(value: aValue)
-            }
-            else
-            {
-                self.writeIRQReload()
+            case true:
+                /*
+                 IRQ latch ($C000-$DFFE, even)
+                 7  bit  0
+                 ---- ----
+                 DDDD DDDD
+                 |||| ||||
+                 ++++-++++- IRQ latch value
+                 */
+                self.reload = aValue
+            case false:
+                /*
+                 IRQ reload ($C001-$DFFF, odd)
+                 7  bit  0
+                 ---- ----
+                 xxxx xxxx
+                 */
+                self.counter = 0
             }
         case 0xE000 ... 0xFFFF:
-            self.irqEnable = aAddress % 2 == 1
+            /*
+             IRQ disable ($E000-$FFFE, even)
+             IRQ enable ($E001-$FFFF, odd)
+             */
+            self.irqEnable = !isEven
         default: break
         }
-    }
-
-    private mutating func writeBankSelect(value aValue: UInt8)
-    {
-        self.prgMode = (aValue >> 6) & 1
-        self.chrMode = (aValue >> 7) & 1
-        self.register = aValue & 7
-        self.updateOffsets()
-    }
-
-    private mutating func writeBankData(value aValue: UInt8)
-    {
-        self.registers[Int(self.register)] = aValue
-        self.updateOffsets()
-    }
-
-    private mutating func writeMirror(value aValue: UInt8)
-    {
-        self.mirroringMode = aValue & 1 == 0 ? .vertical : .horizontal
-    }
-
-    private func writeProtect()
-    {
-        
-    }
-    
-    private mutating func writeIRQLatch(value aValue: UInt8)
-    {
-        self.reload = aValue
-    }
-
-    private mutating func writeIRQReload()
-    {
-        self.counter = 0
     }
 
     private func prgBankOffset(index aIndex: Int) -> Int
@@ -335,6 +391,9 @@ struct Mapper_MMC3: MapperProtocol
             self.prgOffsets[3] = self.prgBankOffset(index: -1)
         default: break
         }
+        
+        guard !self.isChrRamEnabled else { return } // prevent calling chrBankOffset with empty CHR ROM
+
         switch self.chrMode {
         case 0:
             self.chrOffsets[0] = self.chrBankOffset(index: Int(self.registers[0] & 0xFE))

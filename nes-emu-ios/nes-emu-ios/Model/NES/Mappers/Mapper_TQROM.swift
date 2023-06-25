@@ -34,7 +34,7 @@ struct Mapper_TQROM: MapperProtocol
     // MARK: - Internal Variables
     let hasStep: Bool = true
     let hasExtendedNametableMapping: Bool = false
-    var mirroringMode: MirroringMode
+    private(set) var mirroringMode: MirroringMode
     
     // MARK: - Private Variables
     /// linear 1D array of all PRG blocks

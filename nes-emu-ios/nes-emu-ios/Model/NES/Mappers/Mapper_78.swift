@@ -32,14 +32,14 @@ struct Mapper_78: MapperProtocol
     
     let hasExtendedNametableMapping: Bool = false
     
-    var mirroringMode: MirroringMode
-    let availableMirroringModes: [MirroringMode]
+    private(set) var mirroringMode: MirroringMode
+    private let availableMirroringModes: [MirroringMode]
     
     /// linear 1D array of all PRG blocks
-    private var prg: [UInt8] = []
+    private let prg: [UInt8]
     
     /// linear 1D array of all CHR blocks
-    private var chr: [UInt8] = []
+    private let chr: [UInt8]
     
     /// 8KB CHR bank at $0000 ... $1FFF
     private var chrBank: Int
@@ -47,28 +47,39 @@ struct Mapper_78: MapperProtocol
     /// 16KB PRG bank at $8000 ... $BFFF
     private var prgBank: Int
     
-    private let fixedLastPrgBankIndex: Int
+    private let max16KBPrgBankOffset: Int
+    private let max16KBPrgBankIndexU8: UInt8
+    private let max8KBChrBankIndexU8: UInt8
     
     init(withCartridge aCartridge: CartridgeProtocol, state aState: MapperState? = nil)
     {
+        var c: [UInt8] = []
+        var p: [UInt8] = []
+        
+        for pBlock in aCartridge.prgBlocks
+        {
+            p.append(contentsOf: pBlock)
+        }
+        
+        for cBlock in aCartridge.chrBlocks
+        {
+            c.append(contentsOf: cBlock)
+        }
+        
+        self.prg = p
+        self.chr = c
+        
         if let safeState = aState
         {
             self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
             self.chrBank = safeState.ints[safe: 0] ?? 0
             self.prgBank = safeState.ints[safe: 1] ?? 0
-            self.chr = safeState.chr
         }
         else
         {
             self.mirroringMode = aCartridge.header.mirroringMode
-
             self.chrBank = 0
             self.prgBank = 0
-            
-            for c in aCartridge.chrBlocks
-            {
-                self.chr.append(contentsOf: c)
-            }
         }
         
         switch aCartridge.header.mirroringMode {
@@ -78,32 +89,22 @@ struct Mapper_78: MapperProtocol
             self.availableMirroringModes = [MirroringMode.horizontal, MirroringMode.vertical]
         }
         
-        for p in aCartridge.prgBlocks
-        {
-            self.prg.append(contentsOf: p)
-        }
-        
-        self.fixedLastPrgBankIndex = max(0, (aCartridge.prgBlocks.count - 1) * 16384)
-        
-        if self.chr.count == 0
-        {
-            // use a block for CHR RAM if no block exists
-            self.chr.append(contentsOf: [UInt8].init(repeating: 0, count: 8192))
-        }
+        self.max16KBPrgBankOffset = max(0, (aCartridge.prgBlocks.count - 1) * 16384)
+        self.max16KBPrgBankIndexU8 = UInt8(max(0, aCartridge.chrBlocks.count - 1)) & 0x07
+        self.max8KBChrBankIndexU8 = UInt8(max(0, aCartridge.chrBlocks.count - 1)) & 0x0F
     }
     
     var mapperState: MapperState
     {
         get
         {
-            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.chrBank], bools: [], uint8s: [], chr: self.chr)
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.chrBank, self.prgBank], bools: [], uint8s: [], chr: [])
         }
         set
         {
             self.mirroringMode = MirroringMode.init(rawValue: Int(newValue.mirroringMode)) ?? self.mirroringMode
             self.chrBank = newValue.ints[safe: 0] ?? 0
             self.prgBank = newValue.ints[safe: 1] ?? 0
-            self.chr = newValue.chr
         }
     }
     
@@ -115,7 +116,7 @@ struct Mapper_78: MapperProtocol
         case 0x8000 ... 0xBFFF:
             return self.prg[(self.prgBank * 0x4000) + Int(aAddress - 0x8000)]
         case 0xC000 ... 0xFFFF: // last 16KB PRG bank
-            return self.prg[self.fixedLastPrgBankIndex + Int(aAddress - 0xC000)]
+            return self.prg[self.max16KBPrgBankOffset + Int(aAddress - 0xC000)]
         default:
             os_log("unhandled Mapper_87 read at address: 0x%04X", aAddress)
             return 0
@@ -136,8 +137,8 @@ struct Mapper_78: MapperProtocol
              |||| +----- Mirroring.  Holy Diver: 0 = H, 1 = V.  Cosmo Carrier: 0 = 1scA, 1 = 1scB.
              ++++------- Select 8KiB CHR ROM bank for PPU $0000-$1FFF
              */
-            self.prgBank = Int(aValue & 0x07)
-            self.chrBank = Int((aValue >> 4) & 0x0F)
+            self.prgBank = Int(aValue & self.max16KBPrgBankIndexU8)
+            self.chrBank = Int((aValue >> 4) & self.max8KBChrBankIndexU8)
             self.mirroringMode = self.availableMirroringModes[Int((aValue >> 3) & 1)]
         default:
             os_log("unhandled Mapper_87 write at address: 0x%04X", aAddress)
@@ -152,7 +153,7 @@ struct Mapper_78: MapperProtocol
     
     mutating func ppuWrite(address aAddress: UInt16, value aValue: UInt8) // 0x0000 ... 0x1FFF
     {
-        self.chr[(self.chrBank * 0x2000) + Int(aAddress)] = aValue
+        
     }
     
     func step(input aMapperStepInput: MapperStepInput) -> MapperStepResults?
