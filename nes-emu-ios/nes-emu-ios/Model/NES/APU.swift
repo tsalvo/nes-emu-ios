@@ -24,6 +24,7 @@
 //  SOFTWARE.
 
 import Foundation
+import os
 
 struct APUStepResults
 {
@@ -48,13 +49,19 @@ struct APU
     private var framePeriod: UInt8
     private var frameValue: UInt8
     private var frameIRQ: Bool
+    private var frameIRQInhibited: Bool
     private var filterChain: FilterChain
     var filtersEnabled: Bool { return self.filterChain.filters.count > 0}
     var dmcCurrentAddress: UInt16 { return self.dmc.currentAddress }
     
     static let frameCounterRate: Double = Double(CPU.frequency) / 240.0
 
-    static let lengthTable: [UInt8] = [10, 254, 20, 2, 40, 4, 80, 6, 160, 8, 60, 10, 14, 12, 26, 14, 12, 16, 24, 18, 48, 20, 96, 22, 192, 24, 72, 26, 16, 28, 32, 30]
+    static let lengthTable: [UInt8] = [
+        10, 254, 20, 2, 40, 4, 80, 6,
+        160, 8, 60, 10, 14, 12, 26, 14,
+        12, 16, 24, 18, 48, 20, 96, 22,
+        192, 24, 72, 26, 16, 28, 32, 30
+    ]
     
     /// pulseTable[i] = 95.52 / ((8128.0 / Float32(i)) + 100)
     private static let pulseTable: [Float32] = [0.0, 0.011609139, 0.02293948, 0.034000948, 0.044803, 0.05535466, 0.06566453, 0.07574082, 0.0855914, 0.09522375, 0.10464504, 0.11386215, 0.12288164, 0.1317098, 0.14035264, 0.14881596, 0.15710525, 0.16522588, 0.17318292, 0.18098126, 0.18862559, 0.19612046, 0.20347017, 0.21067894, 0.21775076, 0.2246895, 0.23149887, 0.23818247, 0.24474378, 0.25118607, 0.25751257]
@@ -73,15 +80,17 @@ struct APU
             self.framePeriod = safeState.framePeriod
             self.frameValue = safeState.frameValue
             self.frameIRQ = safeState.frameIRQ
+            self.frameIRQInhibited = safeState.frameIRQInhibited
             self.audioBuffer = safeState.audioBuffer.count == Int(aSampleRate.bufferCapacity) ? safeState.audioBuffer : [Float32].init(repeating: 0.0, count: Int(aSampleRate.bufferCapacity))
             self.audioBufferIndex = Int(safeState.audioBufferIndex)
         }
         else
         {
             self.cycle = 0
-            self.framePeriod = 0
+            self.framePeriod = 4
             self.frameValue = 0
             self.frameIRQ = false
+            self.frameIRQInhibited = false
             self.audioBuffer = [Float32].init(repeating: 0.0, count: Int(aSampleRate.bufferCapacity))
             self.audioBufferIndex = 0
         }
@@ -100,12 +109,11 @@ struct APU
     
     var apuState: APUState
     {
-        return APUState(cycle: self.cycle, framePeriod: self.framePeriod, frameValue: self.frameValue, frameIRQ: self.frameIRQ, audioBuffer: self.audioBuffer, audioBufferIndex: UInt32(self.audioBufferIndex), pulse1: self.pulse1.pulseState, pulse2: self.pulse2.pulseState, triangle: self.triangle.triangleState, noise: self.noise.noiseState, dmc: self.dmc.dmcState)
+        return APUState(cycle: self.cycle, framePeriod: self.framePeriod, frameValue: self.frameValue, frameIRQ: self.frameIRQ, frameIRQInhibited: self.frameIRQInhibited, audioBuffer: self.audioBuffer, audioBufferIndex: UInt32(self.audioBufferIndex), pulse1: self.pulse1.pulseState, pulse2: self.pulse2.pulseState, triangle: self.triangle.triangleState, noise: self.noise.noiseState, dmc: self.dmc.dmcState)
     }
     
     mutating func step(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> APUStepResults
     {
-        let shouldFireIRQ: Bool
         let cycle1 = self.cycle
         self.cycle += 1
         let cycle2 = self.cycle
@@ -114,11 +122,11 @@ struct APU
         let f2 = Int(Double(cycle2) / APU.frameCounterRate)
         if f1 != f2
         {
-            shouldFireIRQ = self.stepFrameCounter()
+            self.frameIRQ = self.stepFrameCounter()
         }
         else
         {
-            shouldFireIRQ = false
+            self.frameIRQ = false
         }
         let s1 = Int(Double(cycle1) / self.cycleSampleRate)
         let s2 = Int(Double(cycle2) / self.cycleSampleRate)
@@ -127,7 +135,7 @@ struct APU
             self.sendSample()
         }
         
-        return APUStepResults(shouldTriggerIRQOnCPU: shouldFireIRQ, numCPUStallCycles: numCPUStallCycles)
+        return APUStepResults(shouldTriggerIRQOnCPU: self.frameIRQ, numCPUStallCycles: numCPUStallCycles)
     }
 
     mutating func sendSample()
@@ -178,7 +186,7 @@ struct APU
                 self.stepEnvelope()
                 self.stepSweep()
                 self.stepLength()
-                if self.frameIRQ
+                if !self.frameIRQInhibited
                 {
                     shouldFireIRQ = true
                 }
@@ -243,7 +251,7 @@ struct APU
         self.noise.stepLength()
     }
 
-    func readRegister(address aAddress: UInt16) -> UInt8
+    mutating func readRegister(address aAddress: UInt16) -> UInt8
     {
         switch aAddress
         {
@@ -300,8 +308,14 @@ struct APU
         }
     }
 
-    func readStatus() -> UInt8
+    mutating func readStatus() -> UInt8
     {
+        /* APU Status Read (0x4015)
+         7  bit  0
+         ---- ----
+         IF-D NT21  DMC interrupt (I), frame interrupt (F), DMC active (D), length counter > 0 (N/T/2/1)
+         */
+        
         var result: UInt8 = 0
         if self.pulse1.lengthValue > 0
         {
@@ -328,11 +342,36 @@ struct APU
             result |= 16
         }
         
+        if self.frameIRQ
+        {
+            result |= 64
+        }
+        
+        if self.dmc.irq
+        {
+            result |= 128
+        }
+        
+        self.frameIRQ = false // side effect: reading status should clear frameIRQ flag
+        
         return result
     }
 
     mutating func writeControl(value aValue: UInt8)
     {
+        /* APU Write Status (0x4015)
+         7  bit  0
+         ---- ----
+         ---D ----  DMC Channel Enable
+         ---- N---  Noise Channel Enable
+         ---- -T--  Triangle Channel Enable
+         ---- --2-  Pulse Channel 2 Enable
+         ---- ---1  Pulse Channel 1 Enable
+         
+         Writing to this register clears the DMC interrupt flag.
+         Power-up and reset have the effect of writing $00, silencing all channels.
+         */
+        
         self.pulse1.enabled = aValue & 1 == 1
         self.pulse2.enabled = aValue & 2 == 2
         self.triangle.enabled = aValue & 4 == 4
@@ -370,12 +409,31 @@ struct APU
                 self.dmc.restart()
             }
         }
+        
+        self.dmc.irq = false
     }
 
     mutating func writeFrameCounter(value aValue: UInt8)
     {
+        /* APU Write Frame Counter 0x4017
+         7  bit  0
+         ---- ----
+         M--- ----  Sequencer mode (M): 0 selects 4-step sequence, 1 selects 5-step sequence
+         -I-- ----  Interrupt inhibit flag (I). If set, the frame interrupt flag is cleared, otherwise it is unaffected.
+         
+         Side effects
+          - After 3 or 4 CPU clock cycles*, the timer is reset.
+          - If the mode flag is set, then both "quarter frame" and "half frame" signals are also generated
+         */
+        os_log("APU set frame counter %02X", aValue)
         self.framePeriod = 4 + (aValue >> 7) & 1
-        self.frameIRQ = (aValue >> 6) & 1 == 0
+        self.frameIRQInhibited = (aValue >> 6) & 1 == 0
+        
+        if self.frameIRQInhibited
+        {
+            self.frameIRQ = false
+        }
+        
         if self.framePeriod == 5
         {
             self.stepEnvelope()
@@ -490,6 +548,16 @@ struct APU
         
         mutating func writeControl(value aValue: UInt8)
         {
+            /* Pulse Control (Pulse 1: 0x4000, Pulse 2: 0x4004)
+             7  bit  0
+             ---- ----
+             DD-- ----   Duty Cycle (D)
+             --L- ----   Length Counter Halt (L)
+             ---C ----   Constant Volume (C)
+             ---- VVVV   Volume / Envelope (V)
+             
+             Side effects    The duty cycle is changed (see table below), but the sequencer's current position isn't affected.
+             */
             self.dutyMode = (aValue >> 6) & 3
             self.lengthEnabled = (aValue >> 5) & 1 == 0
             self.envelopeLoop = (aValue >> 5) & 1 == 1
@@ -500,6 +568,16 @@ struct APU
 
         mutating func writeSweep(value aValue: UInt8)
         {
+            /* Sweep Control (Pulse 1: 0x4001, Pulse 2: 0x4005)
+             7  bit  0
+             ---- ----
+             E--- ----   Enabled flag
+             -PPP ----   Period: The divider's period is P + 1 half-frames
+             ---- N---   Negate flag (0: add to period, sweeping toward lower frequencies, 1: subtract from period, sweeping toward higher frequencies)
+             ---- -SSS   Shift count (number of bits)
+             
+             Side effects    Sets the reload flag
+             */
             self.sweepEnabled = (aValue >> 7) & 1 == 1
             self.sweepPeriod = ((aValue >> 4) & 7) + 1
             self.sweepNegate = (aValue >> 3) & 1 == 1
@@ -509,12 +587,32 @@ struct APU
 
         mutating func writeTimerLow(value aValue: UInt8)
         {
+            /* Pulse Timer Low (Pulse 1: 0x4002, Pulse 2: 0x4006)
+             7  bit  0
+             ---- ----
+             TTTT TTTT   Timer low (T)
+             */
             self.timerPeriod = (self.timerPeriod & 0xFF00) | UInt16(aValue)
         }
 
         mutating func writeTimerHigh(value aValue: UInt8)
         {
-            self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
+            /* Pulse Timer High (Pulse 1: 0x4003, Pulse 2: 0x4007)
+             7  bit  0
+             ---- ----
+             LLLL L---   Length Counter Load (L)
+             ---- -TTT   Timer High Bits (T)
+             
+             Side effects
+              - The sequencer is immediately restarted at the first value of the current sequence.
+              - The envelope is also restarted.
+              - The period divider is not reset.[1]
+             */
+
+            if self.enabled
+            {
+                self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
+            }
             self.timerPeriod = (self.timerPeriod & 0x00FF) | (UInt16(aValue & 7) << 8)
             self.envelopeStart = true
             self.dutyValue = 0
@@ -706,7 +804,10 @@ struct APU
 
         mutating func writeTimerHigh(value aValue: UInt8)
         {
-            self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
+            if self.enabled
+            {
+                self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
+            }
             self.timerPeriod = (self.timerPeriod & 0x00FF) | (UInt16(aValue & 7) << 8)
             self.timerValue = self.timerPeriod
             self.counterReload = true
@@ -843,7 +944,11 @@ struct APU
 
         mutating func writeLength(value aValue: UInt8)
         {
-            self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
+            if self.enabled
+            {
+                self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
+            }
+            
             self.envelopeStart = true
         }
 
@@ -921,6 +1026,7 @@ struct APU
         var enabled: Bool
         var currentAddress: UInt16
         var currentLength: UInt16
+        var irq: Bool
         private var value: UInt8
         private var sampleAddress: UInt16
         private var sampleLength: UInt16
@@ -929,7 +1035,6 @@ struct APU
         private var tickPeriod: UInt8
         private var tickValue: UInt8
         private var loop: Bool
-        private var irq: Bool
         
         static let dmcTable: [UInt8] = [214, 190, 170, 160, 143, 127, 113, 107, 95, 80, 71, 64, 53, 42, 36, 27]
         

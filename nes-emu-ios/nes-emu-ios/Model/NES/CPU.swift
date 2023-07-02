@@ -409,7 +409,7 @@ struct CPU
         self.pc = self.read16(address: 0xFFFC)
         self.sp = 0xFD
         self.set(flags: 0x24)
-        
+        self.apu.writeRegister(address: 0x4015, value: 0)
         self.ppu.reset()
     }
     
