@@ -107,11 +107,13 @@ struct APU
     {
         let shouldFireIRQ: Bool
         let cycle1 = self.cycle
-        self.cycle += 1
+        self.cycle &+= 1
         let cycle2 = self.cycle
         let numCPUStallCycles: UInt64 = self.stepTimer(dmcCurrentAddressValue: aDmcCurrentAddressValue)
-        let f1 = Int(Double(cycle1) / APU.frameCounterRate)
-        let f2 = Int(Double(cycle2) / APU.frameCounterRate)
+        let dc1 = Double(cycle1)
+        let dc2 = Double(cycle2)
+        let f1 = Int(dc1 / APU.frameCounterRate)
+        let f2 = Int(dc2 / APU.frameCounterRate)
         if f1 != f2
         {
             shouldFireIRQ = self.stepFrameCounter()
@@ -120,8 +122,8 @@ struct APU
         {
             shouldFireIRQ = false
         }
-        let s1 = Int(Double(cycle1) / self.cycleSampleRate)
-        let s2 = Int(Double(cycle2) / self.cycleSampleRate)
+        let s1 = Int(dc1 / self.cycleSampleRate)
+        let s2 = Int(dc2 / self.cycleSampleRate)
         if s1 != s2
         {
             self.sendSample()
@@ -134,7 +136,7 @@ struct APU
     {
         let output = self.filterChain.step(x: self.output())
         self.audioBuffer[self.audioBufferIndex] = output
-        self.audioBufferIndex += 1
+        self.audioBufferIndex &+= 1
         if self.audioBufferIndex >= self.audioBuffer.count
         {
             self.audioBufferIndex = 0
@@ -149,8 +151,8 @@ struct APU
         let t = self.triangle.output()
         let n = self.noise.output()
         let d = self.dmc.output()
-        let pulseOut = APU.pulseTable[Int(p1 + p2)]
-        let tndOut = APU.tndTable[Int((3 * t) + (2 * n) + d)]
+        let pulseOut = APU.pulseTable[Int(p1 &+ p2)]
+        let tndOut = APU.tndTable[Int((3 &* t) + (2 &* n) &+ d)]
         return pulseOut + tndOut
     }
 
@@ -165,7 +167,7 @@ struct APU
         switch self.framePeriod
         {
         case 4:
-            self.frameValue = (self.frameValue + 1) % 4
+            self.frameValue = (self.frameValue &+ 1) % 4
             switch self.frameValue
             {
             case 0, 2:
@@ -185,7 +187,7 @@ struct APU
             default: break
             }
         case 5:
-            self.frameValue = (self.frameValue + 1) % 5
+            self.frameValue = (self.frameValue &+ 1) % 5
             switch self.frameValue
             {
             case 0, 2:
@@ -243,14 +245,35 @@ struct APU
         self.noise.stepLength()
     }
 
-    func readRegister(address aAddress: UInt16) -> UInt8
+    func readRegister() -> UInt8
     {
-        switch aAddress
+        var result: UInt8 = 0
+        if self.pulse1.lengthValue > 0
         {
-        case 0x4015:
-            return self.readStatus()
-        default: return 0
+            result |= 1
         }
+        
+        if self.pulse2.lengthValue > 0
+        {
+            result |= 2
+        }
+        
+        if self.triangle.lengthValue > 0
+        {
+            result |= 4
+        }
+        
+        if self.noise.lengthValue > 0
+        {
+            result |= 8
+        }
+        
+        if self.dmc.currentLength > 0
+        {
+            result |= 16
+        }
+        
+        return result
     }
 
     mutating func writeRegister(address aAddress: UInt16, value aValue: UInt8)
@@ -300,37 +323,6 @@ struct APU
         }
     }
 
-    func readStatus() -> UInt8
-    {
-        var result: UInt8 = 0
-        if self.pulse1.lengthValue > 0
-        {
-            result |= 1
-        }
-        
-        if self.pulse2.lengthValue > 0
-        {
-            result |= 2
-        }
-        
-        if self.triangle.lengthValue > 0
-        {
-            result |= 4
-        }
-        
-        if self.noise.lengthValue > 0
-        {
-            result |= 8
-        }
-        
-        if self.dmc.currentLength > 0
-        {
-            result |= 16
-        }
-        
-        return result
-    }
-
     mutating func writeControl(value aValue: UInt8)
     {
         self.pulse1.enabled = aValue & 1 == 1
@@ -374,7 +366,7 @@ struct APU
 
     mutating func writeFrameCounter(value aValue: UInt8)
     {
-        self.framePeriod = 4 + (aValue >> 7) & 1
+        self.framePeriod = 4 &+ (aValue >> 7) & 1
         self.frameIRQ = (aValue >> 6) & 1 == 0
         if self.framePeriod == 5
         {
@@ -488,6 +480,7 @@ struct APU
             return PulseState.init(enabled: self.enabled, lengthEnabled: self.lengthEnabled, lengthValue: self.lengthValue, timerPeriod: self.timerPeriod, timerValue: self.timerValue, dutyMode: self.dutyMode, dutyValue: self.dutyValue, sweepReload: self.sweepReload, sweepEnabled: self.sweepEnabled, sweepNegate: self.sweepNegate, sweepShift: self.sweepShift, sweepPeriod: self.sweepPeriod, sweepValue: self.sweepValue, envelopeEnabled: self.envelopeEnabled, envelopeLoop: self.envelopeLoop, envelopeStart: self.envelopeStart, envelopePeriod: self.envelopePeriod, envelopeValue: self.envelopeValue, envelopeVolume: self.envelopeVolume, constantVolume: self.constantVolume)
         }
         
+        @inline(__always)
         mutating func writeControl(value aValue: UInt8)
         {
             self.dutyMode = (aValue >> 6) & 3
@@ -498,6 +491,7 @@ struct APU
             self.constantVolume = aValue & 15
         }
 
+        @inline(__always)
         mutating func writeSweep(value aValue: UInt8)
         {
             self.sweepEnabled = (aValue >> 7) & 1 == 1
@@ -507,11 +501,13 @@ struct APU
             self.sweepReload = true
         }
 
+        @inline(__always)
         mutating func writeTimerLow(value aValue: UInt8)
         {
             self.timerPeriod = (self.timerPeriod & 0xFF00) | UInt16(aValue)
         }
 
+        @inline(__always)
         mutating func writeTimerHigh(value aValue: UInt8)
         {
             self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
@@ -520,12 +516,13 @@ struct APU
             self.dutyValue = 0
         }
 
+        @inline(__always)
         mutating func stepTimer()
         {
             if self.timerValue == 0
             {
                 self.timerValue = self.timerPeriod
-                self.dutyValue = (self.dutyValue + 1) % 8
+                self.dutyValue = (self.dutyValue &+ 1) & 0x07
             }
             else
             {
@@ -533,6 +530,7 @@ struct APU
             }
         }
 
+        @inline(__always)
         mutating func stepEnvelope()
         {
             if self.envelopeStart
@@ -543,13 +541,13 @@ struct APU
             }
             else if self.envelopeValue > 0
             {
-                self.envelopeValue -= 1
+                self.envelopeValue &-= 1
             }
             else
             {
                 if self.envelopeVolume > 0
                 {
-                    self.envelopeVolume -= 1
+                    self.envelopeVolume &-= 1
                 }
                 else if self.envelopeLoop
                 {
@@ -560,6 +558,7 @@ struct APU
             }
         }
 
+        @inline(__always)
         mutating func stepSweep()
         {
             if self.sweepReload
@@ -573,7 +572,7 @@ struct APU
             }
             else if self.sweepValue > 0
             {
-                self.sweepValue -= 1
+                self.sweepValue &-= 1
             }
             else
             {
@@ -585,14 +584,16 @@ struct APU
             }
         }
 
+        @inline(__always)
         mutating func stepLength()
         {
             if self.lengthEnabled && self.lengthValue > 0
             {
-                self.lengthValue -= 1
+                self.lengthValue &-= 1
             }
         }
 
+        @inline(__always)
         mutating func sweep()
         {
             let delta = self.timerPeriod >> self.sweepShift
@@ -601,7 +602,7 @@ struct APU
                 self.timerPeriod -= delta
                 if self.channel == 1
                 {
-                    self.timerPeriod -= 1
+                    self.timerPeriod &-= 1
                 }
             }
             else
@@ -610,36 +611,24 @@ struct APU
             }
         }
 
+        @inline(__always)
         func output() -> UInt8
         {
-            if !self.enabled
+            let result: UInt8
+            if !self.enabled || self.lengthValue == 0 || self.timerPeriod < 8 || self.timerPeriod > 0x7FF || Pulse.dutyTable[Int(self.dutyMode)][Int(self.dutyValue)] == 0
             {
-                return 0
+                result = 0
             }
-            
-            if self.lengthValue == 0
+            else if self.envelopeEnabled
             {
-                return 0
-            }
-            
-            if Pulse.dutyTable[Int(self.dutyMode)][Int(self.dutyValue)] == 0
-            {
-                return 0
-            }
-            
-            if self.timerPeriod < 8 || self.timerPeriod > 0x7FF
-            {
-                return 0
-            }
-
-            if self.envelopeEnabled
-            {
-                return self.envelopeVolume
+                result = self.envelopeVolume
             }
             else
             {
-                return self.constantVolume
+                result = self.constantVolume
             }
+            
+            return result
         }
     }
     
@@ -693,17 +682,20 @@ struct APU
             return TriangleState.init(enabled: self.enabled, lengthEnabled: self.lengthEnabled, lengthValue: self.lengthValue, timerPeriod: self.timerPeriod, timerValue: self.timerValue, dutyValue: self.dutyValue, counterPeriod: self.counterPeriod, counterValue: self.counterValue, counterReload: self.counterReload)
         }
         
+        @inline(__always)
         mutating func writeControl(value aValue: UInt8)
         {
             self.lengthEnabled = (aValue >> 7) & 1 == 0
             self.counterPeriod = aValue & 0x7F
         }
 
+        @inline(__always)
         mutating func writeTimerLow(value aValue: UInt8)
         {
             self.timerPeriod = (self.timerPeriod & 0xFF00) | UInt16(aValue)
         }
 
+        @inline(__always)
         mutating func writeTimerHigh(value aValue: UInt8)
         {
             self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
@@ -712,6 +704,7 @@ struct APU
             self.counterReload = true
         }
 
+        @inline(__always)
         mutating func stepTimer()
         {
             if self.timerValue == 0
@@ -719,23 +712,25 @@ struct APU
                 self.timerValue = self.timerPeriod
                 if self.lengthValue > 0 && self.counterValue > 0
                 {
-                    self.dutyValue = (self.dutyValue + 1) % 32
+                    self.dutyValue = (self.dutyValue &+ 1) & 0x1F
                 }
             }
             else
             {
-                self.timerValue -= 1
+                self.timerValue &-= 1
             }
         }
 
+        @inline(__always)
         mutating func stepLength()
         {
             if self.lengthEnabled && self.lengthValue > 0
             {
-                self.lengthValue -= 1
+                self.lengthValue &-= 1
             }
         }
 
+        @inline (__always)
         mutating func stepCounter()
         {
             if self.counterReload
@@ -744,7 +739,7 @@ struct APU
             }
             else if self.counterValue > 0
             {
-                self.counterValue -= 1
+                self.counterValue &-= 1
             }
             
             if self.lengthEnabled
@@ -826,6 +821,7 @@ struct APU
             return NoiseState(enabled: self.enabled, mode: self.mode, shiftRegister: self.shiftRegister, lengthEnabled: self.lengthEnabled, lengthValue: self.lengthValue, timerPeriod: self.timerPeriod, timerValue: self.timerValue, envelopeEnabled: self.envelopeEnabled, envelopeLoop: self.envelopeLoop, envelopeStart: self.envelopeStart, envelopePeriod: self.envelopePeriod, envelopeValue: self.envelopeValue, envelopeVolume: self.envelopeVolume, constantVolume: self.constantVolume)
         }
         
+        @inline (__always)
         mutating func writeControl(value aValue: UInt8)
         {
             self.lengthEnabled = (aValue >> 5) & 1 == 0
@@ -835,18 +831,21 @@ struct APU
             self.constantVolume = aValue & 15
         }
 
+        @inline (__always)
         mutating func writePeriod(value aValue: UInt8)
         {
             self.mode = aValue & 0x80 == 0x80
             self.timerPeriod = Noise.noiseTable[Int(aValue & 0x0F)]
         }
 
+        @inline (__always)
         mutating func writeLength(value aValue: UInt8)
         {
             self.lengthValue = APU.lengthTable[Int(aValue >> 3)]
             self.envelopeStart = true
         }
 
+        @inline (__always)
         mutating func stepTimer()
         {
             if self.timerValue == 0
@@ -854,13 +853,13 @@ struct APU
                 self.timerValue = self.timerPeriod
                 let shift: UInt8 = self.mode ? 6 : 1
                 let b1 = self.shiftRegister & 1
-                let b2 = (self.shiftRegister >> shift) & 1
-                self.shiftRegister >>= 1
-                self.shiftRegister |= (b1 ^ b2) << 14
+                let b2 = (self.shiftRegister &>> shift) & 1
+                self.shiftRegister &>>= 1
+                self.shiftRegister |= (b1 ^ b2) &<< 14
             }
             else
             {
-                self.timerValue -= 1
+                self.timerValue &-= 1
             }
         }
 
@@ -874,13 +873,13 @@ struct APU
             }
             else if self.envelopeValue > 0
             {
-                self.envelopeValue -= 1
+                self.envelopeValue &-= 1
             }
             else
             {
                 if self.envelopeVolume > 0
                 {
-                    self.envelopeVolume -= 1
+                    self.envelopeVolume &-= 1
                 }
                 else if self.envelopeLoop
                 {
@@ -890,29 +889,32 @@ struct APU
             }
         }
 
+        @inline (__always)
         mutating func stepLength()
         {
             if self.lengthEnabled && self.lengthValue > 0
             {
-                self.lengthValue -= 1
+                self.lengthValue &-= 1
             }
         }
 
+        @inline (__always)
         func output() -> UInt8
         {
+            let result: UInt8
             if !self.enabled || self.lengthValue == 0 || self.shiftRegister & 1 == 1 || self.timerPeriod < 3
             {
-                return 0
+                result = 0
             }
-            
-            if self.envelopeEnabled
+            else if self.envelopeEnabled
             {
-                return self.envelopeVolume
+                result = self.envelopeVolume
             }
             else
             {
-                return self.constantVolume
+                result = self.constantVolume
             }
+            return result
         }
     }
     
@@ -972,6 +974,7 @@ struct APU
             return DMCState(enabled: self.enabled, value: self.value, sampleAddress: self.sampleAddress, sampleLength: self.sampleLength, currentAddress: self.currentAddress, currentLength: self.currentLength, shiftRegister: self.shiftRegister, bitCount: self.bitCount, tickPeriod: self.tickPeriod, tickValue: self.tickValue, loop: self.loop, irq: self.irq)
         }
         
+        @inline (__always)
         mutating func writeControl(value aValue: UInt8)
         {
             self.irq = aValue & 0x80 == 0x80
@@ -979,23 +982,27 @@ struct APU
             self.tickPeriod = DMC.dmcTable[Int(aValue & 0x0F)]
         }
 
+        @inline (__always)
         mutating func writeValue(value aValue: UInt8)
         {
             self.value = aValue & 0x7F
         }
 
+        @inline (__always)
         mutating func writeAddress(value aValue: UInt8)
         {
             // Sample address = %11AAAAAA.AA000000
             self.sampleAddress = 0xC000 | (UInt16(aValue) << 6)
         }
 
+        @inline (__always)
         mutating func writeLength(value aValue: UInt8)
         {
             // Sample length = %0000LLLL.LLLL0001
             self.sampleLength = (UInt16(aValue) << 4) | 1
         }
 
+        @inline (__always)
         mutating func restart()
         {
             self.currentAddress = self.sampleAddress
@@ -1018,7 +1025,7 @@ struct APU
             }
             else
             {
-                self.tickValue -= 1
+                self.tickValue &-= 1
             }
             
             return numCPUStallCycles
@@ -1027,7 +1034,7 @@ struct APU
         mutating func stepReader(dmcCurrentAddressValue aDmcCurrentAddressValue: UInt8) -> UInt64
         {
             let numCPUStallCycles: UInt64
-            if self.currentLength > 0 && self.bitCount == 0
+            if self.bitCount == 0 && self.currentLength > 0
             {
                 numCPUStallCycles = 4
                 self.shiftRegister = aDmcCurrentAddressValue
@@ -1039,7 +1046,7 @@ struct APU
                     self.currentAddress = 0x8000
                 }
                 
-                self.currentLength -= 1
+                self.currentLength &-= 1
                 
                 if self.currentLength == 0 && self.loop
                 {
@@ -1065,21 +1072,22 @@ struct APU
             {
                 if self.value <= 125
                 {
-                    self.value += 2
+                    self.value &+= 2
                 }
             }
             else
             {
                 if self.value >= 2
                 {
-                    self.value -= 2
+                    self.value &-= 2
                 }
             }
             
             self.shiftRegister >>= 1
-            self.bitCount -= 1
+            self.bitCount &-= 1
         }
 
+        @inline (__always)
         func output() -> UInt8
         {
             return self.value

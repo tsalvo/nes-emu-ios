@@ -103,7 +103,7 @@ struct Mapper_UNROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBankOffset1], bools: [], uint8s: self.chrRam, chr: [])
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.prgBankOffset1], bools: [], uint8s: self.chrRam, chr: [])
         }
         set
         {

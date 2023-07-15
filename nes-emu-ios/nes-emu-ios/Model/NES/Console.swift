@@ -91,9 +91,9 @@ struct Console
     
     // MARK: - Timing
     
-    mutating func stepSeconds(seconds aSeconds: Float64)
+    mutating func stepTick()
     {
-        var cycles = Int(Float64(CPU.frequency) * aSeconds)
+        var cycles = CPU.cyclesPerTick
         while cycles > 0
         {
             cycles -= self.cpu.step()

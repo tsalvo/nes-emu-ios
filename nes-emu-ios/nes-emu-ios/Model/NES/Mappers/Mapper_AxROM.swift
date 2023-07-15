@@ -50,7 +50,7 @@ struct Mapper_AxROM: MapperProtocol
            safeState.uint8s.count >= 8192,
            safeState.ints.count >= 1
         {
-            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
             self.prgBank = safeState.ints[0]
             self.chrRam = [UInt8](safeState.uint8s[0 ..< 8192])
         }
@@ -74,7 +74,7 @@ struct Mapper_AxROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank], bools: [], uint8s: self.chrRam, chr: [])
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.prgBank], bools: [], uint8s: self.chrRam, chr: [])
         }
         set
         {
@@ -83,7 +83,7 @@ struct Mapper_AxROM: MapperProtocol
             else {
                 return
             }
-            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(newValue.mirroringMode)) ?? self.mirroringMode
             self.prgBank = newValue.ints[0]
             self.chrRam = [UInt8](newValue.uint8s[0 ..< 8192])        }
     }

@@ -89,7 +89,7 @@ struct Mapper_GxROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.prgBank, self.chrBank], bools: [], uint8s: [], chr: [])
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.prgBank, self.chrBank], bools: [], uint8s: [], chr: [])
         }
         set
         {

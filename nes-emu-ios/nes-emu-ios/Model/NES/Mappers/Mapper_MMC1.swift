@@ -153,7 +153,7 @@ struct Mapper_MMC1: MapperProtocol
         {
             let u8ArrayEndOffset = Mapper_MMC1.prgRamSizeInBytes + Mapper_MMC1.chrRamSizeInBytes
             
-            self.mirroringMode = MirroringMode.init(rawValue: safeState.mirroringMode) ?? aCartridge.header.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(safeState.mirroringMode)) ?? aCartridge.header.mirroringMode
             self.prgRam = [UInt8](safeState.uint8s[0 ..< Mapper_MMC1.prgRamSizeInBytes])
             self.chrRam = [UInt8](safeState.uint8s[Mapper_MMC1.prgRamSizeInBytes ..< u8ArrayEndOffset])
             self.shiftRegister = safeState.uint8s[u8ArrayEndOffset]
@@ -213,7 +213,7 @@ struct Mapper_MMC1: MapperProtocol
             b.append(self.prgRamEnabled)
             b.append(self.isChr4KBMode)
             
-            return MapperState(mirroringMode: self.mirroringMode.rawValue, ints: i, bools: b, uint8s: u8, chr: [])
+            return MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: i, bools: b, uint8s: u8, chr: [])
         }
         set
         {
@@ -225,7 +225,7 @@ struct Mapper_MMC1: MapperProtocol
             }
             let u8ArrayEndOffset = Mapper_MMC1.prgRamSizeInBytes + Mapper_MMC1.chrRamSizeInBytes
             
-            self.mirroringMode = MirroringMode.init(rawValue: newValue.mirroringMode) ?? self.mirroringMode
+            self.mirroringMode = MirroringMode.init(rawValue: Int(newValue.mirroringMode)) ?? self.mirroringMode
             self.prgRam = [UInt8](newValue.uint8s[0 ..< Mapper_MMC1.prgRamSizeInBytes])
             self.chrRam = [UInt8](newValue.uint8s[Mapper_MMC1.prgRamSizeInBytes ..< u8ArrayEndOffset])
             self.shiftRegister = newValue.uint8s[u8ArrayEndOffset]

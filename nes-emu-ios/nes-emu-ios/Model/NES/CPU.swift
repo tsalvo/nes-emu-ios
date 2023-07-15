@@ -48,19 +48,20 @@ struct InstructionInfo
     let mode: AddressingMode
     
     /// the number of cycles used by each instruction, not including conditional cycles
-    let cycles: UInt8
+    let cycles: UInt64
     
     /// number of cycles the instruction takes if a page boundary is crossed
-    let pageBoundaryCycles: UInt8
+    let pageBoundaryCycles: UInt64
     
     /// the size of the instruction in bytes
-    let bytes: UInt8
+    let bytes: UInt16
 }
 
 /// NES Central processing unit
 struct CPU
 {
     static let frequency: Int = 1789773
+    static let cyclesPerTick: Int = Int(Float64(CPU.frequency) / 60.0)
     var apu: APU
     var ppu: PPU
     var isHalted: Bool = false
@@ -437,18 +438,21 @@ struct CPU
     }
     
     /// sets the zero flag if the argument is zero
+    @inline(__always)
     private mutating func setZ(value aValue: UInt8)
     {
         self.z = (aValue == 0) ? true : false
     }
     
     /// sets the negative flag if the argument is negative (high bit is set)
+    @inline(__always)
     private mutating func setN(value aValue: UInt8)
     {
         self.n = (aValue & 0x80 != 0) ? true : false
     }
 
     ///  sets the zero flag and the negative flag
+    @inline(__always)
     private mutating func setZN(value aValue: UInt8)
     {
         self.setZ(value: aValue)
@@ -456,6 +460,7 @@ struct CPU
     }
     
     /// compare two values and set zero, negative, and carry flags accordingly
+    @inline(__always)
     private mutating func compare(valueA aValueA: UInt8, valueB aValueB: UInt8)
     {
         self.setZN(value: aValueA &- aValueB)
@@ -466,60 +471,84 @@ struct CPU
     
     mutating func read(address aAddress: UInt16) -> UInt8
     {
-        switch aAddress {
-        case 0x0000 ..< 0x2000:
-            return self.ram[Int(aAddress % 0x0800)]
-        case 0x2000 ..< 0x4000:
-            return self.ppu.readRegister(address: 0x2000 + (aAddress % 8))
-        case 0x4014:
+        if aAddress < 0x2000 // 0x0000 ..< 0x2000
+        {
+            return self.ram[Int(aAddress & 0x07FF)]
+        }
+        else if aAddress < 0x4000 // 0x2000 ..< 0x4000
+        {
+            return self.ppu.readRegister(address: 0x2000 + (aAddress & 0x0007))
+        }
+        else if aAddress == 0x4014
+        {
             return self.ppu.readRegister(address: aAddress)
-        case 0x4015:
-            return self.apu.readRegister(address: aAddress)
-        case 0x4016:
+        }
+        else if aAddress == 0x4015
+        {
+            return self.apu.readRegister()
+        }
+        else if aAddress == 0x4016
+        {
             return self.controllers[0].read()
-        case 0x4017:
+        }
+        else if aAddress == 0x4017
+        {
             return self.controllers[1].read()
-        case 0x4000 ..< 0x5000:
-            return 0
-            // TODO: I/O registers
-        case 0x5000 ... 0xFFFF:
+        }
+        else if aAddress >= 0x5000 // 0x5000 ... 0xFFFF
+        {
             return self.ppu.mapper.cpuRead(address: aAddress)
-        default:
+        }
+        else
+        {
+            // TODO: I/O registers at 0x4000 ... 0x4FFF
             return 0
         }
     }
     
     mutating func write(address aAddress: UInt16, value aValue: UInt8)
     {
-        switch aAddress {
-        case 0x0000 ..< 0x2000:
-            self.ram[Int(aAddress % 0x0800)] = aValue
-        case 0x2000 ..< 0x4000:
-            self.ppu.writeRegister(address: 0x2000 + (aAddress % 8), value: aValue)
-        case 0x4000 ..< 0x4014:
+        if aAddress < 0x2000 // 0x0000 ..< 0x2000
+        {
+            self.ram[Int(aAddress & 0x07FF)] = aValue
+        }
+        else if aAddress < 0x4000 // 0x2000 ..< 0x4000
+        {
+            self.ppu.writeRegister(address: 0x2000 + (aAddress & 0x0007), value: aValue)
+        }
+        else if aAddress >= 0x4000 && aAddress < 0x4014 // 0x4000 ..< 0x4014
+        {
             self.apu.writeRegister(address: aAddress, value: aValue)
-        case 0x4014:
+        }
+        else if aAddress == 0x4014
+        {
             let startIndex: Int = Int(UInt16(aValue) << 8)
             self.ppu.writeOAMDMA(oamDMA: [UInt8](self.ram[startIndex ..< startIndex + 256]))
-            self.stall += (self.cycles % 2 == 0) ? 513 : 514
-        case 0x4015:
+            self.stall += 513 + (self.cycles & 1)
+        }
+        else if aAddress == 0x4015
+        {
             self.apu.writeRegister(address: aAddress, value: aValue)
-        case 0x4016:
+        }
+        else if aAddress == 0x4016
+        {
             self.controllers[0].write(value: aValue)
             self.controllers[1].write(value: aValue)
-        case 0x4017:
-            self.apu.writeRegister(address: aAddress, value: aValue)
-        case 0x4000 ..< 0x5000:
-            // TODO: I/O registers
-            break
-        case 0x5000 ... 0xFFFF:
-            self.ppu.mapper.cpuWrite(address: aAddress, value: aValue)
-        default:
-            break
         }
+        else if aAddress == 0x4017
+        {
+            self.apu.writeRegister(address: aAddress, value: aValue)
+        }
+        else if aAddress >= 0x5000 // 0x5000 ... 0xFFFF
+        {
+            self.ppu.mapper.cpuWrite(address: aAddress, value: aValue)
+        }
+        
+        // TODO: I/O registers at 0x4000 ... 0x4FFF
     }
     
     /// checks whether two 16-bit addresses reside on different pages
+    @inline(__always)
     private func pagesDiffer(address1 aAddress1: UInt16, address2 aAddress2: UInt16) -> Bool
     {
         return aAddress1 & 0xFF00 != aAddress2 & 0xFF00
@@ -528,16 +557,14 @@ struct CPU
     /// reads two bytes using Read to return a double-word value
     private mutating func read16(address aAddress: UInt16) -> UInt16
     {
-        let lo: UInt16 = UInt16(self.read(address: aAddress))
-        let hi: UInt16 = UInt16(self.read(address: aAddress &+ 1))
-        return (hi << 8) | lo
+        return UInt16(self.read(address: aAddress)) | (UInt16(self.read(address: aAddress &+ 1)) << 8)
     }
 
     /// emulates a 6502 bug that caused the low byte to wrap without incrementing the high byte
     private mutating func read16bug(address aAddress: UInt16) -> UInt16
     {
         let a: UInt16 = aAddress
-        let b: UInt16 = (a & 0xFF00) | UInt16((a % 256) &+ 1)
+        let b: UInt16 = (a & 0xFF00) | ((a & 0x00FF) &+ 1)  //UInt16((a % 256) &+ 1)
         let lo = self.read(address: a)
         let hi = self.read(address: b)
         return (UInt16(hi) << 8) | UInt16(lo)
@@ -634,7 +661,7 @@ struct CPU
             else
         {
             numCPUCyclesThisStep = 1
-            self.stall -= 1
+            self.stall &-= 1
             self.stepOthers(forNumCPUCycles: numCPUCyclesThisStep)
             return numCPUCyclesThisStep
         }
@@ -740,11 +767,11 @@ struct CPU
             pageCrossed = false
         }
 
-        self.pc &+= UInt16(instructioninfo.bytes)
-        self.cycles &+= UInt64(instructioninfo.cycles)
+        self.pc &+= instructioninfo.bytes
+        self.cycles &+= instructioninfo.cycles
         if pageCrossed
         {
-            self.cycles &+= UInt64(instructioninfo.pageBoundaryCycles)
+            self.cycles &+= instructioninfo.pageBoundaryCycles
         }
         let info: StepInfo = StepInfo(address: address, pc: self.pc, mode: mode)
         instructioninfo.instruction(&self, info)
@@ -759,7 +786,9 @@ struct CPU
     private mutating func stepOthers(forNumCPUCycles aNumCPUCycles: Int)
     {
         // PPU Step
-        for _ in 0 ..< aNumCPUCycles * 3
+        var i: Int = 0
+        let ppuCycles: Int = aNumCPUCycles &* 3
+        while i < ppuCycles
         {
             let ppuStepResults: PPUStepResults = self.ppu.step()
             if let safeRequestedInterrupt: Interrupt = ppuStepResults.requestedCPUInterrupt
@@ -771,18 +800,21 @@ struct CPU
                 case .none: self.interrupt = .none
                 }
             }
+            i &+= 1
         }
         
         // APU Step
-        for _ in 0 ..< aNumCPUCycles
+        i = 0
+        while i < aNumCPUCycles
         {
             let dmcCurrentAddressValue: UInt8 = self.read(address: self.apu.dmcCurrentAddress)
             let apuStepResults: APUStepResults = self.apu.step(dmcCurrentAddressValue: dmcCurrentAddressValue)
-            self.stall += apuStepResults.numCPUStallCycles
+            self.stall &+= apuStepResults.numCPUStallCycles
             if apuStepResults.shouldTriggerIRQOnCPU
             {
                 self.triggerIRQ()
             }
+            i &+= 1
         }
     }
     
@@ -796,7 +828,7 @@ struct CPU
         let c: UInt8 = aCPU.c ? 1 : 0
         aCPU.a = a &+ b &+ c
         aCPU.setZN(value: aCPU.a)
-        aCPU.c = Int(a) + Int(b) + Int(c) > 0xFF
+        aCPU.c = Int(a) &+ Int(b) &+ Int(c) > 0xFF
         aCPU.v = ((a ^ b) & 0x80) == 0 && ((a ^ aCPU.a) & 0x80) != 0
     }
 

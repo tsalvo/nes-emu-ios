@@ -45,13 +45,13 @@ struct PPU
     private var nameTableData: [UInt8] = [UInt8].init(repeating: 0, count: 2048)
     private var oamData: [UInt8] = [UInt8].init(repeating: 0, count: 256)
     
-    /// for each mirroring mode, return nametable offset sequence
+    /// for each mirroring mode, return nametable offset sequence, pre-adjusted from 0x2000 base address
     private static let nameTableOffsetSequence: [[UInt16]] = [
-        [0, 0, 1024, 1024],
-        [0, 1024, 0, 1024],
-        [0, 0, 0, 0],
-        [1024, 1024, 1024, 1024],
-        [0, 1024, 2048, 3072]
+        [0x0000, 0x0000, 0x0400, 0x0400], // horizontal
+        [0x0000, 0x0400, 0x0000, 0x0400], // vertical
+        [0x0000, 0x0000, 0x0000, 0x0000], // single 0
+        [0x0400, 0x0400, 0x0400, 0x0400], // single 1
+        [0x0000, 0x0400, 0x0800, 0x0C00]  // 4-screen
     ]
     
     private static let nmiMaximumDelay: UInt8 = 16
@@ -240,58 +240,68 @@ struct PPU
     
     mutating func read(address aAddress: UInt16) -> UInt8
     {
-        let address = aAddress % 0x4000
-        switch address {
-        case 0x0000 ... 0x1FFF:
+        let address: UInt16 = aAddress & 0x3FFF
+        if address < 0x2000 // 0x0000 ... 0x1FFF
+        {
             return self.mapper.ppuRead(address: address)
-        case 0x2000 ... 0x2FFF:
+        }
+        else if address < 0x3000 // 0x2000 ... 0x2FFF
+        {
             if self.mapperHasExtendedNametableMapping
             {
                 return self.mapper.ppuRead(address: aAddress)
             }
             else
             {
-                return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)]
+                return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode))]
             }
-        case 0x3000 ... 0x3EFF:
-            return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)]
-        case 0x3F00 ... 0x3FFF:
-            return self.readPalette(address: (address % 32))
-        default:
-            return 0
+        }
+        else if address < 0x3F00 // 0x3000 ... 0x3EFF
+        {
+            return self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode))]
+        }
+        else // 0x3F00 ... 0x3FFF
+        {
+            return self.readPalette(address: address & 0x1F)
         }
     }
     
     mutating func write(address aAddress: UInt16, value aValue: UInt8)
     {
-        let address = aAddress % 0x4000
-        switch address {
-        case 0x0000 ... 0x1FFF:
+        let address: UInt16 = aAddress & 0x3FFF
+
+        if address < 0x2000 // 0x0000 ... 0x1FFF
+        {
             self.mapper.ppuWrite(address: address, value: aValue)
-        case 0x2000 ... 0x2FFF:
+        }
+        else if address < 0x3000 // 0x2000 ... 0x2FFF
+        {
             if self.mapperHasExtendedNametableMapping
             {
                 self.mapper.ppuWrite(address: address, value: aValue)
             }
             else
             {
-                self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)] = aValue
+                self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode))] = aValue
             }
-        case 0x3000 ... 0x3EFF:
-            self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode) % 2048)] = aValue
-        case 0x3F00 ... 0x3FFF:
-            self.writePalette(address: (address % 32), value: aValue)
-        default:
-            break
+        }
+        else if address < 0x3F00 // 0x3000 ... 0x3EFF
+        {
+            self.nameTableData[Int(self.adjustedPPUAddress(forOriginalAddress: address, withMirroringMode: self.mapper.mirroringMode))] = aValue
+        }
+        else // 0x3F00 ... 0x3FFF
+        {
+            self.writePalette(address: address & 0x001F, value: aValue)
         }
     }
     
+    @inline (__always)
     private func adjustedPPUAddress(forOriginalAddress aOriginalAddress: UInt16, withMirroringMode aMirrorMode: MirroringMode) -> UInt16
     {
-        let address: UInt16 = (aOriginalAddress - 0x2000) % 0x1000
-        let addrRange: UInt16 = address / 0x0400
-        let offset: UInt16 = address % 0x0400
-        return 0x2000 + PPU.nameTableOffsetSequence[Int(aMirrorMode.rawValue)][Int(addrRange)] + offset
+        let address: UInt16 = aOriginalAddress & 0x0FFF
+        let addrRange: UInt16 = address &>> 10
+        let offset: UInt16 = address & 0x03FF
+        return (PPU.nameTableOffsetSequence[aMirrorMode.rawValue][Int(addrRange)] | offset) & 0x07FF // limit to 2KB range (0x0800)
     }
     
     mutating func reset()
@@ -306,12 +316,14 @@ struct PPU
         self.frontBuffer = PPU.emptyBuffer
     }
     
+    @inline (__always)
     private mutating func readPalette(address aAddress: UInt16) -> UInt8 // mutating because it makes a copy of PPU otherwise
     {
         let index: UInt16 = (aAddress >= 16 && aAddress % 4 == 0) ? aAddress - 16 : aAddress
         return self.paletteData[Int(index)]
     }
 
+    @inline (__always)
     private mutating func writePalette(address aAddress: UInt16, value aValue: UInt8)
     {
         let index: UInt16 = (aAddress >= 16 && aAddress % 4 == 0) ? aAddress - 16 : aAddress
@@ -359,6 +371,7 @@ struct PPU
     }
 
     // $2000: PPUCTRL
+    @inline (__always)
     private mutating func writeControl(value aValue: UInt8)
     {
         self.flagNameTable = (aValue >> 0) & 3
@@ -374,6 +387,7 @@ struct PPU
     }
 
     // $2001: PPUMASK
+    @inline (__always)
     private mutating func writeMask(value aValue: UInt8)
     {
         self.flagGrayscale = ((aValue >> 0) & 1) == 1
@@ -387,6 +401,7 @@ struct PPU
     }
     
     // $2002: PPUSTATUS
+    @inline (__always)
     private mutating func readStatus() -> UInt8
     {
         var result = self.register & 0x1F
@@ -403,12 +418,14 @@ struct PPU
     }
 
     // $2003: OAMADDR
+    @inline (__always)
     private mutating func writeOAMAddress(value aValue: UInt8)
     {
         self.oamAddress = aValue
     }
 
     // $2004: OAMDATA (read)
+    @inline (__always)
     private mutating func readOAMData() -> UInt8
     {
         let result: UInt8
@@ -427,6 +444,7 @@ struct PPU
     }
 
     // $2004: OAMDATA (write)
+    @inline (__always)
     private mutating func writeOAMData(value aValue: UInt8)
     {
         self.oamData[Int(self.oamAddress)] = aValue
@@ -434,6 +452,7 @@ struct PPU
     }
 
     // $2005: PPUSCROLL
+    @inline (__always)
     private mutating func writeScroll(value aValue: UInt8)
     {
         if self.w == false
@@ -509,298 +528,72 @@ struct PPU
     /// called by the CPU with 256 bytes of OAM data for sprites and metadata
     mutating func writeOAMDMA(oamDMA aOamData: [UInt8])
     {
-        for i in 0 ..< 256
-        {
-            self.oamData[Int(self.oamAddress)] = aOamData[i]
-            self.oamAddress &+= 1
-        }
+        var newOAMData = aOamData
+        let remaining: Int = 256 - Int(self.oamAddress)
+        memcpy(&self.oamData[Int(self.oamAddress)], &newOAMData, remaining)
+        memcpy(&self.oamData, &newOAMData[remaining - 1], 256 - remaining)
     }
     
-    // NTSC Timing Helper Functions
 
-    private mutating func incrementX()
+    private mutating func fetchSpritePattern(oamDataOffset aOamDataOffset: Int, attributes aAttributes: UInt8, row aRow: Int) -> UInt32
     {
-        // increment hori(v)
-        // if coarse X == 31
-        if self.v & 0x001F == 31
-        {
-            // coarse X = 0
-            self.v &= 0xFFE0
-            // switch horizontal nametable
-            self.v ^= 0x0400
-        }
-        else
-        {
-            // increment coarse X
-            self.v &+= 1
-        }
-    }
-
-    private mutating func incrementY()
-    {
-        // increment vert(v)
-        // if fine Y < 7
-        if self.v & 0x7000 != 0x7000
-        {
-            // increment fine Y
-            self.v &+= 0x1000
-        }
-        else
-        {
-            // fine Y = 0
-            self.v &= 0x8FFF
-            // let y = coarse Y
-            var y = (self.v & 0x03E0) >> 5
-            if y == 29
-            {
-                // coarse Y = 0
-                y = 0
-                // switch vertical nametable
-                self.v ^= 0x0800
-            }
-            else if y == 31
-            {
-                // coarse Y = 0, nametable not switched
-                y = 0
-            }
-            else
-            {
-                // increment coarse Y
-                y &+= 1
-            }
-            // put coarse Y back into v
-            self.v = (self.v & 0xFC1F) | (y << 5)
-        }
-    }
-
-    private mutating func copyX()
-    {
-        // hori(v) = hori(t)
-        // v: .....F.. ...EDCBA = t: .....F.. ...EDCBA
-        self.v = (self.v & 0xFBE0) | (self.t & 0x041F)
-    }
-
-    private mutating func copyY()
-    {
-        // vert(v) = vert(t)
-        // v: .IHGF.ED CBA..... = t: .IHGF.ED CBA.....
-        self.v = (self.v & 0x841F) | (self.t & 0x7BE0)
-    }
-
-    private mutating func setVerticalBlank()
-    {
-        swap(&self.frontBuffer, &self.backBuffer)
-        self.nmiOccurred = true
-    }
-
-    private mutating func clearVerticalBlank()
-    {
-        self.nmiOccurred = false
-    }
-
-    private mutating func fetchNameTableByte()
-    {
-        let v = self.v
-        let address = 0x2000 | (v & 0x0FFF)
-        self.nameTableByte = self.read(address: address)
-    }
-
-    private mutating func fetchAttributeTableByte()
-    {
-        let v = self.v
-        let address = 0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07)
-        let shift = ((v >> 4) & 4) | (v & 2)
-        self.attributeTableByte = ((self.read(address: address) >> shift) & 3) << 2
-    }
-
-    private mutating func fetchLowTileByte()
-    {
-        let fineY = (self.v >> 12) & 7
-        let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
-        let tile = self.nameTableByte
-        let address = table + (UInt16(tile) * 16) + fineY
-        self.lowTileByte = self.read(address: address)
-    }
-
-    private mutating func fetchHighTileByte()
-    {
-        let fineY = (self.v >> 12) & 7
-        let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
-        let tile = self.nameTableByte
-        let address = table + (UInt16(tile) * 16) + fineY
-        self.highTileByte = self.read(address: address + 8)
-    }
-
-    private mutating func storeTileData()
-    {
-        var data: UInt32 = 0
-        for _ in 0 ..< 8
-        {
-            let a = self.attributeTableByte
-            let p1 = (self.lowTileByte & 0x80) >> 7
-            let p2 = (self.highTileByte & 0x80) >> 6
-            self.lowTileByte <<= 1
-            self.highTileByte <<= 1
-            data <<= 4
-            data |= UInt32(a | p1 | p2)
-        }
-        self.tileData |= UInt64(data)
-    }
-
-    private func fetchTileData() -> UInt32
-    {
-        return UInt32(self.tileData >> 32)
-    }
-
-    private func backgroundPixel() -> UInt8
-    {
-        if !self.flagShowBackground
-        {
-            return 0
-        }
-        let data = self.fetchTileData() >> ((7 - self.x) * 4)
-        return UInt8(data & 0x0F)
-    }
-
-    private func spritePixel() -> (UInt8, UInt8)
-    {
-        if !self.flagShowSprites
-        {
-            return (0, 0)
-        }
-        
-        for i in 0 ..< self.spriteCount
-        {
-            var offset = (self.cycle - 1) - Int(self.spritePositions[i])
-            if offset < 0 || offset > 7
-            {
-                continue
-            }
-            offset = 7 - offset
-            let color = UInt8((self.spritePatterns[i] >> UInt8(offset * 4)) & 0x0F)
-            if color % 4 == 0
-            {
-                continue
-            }
-            return (UInt8(i), color)
-        }
-        return (0, 0)
-    }
-
-    private mutating func renderPixel()
-    {
-        let x = self.cycle - 1
-        let y = self.scanline - 8
-        var background = self.backgroundPixel()
-        var spritePixelTuple: (i: UInt8, sprite: UInt8) = self.spritePixel()
-        
-        if x < 8
-        {
-            if !self.flagShowLeftBackground
-            {
-                background = 0
-            }
-            
-            if !self.flagShowLeftSprites
-            {
-                spritePixelTuple.sprite = 0
-            }
-        }
-        
-        let b: Bool = background % 4 != 0
-        let s: Bool = spritePixelTuple.sprite % 4 != 0
-        let color: UInt8
-        
-        if !b
-        {
-            color = s ? (spritePixelTuple.sprite | 0x10) : 0
-        }
-        else if !s
-        {
-            color = background
-        }
-        else
-        {
-            let spritePixelIndex: Int = Int(spritePixelTuple.i)
-            
-            if self.spriteIndexes[spritePixelIndex] == 0 && x < 255
-            {
-                self.flagSpriteZeroHit = 1
-            }
-            
-            if self.spritePriorities[spritePixelIndex] == 0
-            {
-                color = spritePixelTuple.sprite | 0x10
-            }
-            else
-            {
-                color = background
-            }
-        }
-        
-        let index: Int = Int(self.readPalette(address: UInt16(color)) % 64)
-        let paletteColor: UInt32 = PPU.paletteColors[index]
-        self.backBuffer[(256 * y) + x] = paletteColor
-    }
-
-    private mutating func fetchSpritePattern(i aI: Int, row aRow: Int) -> UInt32
-    {
-        var row = aRow
-        var tile = self.oamData[(aI * 4) + 1]
-        let attributes = self.oamData[(aI * 4) + 2]
-        var address: UInt16
-        
+        let tile: UInt16 = UInt16(self.oamData[aOamDataOffset &+ 1])
+        let address: UInt16
+        let tableOffset: UInt16
+        let tileOffset: UInt16
+        let rowOffset: UInt16
         if !self.flagSpriteSize
         {
-            if attributes & 0x80 == 0x80
-            {
-                row = 7 - row
-            }
-            
-            let table: UInt16 = self.flagSpriteTable ? 0x1000 : 0
-            address = table + (UInt16(tile) * 16) + UInt16(row)
+            rowOffset = aAttributes & 0x80 == 0x80 ? UInt16(7 &- aRow) : UInt16(aRow)
+            tableOffset = self.flagSpriteTable ? 0x1000 : 0
+            tileOffset = tile &* 16
+            address = tableOffset &+ tileOffset &+ rowOffset
         }
         else
         {
-            if attributes & 0x80 == 0x80
+            let r: Int = aAttributes & 0x80 == 0x80 ? 15 &- aRow : aRow
+
+            if r > 7
             {
-                row = 15 - row
-            }
-            let table = tile & 1
-            tile &= 0xFE
-            if row > 7
-            {
-                tile &+= 1
-                row &-= 8
-            }
-            address = 0x1000 * UInt16(table) + UInt16(tile) * 16 + UInt16(row)
-        }
-        
-        let a = (attributes & 3) << 2
-        var lowTileByte = self.read(address: address)
-        var highTileByte = self.read(address: address + 8)
-        var data: UInt32 = 0
-        
-        for _ in 0 ..< 8
-        {
-            var p1: UInt8
-            var p2: UInt8
-            if attributes & 0x40 == 0x40
-            {
-                p1 = (lowTileByte & 1) << 0
-                p2 = (highTileByte & 1) << 1
-                lowTileByte >>= 1
-                highTileByte >>= 1
+                tileOffset = ((tile & 0xFE) &+ 1) &* 16
+                rowOffset =  UInt16(r &- 8)
             }
             else
             {
-                p1 = (lowTileByte & 0x80) >> 7
-                p2 = (highTileByte & 0x80) >> 6
-                lowTileByte <<= 1
-                highTileByte <<= 1
+                tileOffset = (tile & 0xFE) &* 16
+                rowOffset = UInt16(r)
             }
-            data <<= 4
+            
+            tableOffset = (tile & 1) &* 0x1000
+            address = tableOffset &+ tileOffset &+ rowOffset
+        }
+        
+        let a = (aAttributes & 3) &<< 2
+        var lowTileByte = self.read(address: address)
+        var highTileByte = self.read(address: address &+ 8)
+        var data: UInt32 = 0
+        var i: Int = 0
+        while i < 8
+        {
+            let p1: UInt8
+            let p2: UInt8
+            if aAttributes & 0x40 == 0x40
+            {
+                p1 = (lowTileByte & 1) &<< 0
+                p2 = (highTileByte & 1) &<< 1
+                lowTileByte &>>= 1
+                highTileByte &>>= 1
+            }
+            else
+            {
+                p1 = (lowTileByte & 0x80) &>> 7
+                p2 = (highTileByte & 0x80) &>> 6
+                lowTileByte &<<= 1
+                highTileByte &<<= 1
+            }
+            data &<<= 4
             data |= UInt32(a | p1 | p2)
+            i &+= 1
         }
         
         return data
@@ -810,29 +603,29 @@ struct PPU
     {
         let h: Int = self.flagSpriteSize ? 16 : 8
         var count: Int = 0
-        
-        for i in 0 ..< 64
+        var i: Int = 0
+        while i < 64
         {
-            let i4: Int = i * 4
-            let y = self.oamData[i4 + 0]
-            let a = self.oamData[i4 + 2]
-            let x = self.oamData[i4 + 3]
-            let row = self.scanline - Int(y)
+            let i4: Int = i &* 4
+            let y = self.oamData[i4 &+ 0]
+            let a = self.oamData[i4 &+ 2]
+            let x = self.oamData[i4 &+ 3]
+            let row = self.scanline &- Int(y)
             
-            if row < 0 || row >= h
+            if row >= 0 && row < h
             {
-                continue
+                if count < 8
+                {
+                    self.spritePatterns[count] = self.fetchSpritePattern(oamDataOffset: i4, attributes: a, row: row)
+                    self.spritePositions[count] = x
+                    self.spritePriorities[count] = (a &>> 5) & 1
+                    self.spriteIndexes[count] = UInt8(i)
+                }
+                
+                count &+= 1
             }
             
-            if count < 8
-            {
-                self.spritePatterns[count] = self.fetchSpritePattern(i: i, row: row)
-                self.spritePositions[count] = x
-                self.spritePriorities[count] = (a >> 5) & 1
-                self.spriteIndexes[count] = UInt8(i)
-            }
-            
-            count += 1
+            i &+= 1
         }
         
         if count > 8
@@ -843,34 +636,6 @@ struct PPU
         
         self.spriteCount = count
     }
-
-    /// Updates Cycle, ScanLine and Frame counters.
-    private mutating func tick()
-    {
-        if self.cycle == 339 && self.scanline == 261 && (self.flagShowBackground || self.flagShowSprites) && self.f
-        {
-            self.cycle = 0
-            self.scanline = 0
-            self.frame += 1
-            self.f = false
-        }
-        else
-        {
-            self.cycle += 1
-            if self.cycle > 340
-            {
-                self.cycle = 0
-                self.scanline += 1
-                
-                if self.scanline > 261
-                {
-                    self.scanline = 0
-                    self.frame += 1
-                    self.f.toggle()
-                }
-            }
-        }
-    }
     
     /// executes a single PPU cycle, and returns a Boolean indicating whether the CPU should trigger an NMI based on this cycle
     mutating func step() -> PPUStepResults
@@ -879,16 +644,40 @@ struct PPU
         
         if self.nmiDelay > 0
         {
-            self.nmiDelay -= 1
+            self.nmiDelay &-= 1
             if self.nmiDelay == 0 && self.nmiOutput && self.nmiOccurred
             {
                 shouldTriggerNMI = true
             }
         }
         
-        self.tick()
-
         let renderingEnabled: Bool = self.flagShowBackground || self.flagShowSprites
+        
+        // tick
+        if self.cycle == 339 && self.scanline == 261 && renderingEnabled && self.f
+        {
+            self.cycle = 0
+            self.scanline = 0
+            self.frame &+= 1
+            self.f = false
+        }
+        else
+        {
+            self.cycle &+= 1
+            if self.cycle > 340
+            {
+                self.cycle = 0
+                self.scanline &+= 1
+                
+                if self.scanline > 261
+                {
+                    self.scanline = 0
+                    self.frame &+= 1
+                    self.f.toggle()
+                }
+            }
+        }
+        
         let preLine: Bool = self.scanline == 261
         
         if renderingEnabled
@@ -904,47 +693,216 @@ struct PPU
             // background logic
             if safeAreaScanline && visibleCycle
             {
-                self.renderPixel()
+                // render pixel
+                let x = self.cycle &- 1
+                let y = self.scanline &- 8
+                let backgroundPixel: UInt8
+                let spritePixelIndex: UInt8
+                let spritePixel: UInt8
+                let leftEdge = x < 8
+                
+                if leftEdge && !self.flagShowBackground
+                {
+                    backgroundPixel = 0
+                }
+                else
+                {
+                    let data = UInt32(self.tileData &>> 32) &>> ((7 &- self.x) &* 4)
+                    backgroundPixel = UInt8(data & 0x0F)
+                }
+                
+                if self.flagShowSprites
+                {
+                    let lastCycle = self.cycle &- 1
+                    var sp: UInt8 = 0
+                    var spi: UInt8 = 0
+                    
+                    var i: Int = 0
+                    while i < self.spriteCount
+                    {
+                        let offset = lastCycle - Int(self.spritePositions[i])
+                        if offset >= 0 && offset < 8
+                        {
+                            let color = UInt8((self.spritePatterns[i] >> UInt8((7 &- offset) &* 4)) & 0x0F)
+                            if color % 4 != 0
+                            {
+                                sp = color
+                                spi = UInt8(i)
+                                break
+                            }
+                        }
+                        i &+= 1
+                    }
+                    
+                    spritePixel = leftEdge && !self.flagShowLeftSprites ? 0 : sp
+                    spritePixelIndex = spi
+                }
+                else
+                {
+                    spritePixelIndex = 0
+                    spritePixel = 0
+                }
+                
+                let b: Bool = backgroundPixel % 4 != 0
+                let s: Bool = spritePixel % 4 != 0
+                let color: UInt8
+                
+                if !b
+                {
+                    color = s ? (spritePixel | 0x10) : 0
+                }
+                else if !s
+                {
+                    color = backgroundPixel
+                }
+                else
+                {
+                    let spi: Int = Int(spritePixelIndex)
+                    
+                    if self.spriteIndexes[spi] == 0 && x < 255
+                    {
+                        self.flagSpriteZeroHit = 1
+                    }
+                    
+                    if self.spritePriorities[spi] == 0
+                    {
+                        color = spritePixel | 0x10
+                    }
+                    else
+                    {
+                        color = backgroundPixel
+                    }
+                }
+                
+                let paletteAddress: UInt16 = UInt16(color)
+                let paletteAddressIndex: Int = Int((paletteAddress >= 16 && paletteAddress % 4 == 0) ? paletteAddress &- 16 : paletteAddress)
+                let paletteColorsIndex: Int = Int(self.paletteData[paletteAddressIndex] & 0x3F)
+                let paletteColor: UInt32 = PPU.paletteColors[paletteColorsIndex]
+                self.backBuffer[(256 &* y) &+ x] = paletteColor
             }
 
             if renderLine && fetchCycle
             {
-                self.tileData <<= 4
-                switch self.cycle % 8
+                self.tileData &<<= 4
+                switch self.cycle & 0x07
                 {
                 case 1:
-                    self.fetchNameTableByte()
+                    // fetch nametable byte
+                    let v = self.v
+                    let address = 0x2000 | (v & 0x0FFF)
+                    self.nameTableByte = self.read(address: address)
                 case 3:
-                    self.fetchAttributeTableByte()
+                    // fetch attribute table byte
+                    let v = self.v
+                    let address = 0x23C0 | (v & 0x0C00) | ((v &>> 4) & 0x38) | ((v &>> 2) & 0x07)
+                    let shift = ((v &>> 4) & 4) | (v & 2)
+                    self.attributeTableByte = ((self.read(address: address) &>> shift) & 3) &<< 2
                 case 5:
-                    self.fetchLowTileByte()
+                    // fetch low tile byte
+                    let fineY = (self.v &>> 12) & 7
+                    let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
+                    let tile = self.nameTableByte
+                    let address = table &+ (UInt16(tile) &* 16) &+ fineY
+                    self.lowTileByte = self.read(address: address)
                 case 7:
-                    self.fetchHighTileByte()
+                    // fetch high tile byte
+                    let fineY = (self.v &>> 12) & 7
+                    let table: UInt16 = self.flagBackgroundTable ? 0x1000 : 0
+                    let tile = self.nameTableByte
+                    let address = table &+ (UInt16(tile) &* 16) &+ fineY
+                    self.highTileByte = self.read(address: address &+ 8)
                 case 0:
-                    self.storeTileData()
+                    // store tile data
+                    let a = self.attributeTableByte
+                    var data: UInt32 = 0
+                    var i: Int = 0
+                    while i < 8
+                    {
+                        let p1: UInt8 = (self.lowTileByte & 0x80) &>> 7
+                        let p2: UInt8 = (self.highTileByte & 0x80) &>> 6
+                        self.lowTileByte &<<= 1
+                        self.highTileByte &<<= 1
+                        data &<<= 4
+                        data |= UInt32(a | p1 | p2)
+                        i &+= 1
+                    }
+                    self.tileData |= UInt64(data)
                 default: break
                 }
             }
 
             if preLine && self.cycle >= 280 && self.cycle <= 304
             {
-                self.copyY()
+                // copy Y
+                // vert(v) = vert(t)
+                // v: .IHGF.ED CBA..... = t: .IHGF.ED CBA.....
+                self.v = (self.v & 0x841F) | (self.t & 0x7BE0)
             }
 
             if renderLine
             {
                 if fetchCycle && self.cycle % 8 == 0
                 {
-                    self.incrementX()
+                    // increment X
+                    // increment hori(v)
+                    // if coarse X == 31
+                    if self.v & 0x001F == 31
+                    {
+                        // coarse X = 0
+                        self.v &= 0xFFE0
+                        // switch horizontal nametable
+                        self.v ^= 0x0400
+                    }
+                    else
+                    {
+                        // increment coarse X
+                        self.v &+= 1
+                    }
                 }
 
                 if self.cycle == 256
                 {
-                    self.incrementY()
+                    // Increment Y
+                    // increment vert(v)
+                    // if fine Y < 7
+                    if self.v & 0x7000 != 0x7000
+                    {
+                        // increment fine Y
+                        self.v &+= 0x1000
+                    }
+                    else
+                    {
+                        // fine Y = 0
+                        self.v &= 0x8FFF
+                        // let y = coarse Y
+                        var y = (self.v & 0x03E0) >> 5
+                        if y == 29
+                        {
+                            // coarse Y = 0
+                            y = 0
+                            // switch vertical nametable
+                            self.v ^= 0x0800
+                        }
+                        else if y == 31
+                        {
+                            // coarse Y = 0, nametable not switched
+                            y = 0
+                        }
+                        else
+                        {
+                            // increment coarse Y
+                            y &+= 1
+                        }
+                        // put coarse Y back into v
+                        self.v = (self.v & 0xFC1F) | (y << 5)
+                    }
                 }
                 else if self.cycle == 257
                 {
-                    self.copyX()
+                    // copy X
+                    // hori(v) = hori(t)
+                    // v: .....F.. ...EDCBA = t: .....F.. ...EDCBA
+                    self.v = (self.v & 0xFBE0) | (self.t & 0x041F)
                 }
             }
             
@@ -963,28 +921,35 @@ struct PPU
         }
 
         // vblank logic
-        if self.scanline == 241 && self.cycle == 1
+        if self.cycle == 1
         {
-            self.setVerticalBlank()
+            if self.scanline == 241
+            {
+                // set vertical blank
+                swap(&self.frontBuffer, &self.backBuffer)
+                self.nmiOccurred = true
+            }
+            else if preLine
+            {
+                // clear vertical blank
+                self.nmiOccurred = false
+                self.flagSpriteZeroHit = 0
+                self.flagSpriteOverflow = 0
+            }
         }
-
-        if preLine && self.cycle == 1
-        {
-            self.clearVerticalBlank()
-            self.flagSpriteZeroHit = 0
-            self.flagSpriteOverflow = 0
-        }
-
-        let interruptRequestedByMapper: Interrupt?
+        
+        let results: PPUStepResults
+        
         if self.mapperHasStep
         {
-            interruptRequestedByMapper = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites, ppuSpriteSize: self.flagSpriteSize))?.requestedCPUInterrupt
+            let interruptRequestedByMapper: Interrupt? = self.mapper.step(input: MapperStepInput(ppuScanline: self.scanline, ppuCycle: self.cycle, ppuShowBackground: self.flagShowBackground, ppuShowSprites: flagShowSprites, ppuSpriteSize: self.flagSpriteSize))?.requestedCPUInterrupt
+            results = PPUStepResults(requestedCPUInterrupt: interruptRequestedByMapper ?? (shouldTriggerNMI ? .nmi : nil))
         }
         else
         {
-            interruptRequestedByMapper = nil
+            results = PPUStepResults(requestedCPUInterrupt: shouldTriggerNMI ? .nmi : nil)
         }
         
-        return PPUStepResults(requestedCPUInterrupt: interruptRequestedByMapper ?? (shouldTriggerNMI ? .nmi : nil))
+        return results
     }
 }

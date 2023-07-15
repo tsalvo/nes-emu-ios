@@ -41,9 +41,9 @@ struct Mapper_NROM: MapperProtocol
     private let prg: [UInt8]
     /// linear 1D array of all CHR blocks
     private let chr: [UInt8]
-    /// 16KB PRG bank, fixed to first bank
+    /// 16KB PRG bank, fixed to first bank, pre-adjusted for CPU read address offset
     private let prgBankOffset1: Int
-    /// 16KB PRG bank, fixed to last bank, or mirror of first bank
+    /// 16KB PRG bank, fixed to last bank, or mirror of first bank, pre-adjusted for CPU read address offset
     private let prgBankOffset2: Int
     
     /// 8KB of SRAM addressible through 0x6000 ... 0x7FFF, 2KB or 4KB only used in Family Basic
@@ -90,8 +90,8 @@ struct Mapper_NROM: MapperProtocol
         self.chr = c
         self.prg = p
         
-        self.prgBankOffset1 = 0
-        self.prgBankOffset2 = (aCartridge.prgBlocks.count - 1) * 0x4000
+        self.prgBankOffset1 = 0 - 0x8000
+        self.prgBankOffset2 = ((aCartridge.prgBlocks.count - 1) * 0x4000) - 0xC000
     }
     
     // MARK: - Save State
@@ -99,7 +99,7 @@ struct Mapper_NROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [], bools: [], uint8s: self.prgRam, chr: [])
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [], bools: [], uint8s: self.prgRam, chr: [])
         }
         set
         {
@@ -109,17 +109,22 @@ struct Mapper_NROM: MapperProtocol
     }
     
     // MARK: - CPU Handling
-    func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
+    mutating func cpuRead(address aAddress: UInt16) -> UInt8 // 0x6000 ... 0xFFFF
     {
-        switch aAddress
+        if aAddress > 0xBFFF // 0xC000 ... 0xFFFF / PRG Block 1 (or mirror of PRG block 0 if only one PRG exists)
         {
-        case 0x8000 ... 0xBFFF: // PRG Block 0
-            return self.prg[self.prgBankOffset1 + Int(aAddress - 0x8000)]
-        case 0xC000 ... 0xFFFF: // PRG Block 1 (or mirror of PRG block 0 if only one PRG exists)
-            return self.prg[self.prgBankOffset2 + Int(aAddress - 0xC000)]
-        case 0x6000 ... 0x7FFF:
+            return self.prg[self.prgBankOffset2 + Int(aAddress)]
+        }
+        else if aAddress > 0x7FFF // 0x8000 ... 0xBFFF - PRG Block 0
+        {
+            return self.prg[self.prgBankOffset1 + Int(aAddress)]
+        }
+        else if aAddress > 0x5FFF // 0x6000 ... 0x7FFF - PRG RAM
+        {
             return self.prgRam[Int(aAddress - 0x6000)]
-        default:
+        }
+        else
+        {
             os_log("unhandled Mapper_NROM read at address: 0x%04X", aAddress)
             return 0
         }
@@ -140,7 +145,7 @@ struct Mapper_NROM: MapperProtocol
     }
     
     // MARK: - PPU Handling
-    func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
+    mutating func ppuRead(address aAddress: UInt16) -> UInt8 // 0x0000 ... 0x1FFF
     {
         return self.chr[Int(aAddress)]
     }

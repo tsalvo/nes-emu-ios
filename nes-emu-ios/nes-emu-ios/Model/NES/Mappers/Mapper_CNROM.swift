@@ -83,7 +83,7 @@ struct Mapper_CNROM: MapperProtocol
     {
         get
         {
-            MapperState(mirroringMode: self.mirroringMode.rawValue, ints: [self.chrBankOffset], bools: [], uint8s: [], chr: [])
+            MapperState(mirroringMode: UInt8(self.mirroringMode.rawValue), ints: [self.chrBankOffset], bools: [], uint8s: [], chr: [])
         }
         set
         {
