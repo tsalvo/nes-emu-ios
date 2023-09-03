@@ -425,7 +425,6 @@ struct APU
           - After 3 or 4 CPU clock cycles*, the timer is reset.
           - If the mode flag is set, then both "quarter frame" and "half frame" signals are also generated
          */
-        os_log("APU set frame counter %02X", aValue)
         self.framePeriod = 4 + (aValue >> 7) & 1
         self.frameIRQInhibited = (aValue >> 6) & 1 == 0
         
