@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19H2" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22F82" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="APUState_CD" representedClassName="APUState_CD" syncable="YES" codeGenerationType="class">
         <attribute name="audioBuffer" optional="YES" attributeType="Binary"/>
         <attribute name="audioBufferIndex" optional="YES" attributeType="Binary"/>
         <attribute name="cycle" optional="YES" attributeType="Binary"/>
         <attribute name="frameIRQ" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="frameIRQInhibited" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="framePeriod" optional="YES" attributeType="Binary"/>
         <attribute name="frameValue" optional="YES" attributeType="Binary"/>
         <relationship name="consoleState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ConsoleState_CD" inverseName="apuState" inverseEntity="ConsoleState_CD"/>
@@ -158,15 +159,4 @@
         <attribute name="timerValue" optional="YES" attributeType="Binary"/>
         <relationship name="apuState" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="APUState_CD" inverseName="triangleState" inverseEntity="APUState_CD"/>
     </entity>
-    <elements>
-        <element name="APUState_CD" positionX="-72" positionY="9" width="128" height="208"/>
-        <element name="ConsoleState_CD" positionX="-132.98828125" positionY="-183.0234375" width="128" height="148"/>
-        <element name="CPUState_CD" positionX="-193.65625" positionY="-18.19921875" width="128" height="208"/>
-        <element name="DMCState_CD" positionX="-81" positionY="0" width="128" height="238"/>
-        <element name="MapperState_CD" positionX="-81" positionY="117" width="128" height="133"/>
-        <element name="NoiseState_CD" positionX="-90" positionY="-9" width="128" height="268"/>
-        <element name="PPUState_CD" positionX="-21.28515625" positionY="-16.421875" width="128" height="733"/>
-        <element name="PulseState_CD" positionX="-108" positionY="-27" width="128" height="358"/>
-        <element name="TriangleState_CD" positionX="-99" positionY="-18" width="128" height="193"/>
-    </elements>
 </model>

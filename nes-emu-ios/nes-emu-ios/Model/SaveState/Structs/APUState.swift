@@ -31,6 +31,7 @@ struct APUState
     let framePeriod: UInt8
     let frameValue: UInt8
     let frameIRQ: Bool
+    let frameIRQInhibited: Bool
     let audioBuffer: [Float32]
     let audioBufferIndex: UInt32
     let pulse1: PulseState
