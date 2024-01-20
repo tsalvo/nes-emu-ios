@@ -599,7 +599,7 @@ struct APU
             if self.sweepNegate
             {
                 self.timerPeriod -= delta
-                if self.channel == 1
+                if self.channel == 1 && self.timerPeriod > 0
                 {
                     self.timerPeriod -= 1
                 }

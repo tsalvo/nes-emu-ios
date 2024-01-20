@@ -65,10 +65,10 @@
 		9905C9EB2B5C26D700610F39 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995EEC48249DFB2300FE24F8 /* Settings.swift */; };
 		9905C9EC2B5C26D700610F39 /* NesRomDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99488F45248985F100942A1E /* NesRomDocument.swift */; };
 		9905C9ED2B5C26D700610F39 /* Scanlines.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9972A9C9254E8089007D0DBC /* Scanlines.swift */; };
-		9905C9F12B5C271000610F39 /* ScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905C9EE2B5C271000610F39 /* ScreenView.swift */; };
-		9905C9F22B5C271000610F39 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905C9EF2B5C271000610F39 /* ContentView.swift */; };
-		9905C9F32B5C271000610F39 /* ControllerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905C9F02B5C271000610F39 /* ControllerView.swift */; };
 		9905C9F52B5C297400610F39 /* NesDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905C9F42B5C297300610F39 /* NesDocument.swift */; };
+		9905C9F92B5C2E3400610F39 /* ControllerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905C9F62B5C2E3400610F39 /* ControllerView.swift */; };
+		9905C9FA2B5C2E3400610F39 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905C9F72B5C2E3400610F39 /* ContentView.swift */; };
+		9905C9FB2B5C2E3500610F39 /* ScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905C9F82B5C2E3400610F39 /* ScreenView.swift */; };
 		991A515928280185006CAFF6 /* Mapper_NROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A515828280185006CAFF6 /* Mapper_NROM.swift */; };
 		991A515A28280185006CAFF6 /* Mapper_NROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A515828280185006CAFF6 /* Mapper_NROM.swift */; };
 		991A515C28281A55006CAFF6 /* Mapper_UNROM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991A515B28281A55006CAFF6 /* Mapper_UNROM.swift */; };
@@ -278,10 +278,10 @@
 		9905C9AF2B5C268B00610F39 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9905C9B22B5C268B00610F39 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9905C9B42B5C268B00610F39 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		9905C9EE2B5C271000610F39 /* ScreenView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScreenView.swift; sourceTree = "<group>"; };
-		9905C9EF2B5C271000610F39 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = ../../../flamencoSP/flamencoSP.swiftpm/UI/ContentView.swift; sourceTree = "<group>"; };
-		9905C9F02B5C271000610F39 /* ControllerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControllerView.swift; sourceTree = "<group>"; };
 		9905C9F42B5C297300610F39 /* NesDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NesDocument.swift; sourceTree = "<group>"; };
+		9905C9F62B5C2E3400610F39 /* ControllerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControllerView.swift; sourceTree = "<group>"; };
+		9905C9F72B5C2E3400610F39 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		9905C9F82B5C2E3400610F39 /* ScreenView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScreenView.swift; sourceTree = "<group>"; };
 		991A515828280185006CAFF6 /* Mapper_NROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_NROM.swift; sourceTree = "<group>"; };
 		991A515B28281A55006CAFF6 /* Mapper_UNROM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mapper_UNROM.swift; sourceTree = "<group>"; };
 		991A77B325411F8600152369 /* SettingsConfirmationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsConfirmationCell.swift; sourceTree = "<group>"; };
@@ -436,10 +436,10 @@
 			isa = PBXGroup;
 			children = (
 				9905C9AB2B5C268A00610F39 /* nes_emu_visionosApp.swift */,
+				9905C9F72B5C2E3400610F39 /* ContentView.swift */,
+				9905C9F62B5C2E3400610F39 /* ControllerView.swift */,
+				9905C9F82B5C2E3400610F39 /* ScreenView.swift */,
 				9905C9F42B5C297300610F39 /* NesDocument.swift */,
-				9905C9EF2B5C271000610F39 /* ContentView.swift */,
-				9905C9F02B5C271000610F39 /* ControllerView.swift */,
-				9905C9EE2B5C271000610F39 /* ScreenView.swift */,
 				9905C9AF2B5C268B00610F39 /* Assets.xcassets */,
 				9905C9B42B5C268B00610F39 /* Info.plist */,
 				9905C9B12B5C268B00610F39 /* Preview Content */,
@@ -917,6 +917,7 @@
 			files = (
 				9905C9DD2B5C26C700610F39 /* Mapper_CNROM.swift in Sources */,
 				9905C9C12B5C26B800610F39 /* APUState.swift in Sources */,
+				9905C9F92B5C2E3400610F39 /* ControllerView.swift in Sources */,
 				9905C9C32B5C26B800610F39 /* TriangleState.swift in Sources */,
 				9905C9C62B5C26B800610F39 /* PulseState.swift in Sources */,
 				9905C9E32B5C26C700610F39 /* Mapper_MMC5.swift in Sources */,
@@ -929,20 +930,19 @@
 				9905C9B92B5C26AC00610F39 /* Bundle+Version.swift in Sources */,
 				9905C9C02B5C26B800610F39 /* DMCState.swift in Sources */,
 				9905C9D62B5C26C700610F39 /* Mapper_78.swift in Sources */,
-				9905C9F12B5C271000610F39 /* ScreenView.swift in Sources */,
 				9905C9E62B5C26D000610F39 /* MapperIdentifier.swift in Sources */,
 				9905C9CA2B5C26C100610F39 /* Filter.swift in Sources */,
 				9905C9D72B5C26C700610F39 /* Mapper_MMC1.swift in Sources */,
 				9905C9D82B5C26C700610F39 /* Mapper_87.swift in Sources */,
-				9905C9F32B5C271000610F39 /* ControllerView.swift in Sources */,
 				9905C9D22B5C26C700610F39 /* Mapper_MMC4.swift in Sources */,
 				9905C9C42B5C26B800610F39 /* ConsoleState.swift in Sources */,
 				9905C9EC2B5C26D700610F39 /* NesRomDocument.swift in Sources */,
 				9905C9C72B5C26B800610F39 /* MapperState.swift in Sources */,
+				9905C9FB2B5C2E3500610F39 /* ScreenView.swift in Sources */,
 				9905C9CD2B5C26C100610F39 /* APU.swift in Sources */,
 				9905C9D92B5C26C700610F39 /* Mapper_CamericaQuattro.swift in Sources */,
-				9905C9F22B5C271000610F39 /* ContentView.swift in Sources */,
 				9905C9EB2B5C26D700610F39 /* Settings.swift in Sources */,
+				9905C9FA2B5C2E3400610F39 /* ContentView.swift in Sources */,
 				9905C9BD2B5C26AC00610F39 /* Collection+SafeIndex.swift in Sources */,
 				9905C9DA2B5C26C700610F39 /* Mapper_NTDEC2722.swift in Sources */,
 				9905C9D12B5C26C700610F39 /* Mapper_AxROM.swift in Sources */,
