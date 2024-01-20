@@ -35,7 +35,12 @@ struct Console
     /// returns a 256x224 array of palette colors copies from the PPU's current screen buffer
     var screenBuffer: [UInt32]
     {
-        self.cpu.ppu.frontBuffer
+        get {
+            self.cpu.ppu.frontBuffer
+        }
+        set {
+            
+        }
     }
     
     /// returns a ConsoleState struct containing the current state of the CPU, PPU, APU, and Mapper
