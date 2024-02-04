@@ -11,8 +11,8 @@ import SwiftUI
 @main
 struct nes_emu_visionosApp: App {
     var body: some Scene {
-        DocumentGroup(viewing: NesDocument.self) { file in
-            ContentView(document: file.document)
+        WindowGroup {
+            ContentView()
         }
     }
 }
