@@ -20,6 +20,6 @@ struct ScreenView: View {
             decode: nil,
             shouldInterpolate: false,
             intent: .defaultIntent)!, scale: 1.0
-        ).resizable().aspectRatio(/*CGFloat(PPU.screenWidth) / CGFloat(PPU.screenHeight), */contentMode: .fit)
+        ).resizable()
     }
 }

@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9905C9AA2B5C268A00610F39 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 9905C9A92B5C268A00610F39 /* RealityKitContent */; };
-		9905C9AC2B5C268A00610F39 /* nes_emu_visionosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905C9AB2B5C268A00610F39 /* nes_emu_visionosApp.swift */; };
+		9905C9AC2B5C268A00610F39 /* NesEmuApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9905C9AB2B5C268A00610F39 /* NesEmuApp.swift */; };
 		9905C9B02B5C268B00610F39 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9905C9AF2B5C268B00610F39 /* Assets.xcassets */; };
 		9905C9B32B5C268B00610F39 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9905C9B22B5C268B00610F39 /* Preview Assets.xcassets */; };
 		9905C9B82B5C26AC00610F39 /* Data+ValueConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D073225327E4C008AD907 /* Data+ValueConversion.swift */; };
@@ -249,6 +249,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		993F4ECB2B71BF12001C2490 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 99488F34248985F100942A1E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 99E2E2012495D8C1008AFCDB;
+			remoteInfo = "nes-thumbnail-provider";
+		};
 		99E2E20A2495D8C1008AFCDB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 99488F34248985F100942A1E /* Project object */;
@@ -275,7 +282,7 @@
 /* Begin PBXFileReference section */
 		9905C9A52B5C268A00610F39 /* nes-emu-visionos.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "nes-emu-visionos.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9905C9A82B5C268A00610F39 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
-		9905C9AB2B5C268A00610F39 /* nes_emu_visionosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = nes_emu_visionosApp.swift; sourceTree = "<group>"; };
+		9905C9AB2B5C268A00610F39 /* NesEmuApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NesEmuApp.swift; sourceTree = "<group>"; };
 		9905C9AF2B5C268B00610F39 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9905C9B22B5C268B00610F39 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9905C9B42B5C268B00610F39 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -437,7 +444,7 @@
 		9905C9A62B5C268A00610F39 /* nes-emu-visionos */ = {
 			isa = PBXGroup;
 			children = (
-				9905C9AB2B5C268A00610F39 /* nes_emu_visionosApp.swift */,
+				9905C9AB2B5C268A00610F39 /* NesEmuApp.swift */,
 				993F4EC52B6FFDAA001C2490 /* DocumentPickerView.swift */,
 				9905C9F72B5C2E3400610F39 /* ContentView.swift */,
 				993F4EC72B702B86001C2490 /* SettingsView.swift */,
@@ -755,6 +762,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				993F4ECC2B71BF12001C2490 /* PBXTargetDependency */,
 			);
 			name = "nes-emu-visionos";
 			packageProductDependencies = (
@@ -955,7 +963,7 @@
 				9905C9C92B5C26C100610F39 /* Console.swift in Sources */,
 				9905C9CB2B5C26C100610F39 /* Controller.swift in Sources */,
 				9905C9ED2B5C26D700610F39 /* Scanlines.swift in Sources */,
-				9905C9AC2B5C268A00610F39 /* nes_emu_visionosApp.swift in Sources */,
+				9905C9AC2B5C268A00610F39 /* NesEmuApp.swift in Sources */,
 				9905C9CF2B5C26C700610F39 /* Mapper_NROM.swift in Sources */,
 				9905C9DF2B5C26C700610F39 /* Mapper_MMC2.swift in Sources */,
 				9905C9EA2B5C26D700610F39 /* AudioEngine.swift in Sources */,
@@ -1162,6 +1170,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		993F4ECC2B71BF12001C2490 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 99E2E2012495D8C1008AFCDB /* nes-thumbnail-provider */;
+			targetProxy = 993F4ECB2B71BF12001C2490 /* PBXContainerItemProxy */;
+		};
 		99E2E20B2495D8C1008AFCDB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 99E2E2012495D8C1008AFCDB /* nes-thumbnail-provider */;
@@ -1458,8 +1471,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tomsalvo.nes-emu-ios.nes-thumbnail-provider";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
 			};
 			name = Debug;
 		};
@@ -1479,8 +1494,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tomsalvo.nes-emu-ios.nes-thumbnail-provider";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
 			};
 			name = Release;
 		};

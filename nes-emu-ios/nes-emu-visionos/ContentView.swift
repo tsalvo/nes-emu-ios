@@ -16,13 +16,9 @@ public struct ContentView: View {
             screenBuffer: $console.screenBuffer
         )
         .onReceive(timer) { input in
+            guard self.didAppear else { return }
             self.console.stepSeconds(seconds: 1.0 / 60.0)
-            guard
-                self.didAppear,
-                let controller = GCController.controllers().first
-            else {
-                return
-            }
+            guard let controller = GCController.controllers().first else { return }
             if let pad = controller.extendedGamepad {
                 self.console.set(
                     buttonUpPressed: pad.dpad.up.isPressed || pad.leftThumbstick.up.isPressed,

@@ -1,10 +1,3 @@
-//
-//  DocumentPickerView.swift
-//  Flamenco
-//
-//  Created by Tom Salvo on 6/24/21.
-//
-
 import UniformTypeIdentifiers
 import SwiftUI
 
