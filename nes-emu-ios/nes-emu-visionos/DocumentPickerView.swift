@@ -10,13 +10,15 @@ extension UTType {
 struct DocumentPickerView: UIViewControllerRepresentable {
 
     @Binding var console: Console
+    @Binding var tabSelection: Int
     
     func makeCoordinator() -> DocumentPickerCoordinator {
-        return DocumentPickerCoordinator(console: $console)
+        return DocumentPickerCoordinator(console: $console, tabSelection: $tabSelection)
     }
 
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
         let p = UIDocumentPickerViewController(forOpeningContentTypes: [.nesRom])
+        p.allowsMultipleSelection = false
         p.delegate = context.coordinator
         return p
     }
@@ -28,9 +30,11 @@ struct DocumentPickerView: UIViewControllerRepresentable {
 
 class DocumentPickerCoordinator: NSObject, UIDocumentPickerDelegate {
     @Binding var console: Console
+    @Binding var tabSelection: Int
     
-    init(console: Binding<Console>) {
+    init(console: Binding<Console>, tabSelection: Binding<Int>) {
         _console = console
+        _tabSelection = tabSelection
     }
     
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
@@ -47,8 +51,9 @@ class DocumentPickerCoordinator: NSObject, UIDocumentPickerDelegate {
             fileData = Data()
             print(error.localizedDescription)
         }
-        var c = Console(withCartridge: Cartridge(fromData: fileData), sampleRate: ._22050Hz, audioFiltersEnabled: false, state: nil)
+        var c = Console(withCartridge: Cartridge(fromData: fileData), sampleRate: ._44100Hz, audioFiltersEnabled: true, state: nil)
         c.reset()
         console = c
+        tabSelection = 0
     }
 }
